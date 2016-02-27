@@ -1,0 +1,11 @@
+sudo: false
+language: cpp
+compiler: gcc
+install: export CXX="g++-4.8";
+addons:
+  apt:
+    sources: ubuntu-toolchain-r-test
+    packages: g++-4.8
+script: 
+  cd samples;
+  make;
