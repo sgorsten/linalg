@@ -2,6 +2,7 @@
 #include "../linalg.h"
 using namespace linalg::aliases;
 
+#include <vector>
 #include <type_traits>
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__)
 
@@ -217,6 +218,10 @@ int main()
     MATCH(float4x4, pose_matrix(float4(), float3()) );
     MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
     MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
+
+    // Problematic cases, which break if the code is expressed too generically
+    std::vector<int3> tris_a, tris_b;
+    tris_a = std::move(tris_b);
 
     return 0;
 }
