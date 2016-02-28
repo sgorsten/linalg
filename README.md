@@ -187,7 +187,7 @@ These functions assume that a `vec<T,4>` represents a quaternion, expressed as `
 * `qinv(q)` computes the multiplicative inverse of quaternion `q`
 * `qconj(q)` computes `q*`, the conjugate of quaternion `q`
 
-Additionally, there are several functions which assume that a quaternion `q` represents a spatial rotation in 3D space, which transforms a vector `v` via the formula `qvq*`.
+Additionally, there are several functions which assume that a quaternion `q` represents a spatial rotation in 3D space, which transforms a vector `v` via the formula `qvq*`. The unit length quaternions form a double cover over spatial rotations. Therefore, the following functions assume quaternion parameters are of unit length and treat `q` as logically identical to `-q`.
 
 * `qangle(q)` computes the angle of rotation for quaternion `q`, in radians
 * `qaxis(q)` computes the axis of rotation for quaternion `q`
