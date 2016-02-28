@@ -76,7 +76,7 @@ The general pattern for vectors and matrices of other types are shown in the fol
 
 ## Relational Operators
 
-The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the `EqualityComparable` and `LessThanComparable` concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
+The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
 
 ## Elementwise Functions
 
