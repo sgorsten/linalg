@@ -12,7 +12,7 @@ int main()
     const float2 cf2; const float3 cf3; const float4 cf4;
     float2 f2; float3 f3; float4 f4; int2 i2; int3 i3; int4 i4;
     float fs[] = {1,2,3,4};
-
+    
     // Exercise vec<T,2>
     MATCH(float2, float2());
     MATCH(float2, float2(1,2) );
