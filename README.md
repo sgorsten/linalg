@@ -1,6 +1,6 @@
 # linalg.h
 
-![Release is 2.0](https://img.shields.io/badge/release-2.0-blue.svg?style=flat)
+[![Release is 2.0](https://img.shields.io/badge/release-2.0-blue.svg?style=flat)](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h)
 [![License is Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 
 Platform | Build Status |
@@ -8,7 +8,7 @@ Platform | Build Status |
 Visual Studio 2013 | [![Build status](https://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
 GCC 4.8 | [![Build status](https://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
 
-linalg.h is a single header public domain linear algebra library for C++11. 
+[linalg.h](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h) is a single header public domain linear algebra library for C++11. 
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
