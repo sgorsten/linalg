@@ -15,6 +15,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 # Documentation
 
 * [Data Structures](#data-structures)
+* [Relational Operators](#relational-operators)
 * [Elementwise Functions](#elementwise-functions)
 * [Reduction Functions](#reduction-functions)
 * [Vector Algebra](#vector-algebra)
@@ -66,6 +67,10 @@ A variety of useful `typedef`s are provided in `namespace linalg::aliases`, whic
 * `doubleMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<double,M,N>`
 * `intMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<int,M,N>`
 * `boolMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<bool,M,N>`
+
+## Relational Operators
+
+The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the `EqualityComparable` and `LessThanComparable` concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
 
 ## Elementwise Functions
 
@@ -138,12 +143,6 @@ The following operations are available:
 ### Ternary operations
 
 * `clamp(a,b,c)` clamps the elements of `a` to the lower bound `b` and the upper bound `c`
-
-### Relational Operators
-
-The `==` and `!=` operators are defined in terms of exact equivalence, two vectors or matrices compare equal if and only if all componentwise pairs of elements compare equal.
-
-The `<`, `>`, `<=`, and `>=` operators compare two vectors or matrices by lexicographically comparing their elements. This allows for vectors or matrices to be passed to `std::sort` or used as the key type in `std::set` and `std::map`.
 
 ## Reduction Functions
 
