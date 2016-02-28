@@ -1,6 +1,62 @@
-// Since linalg relies heavily on templating, this test is simply meant to instantiate each template at least once
 #include "../linalg.h"
 using namespace linalg::aliases;
+
+#define CATCH_CONFIG_MAIN
+#include "thirdparty/catch.hpp"
+
+template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
+template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int j=0; j<N; ++j) require_zero(m[j]); }
+
+TEST_CASE( "linalg types default construct to zero" ) 
+{
+    require_zero( uint2() );
+    require_zero( int3x4() );
+    require_zero( ushort4() );
+    require_zero( float4x2() );
+    require_zero( double2x3() );
+}
+
+TEST_CASE( "equality and inequality operators" )
+{
+    // Two vectors compare equal if all elements are equal
+    REQUIRE(   float4(1,2,3,4) == float4(1,2,3,4)  );
+    REQUIRE( !(float4(1,2,3,4) == float4(5,2,3,4)) );
+    REQUIRE( !(float4(1,2,3,4) == float4(1,5,3,4)) );
+    REQUIRE( !(float4(1,2,3,4) == float4(1,2,5,4)) );
+    REQUIRE( !(float4(1,2,3,4) == float4(1,2,3,5)) );
+
+    // Two vectors compare inequal if at least one element is inequal
+    REQUIRE( !(float4(1,2,3,4) != float4(1,2,3,4)) );
+    REQUIRE(   float4(1,2,3,4) != float4(5,2,3,4)  );
+    REQUIRE(   float4(1,2,3,4) != float4(1,5,3,4)  );
+    REQUIRE(   float4(1,2,3,4) != float4(1,2,5,4)  );
+    REQUIRE(   float4(1,2,3,4) != float4(1,2,3,5)  );
+}
+
+TEST_CASE( "operator overloads produce correct results" )
+{
+    // All operators can be applied to vector types, and results are computed elementwise
+    REQUIRE( float2(2,3) + float2(4,12) == float2(  6,  15) );
+    REQUIRE( float2(2,3) - float2(4,12) == float2( -2,  -9) );
+    REQUIRE( float2(2,3) * float2(4,12) == float2(  8,  36) );
+    REQUIRE( float2(2,3) / float2(4,12) == float2(0.5,0.25) );
+    REQUIRE(  int2(27,31) % int2(5,8)  == int2( 2,  7) );
+    REQUIRE( (int2(27,31) | int2(5,8)) == int2(31, 31) );
+    REQUIRE( (int2(27,31) ^ int2(5,8)) == int2(30, 23) );
+    REQUIRE( (int2(27,31) & int2(5,8)) == int2( 1,  8) );
+    REQUIRE(  int2(14,35) << int2(2,3) == int2(56,280) );
+    REQUIRE(  int2(14,35) >> int2(2,3) == int2( 3,  4) );
+}
+
+TEST_CASE( "elementwise comparison functions produce correct results" )
+{
+    REQUIRE( equal  (float3(1,2,3), float3(4,-2,3)) == bool3(false, false, true ) );
+    REQUIRE( nequal (float3(1,2,3), float3(4,-2,3)) == bool3(true,  true,  false) );
+    REQUIRE( less   (float3(1,2,3), float3(4,-2,3)) == bool3(true,  false, false) );
+    REQUIRE( greater(float3(1,2,3), float3(4,-2,3)) == bool3(false, true,  false) );
+    REQUIRE( lequal (float3(1,2,3), float3(4,-2,3)) == bool3(true,  false, true ) );
+    REQUIRE( gequal (float3(1,2,3), float3(4,-2,3)) == bool3(false, true,  true ) );
+}
 
 #include <vector>
 #include <type_traits>
@@ -8,7 +64,7 @@ using namespace linalg::aliases;
 template<class T> void take(const T &) {}
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
 
-int main()
+TEST_CASE( "templates instantiate correctly", "" ) 
 {
     // Declare some variables to test functions requiring an lvalue
     const float2 cf2; const float3 cf3; const float4 cf4;
@@ -228,6 +284,4 @@ int main()
     // Problematic cases, which break if the code is expressed too generically
     std::vector<int3> tris_a, tris_b;
     tris_a = std::move(tris_b);
-
-    return 0;
 }
