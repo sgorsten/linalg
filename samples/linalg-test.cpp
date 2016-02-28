@@ -181,6 +181,8 @@ int main()
     MATCH(float, distance(float2(), float2()) );
     MATCH(float3, normalize(float3()) );
     MATCH(float4, lerp(float4(), float4(), float()) );
+    MATCH(float4, nlerp(float4(), float4(), float()) );
+    MATCH(float4, slerp(float4(), float4(), float()) );
 
     // Exercise quaternion algebra functions
     MATCH(float4, qconj(float4()) );
@@ -191,8 +193,9 @@ int main()
     MATCH(float3, qzdir(float4()) );
     MATCH(float3, qrot(float4(), float3()) );
     MATCH(float , qangle(float4()) );
-    MATCH(float3, qaxis (float4()) );
-    MATCH(float4, qlerp (float4(), float4(), float()) );
+    MATCH(float3, qaxis(float4()) );
+    MATCH(float4, qnlerp(float4(), float4(), float()) );
+    MATCH(float4, qslerp(float4(), float4(), float()) );
 
     // TODO: mul, adjugate, determinant, inverse, transpose
     MATCH(float3  , mul(float3x2(), float2()) );

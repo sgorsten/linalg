@@ -138,12 +138,12 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
     template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
     template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
@@ -268,9 +268,11 @@ namespace linalg
     template<class T, int M> vec<T,M> normalize(const vec<T,M> & a)                          { return a / length(a); }
     template<class T, int M> T        distance2(const vec<T,M> & a, const vec<T,M> & b)      { return length2(b-a); }
     template<class T, int M> T        distance (const vec<T,M> & a, const vec<T,M> & b)      { return length(b-a); }
+    template<class T, int M> T        uangle   (const vec<T,M> & a, const vec<T,M> & b)      { T d=dot(a,b); return d > 1 ? 0 : std::acos(d < -1 ? -1 : d); }
     template<class T, int M> vec<T,M> lerp     (const vec<T,M> & a, const vec<T,M> & b, T t) { return a*(1-t) + b*t; }
     template<class T, int M> vec<T,M> nlerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { return normalize(lerp(a,b,t)); }
-    
+    template<class T, int M> vec<T,M> slerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { T th=uangle(a,b); return th == 0 ? a : a*(std::sin(th*(1-t))/std::sin(th)) + b*(std::sin(th*t)/std::sin(th)); }
+
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
     template<class T> vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
     template<class T> vec<T,4> qinv (const vec<T,4> & q)                     { return q/length2(q); }
@@ -285,7 +287,8 @@ namespace linalg
     template<class T> vec<T,3>   qrot  (const vec<T,4> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
     template<class T> T	         qangle(const vec<T,4> & q)                          { return std::acos(q.w)*2; }
     template<class T> vec<T,3>   qaxis (const vec<T,4> & q)                          { return normalize(q.xyz()); }
-    template<class T> vec<T,4>   qlerp (const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
+    template<class T> vec<T,4>   qnlerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
+    template<class T> vec<T,4>   qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
     // Support for matrix algebra
     template<class T, int M> vec<T,M> mul(const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
