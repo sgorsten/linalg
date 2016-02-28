@@ -15,7 +15,6 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 # Documentation
 
 * [Data Structures](#data-structures)
-* [Operator Overloads](#operator-overloads)
 * [Elementwise Functions](#elementwise-functions)
 * [Reduction Functions](#reduction-functions)
 * [Vector Algebra](#vector-algebra)
@@ -68,35 +67,83 @@ A variety of useful `typedef`s are provided in `namespace linalg::aliases`, whic
 * `intMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<int,M,N>`
 * `boolMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<bool,M,N>`
 
-## Operator Overloads
+## Elementwise Functions
 
-For any operator `$` in the set `+`, `-`, `~`, and `!`, the following operation is supported:
+A large number of functions and operator overloads exist which interpret vectors and matrices simply as fixed-size blocks of numbers. These operations will simply apply operations to each component of a vector or matrix, or to componentwise pairs of vectors and matrices of compatible size, and produce a new vector or matrix of the same size containing the results.
 
-* `vec<T,M> operator $ (const vec<T,M> & a)`
+### Unary Operations
 
-For any operator `$` in the set `+`, `-`, `*`, `/`, `%`, `|`, `^`, `&`, `<<`, and `>>`, the following operations are supported:
+For any vector or matrix `a`, the following unary operations will result in a vector or matrix of the same size:
 
-* `vec<T,M> operator $ (const vec<T,M> & a, const vec<T,M> & b)`
-* `vec<T,M> operator $ (const vec<T,M> & a, T b)`
-* `vec<T,M> operator $ (T a, const vec<T,M> & b)`
-* `vec<T,M> & operator $= (vec<T,M> & a, const vec<T,M> & b)`
-* `vec<T,M> & operator $= (vec<T,M> & a, T b)`
+* `+a` applies the unary `operator +` to each element from `a`
+* `-a` applies the unary `operator -` to each element from `a`
+* `~a` applies the `operator ~` to each element from `a`
+* `!a` applies the `operator !` to each element from `a`, producing a vector or matrix of bools
+* `abs(a)` applies `std::abs(...)` to each element from `a`
+* `floor(a)` applies `std::floor(...)` to each element from `a`
+* `ceil(a)` applies `std::ceil(...)` to each element from `a`
+* `exp(a)` applies `std::exp(...)` to each element from `a`
+* `log(a)` applies `std::log(...)` to each element from `a`
+* `log10(a)` applies `std::log10(...)` to each element from `a`
+* `sqrt(a)` applies `std::sqrt(...)` to each element from `a`
+* `sin(a)` applies `std::sin(...)` to each element from `a`
+* `cos(a)` applies `std::cos(...)` to each element from `a`
+* `tan(a)` applies `std::tan(...)` to each element from `a`
+* `asin(a)` applies `std::asin(...)` to each element from `a`
+* `acos(a)` applies `std::acos(...)` to each element from `a`
+* `atan(a)` applies `std::atan(...)` to each element from `a`
+* `sinh(a)` applies `std::sinh(...)` to each element from `a`
+* `cosh(a)` applies `std::cosh(...)` to each element from `a`
+* `tanh(a)` applies `std::tanh(...)` to each element from `a`
+* `round(a)` applies `std::round(...)` to each element from `a`
 
-In all cases, the behavior is equivalent to applying the operator `$` to componentwise pairs of elements from `a` and `b`, and producing a new vector or matrix from the results. For the overloads which accept a scalar on the left or right hand sides, the behavior is as though the scalar were replaced by a vector or matrix of compatible size whose elements are all equal to the provided scalar.
+### Binary Operations
+
+For values `a` and `b`, there are a number of binary operations available, which produce vectors or matrices by performing the operation on elementwise pairs from `a` and `b`. If either `a` or `b` (but not both) are a scalar, the scalar is paired with each element from the other value, as
+
+type of `a`  | type of `b`  | `f(a,b)` produces | by combining            |
+------------ | ------------ | ------------------|-------------------------|
+`vec<T,M>`   | `vec<T,M>`   | `vec<T,M>`        | `a[i]` and `b[i]`       |
+`vec<T,M>`   | `T`          | `vec<T,M>`        | `a[i]` and `b`          |
+`T`          | `vec<T,M>`   | `vec<T,M>`        | `a` and `b[i]`          |
+`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N>`      | `a[j][i]` and `b[j][i]` |
+`mat<T,M,N>` | `T`          | `mat<T,M,N>`      | `a[j][i]` and `b`       |
+`T`          | `mat<T,M,N>` | `mat<T,M,N>`      | `a` and `b[j][i]`       |
+
+The following operations are available:
+
+* `a+b` applies the binary `operator +` to componentwise pairs of elements from `a` and `b`
+* `a-b` applies the binary `operator -` to componentwise pairs of elements from `a` and `b`
+* `a*b` applies the `operator *` to componentwise pairs of elements from `a` and `b`
+* `a/b` applies the `operator /` to componentwise pairs of elements from `a` and `b`
+* `a%b` applies the `operator %` to componentwise pairs of elements from `a` and `b`
+* `a|b` applies the `operator |` to componentwise pairs of elements from `a` and `b`
+* `a^b` applies the `operator ^` to componentwise pairs of elements from `a` and `b`
+* `a&b` applies the `operator &` to componentwise pairs of elements from `a` and `b`
+* `a<<b` applies the `operator <<` to componentwise pairs of elements from `a` and `b`
+* `a>>b` applies the `operator >>` to componentwise pairs of elements from `a` and `b`
+* `min(a,b)` is equivalent to applying `std::min(...)` to componentwise pairs of elements from `a` and `b`
+* `max(a,b)` is equivalent to applying `std::max(...)` to componentwise pairs of elements from `a` and `b`
+* `fmod(a,b)` applies `std::fmod(...)` to componentwise pairs of elements from `a` and `b`
+* `pow(a,b)` applies `std::pow(...)` to componentwise pairs of elements from `a` and `b`
+* `atan2(a,b)` applies `std::atan2(...)` to componentwise pairs of elements from `a` and `b`
+
+* `equal(a,b)` applies the `operator ==` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+* `nequal(a,b)` applies the `operator !=` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+* `less(a,b)` applies the `operator <` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+* `greater(a,b)` applies the `operator >` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+* `lequal(a,b)` applies the `operator <=` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+* `gequal(a,b)` applies the `operator >=` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
+
+### Ternary operations
+
+* `clamp(a,b,c)` clamps the elements of `a` to the lower bound `b` and the upper bound `c`
+
+### Relational Operators
 
 The `==` and `!=` operators are defined in terms of exact equivalence, two vectors or matrices compare equal if and only if all componentwise pairs of elements compare equal.
 
 The `<`, `>`, `<=`, and `>=` operators compare two vectors or matrices by lexicographically comparing their elements. This allows for vectors or matrices to be passed to `std::sort` or used as the key type in `std::set` and `std::map`.
-
-## Elementwise Functions
-
-The unary functions `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, and `round` can be called with any vector type. The result is equivalent to producing a vector by calling the equivalent function from the `std::` namespace on every element of a vector.
-
-The binary functions `min`, `max`, `fmod`, `pow`, and `atan2` can be called with any two matching vectors. The result is equivalent to producing a vector or matrix by calling the equivalent function from the `std::` namespace on componentwise pairs of elements from the vectors.
-
-* `clamp(a,b,c)` clamps the elements of `a` to the lower bound `b` and the upper bound `c`
-
-The binary functions `equal`, `nequal`, `less`, `greater`, `lequal`, and `gequal` can be called with any two matching vectors. The result is a vector or matrix of `bool` type formed by comparing the elements of the vectors with operator `==`, `!=`, `<`, `>`, `<=`, and `>=` respectively.
 
 ## Reduction Functions
 
