@@ -154,20 +154,20 @@ namespace linalg
     template<class T, class F> T fold(const vec<T,4> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
     // Produce a vector/matrix by applying f(T,T) to corresponding pairs of elements from vectors/matrix a and b
-    template<class T,               class F> vec<std::result_of_t<F(T,T)>,2  > zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y)}; }
-    template<class T,               class F> vec<std::result_of_t<F(T,T)>,3  > zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
-    template<class T,               class F> vec<std::result_of_t<F(T,T)>,4  > zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class T, int M,        class F> vec<std::result_of_t<F(T,T)>,M  > zip(const vec<T,M  > & a,                  T b, F f) { return zip(a, vec<T,M>(b), f); }
-    template<class T, int M,        class F> vec<std::result_of_t<F(T,T)>,M  > zip(                 T a, const vec<T,M  > & b, F f) { return zip(vec<T,M>(a), b, f); }
-    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,2> zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
-    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,3> zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
-    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,4> zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
-    template<class T, int M, int N, class F> mat<std::result_of_t<F(T,T)>,M,N> zip(const mat<T,M,N> & a,                  T b, F f) { return zip(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> mat<std::result_of_t<F(T,T)>,M,N> zip(                 T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
+    template<class T,               class F> vec<typename std::result_of<F(T,T)>::type,2  > zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y)}; }
+    template<class T,               class F> vec<typename std::result_of<F(T,T)>::type,3  > zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
+    template<class T,               class F> vec<typename std::result_of<F(T,T)>::type,4  > zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
+    template<class T, int M,        class F> vec<typename std::result_of<F(T,T)>::type,M  > zip(const vec<T,M  > & a,                  T b, F f) { return zip(a, vec<T,M>(b), f); }
+    template<class T, int M,        class F> vec<typename std::result_of<F(T,T)>::type,M  > zip(                 T a, const vec<T,M  > & b, F f) { return zip(vec<T,M>(a), b, f); }
+    template<class T, int M,        class F> mat<typename std::result_of<F(T,T)>::type,M,2> zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
+    template<class T, int M,        class F> mat<typename std::result_of<F(T,T)>::type,M,3> zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
+    template<class T, int M,        class F> mat<typename std::result_of<F(T,T)>::type,M,4> zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
+    template<class T, int M, int N, class F> mat<typename std::result_of<F(T,T)>::type,M,N> zip(const mat<T,M,N> & a,                  T b, F f) { return zip(a, mat<T,M,N>(b), f); }
+    template<class T, int M, int N, class F> mat<typename std::result_of<F(T,T)>::type,M,N> zip(                 T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
 
     // Produce a vector/matrix by applying f(T) to elements from vector/matrix a
-    template<class T, int M,        class F> vec<std::result_of_t<F(T)>,M  > map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
-    template<class T, int M, int N, class F> mat<std::result_of_t<F(T)>,M,N> map(const mat<T,M,N> & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
+    template<class T, int M,        class F> vec<typename std::result_of<F(T)>::type,M  > map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
+    template<class T, int M, int N, class F> mat<typename std::result_of<F(T)>::type,M,N> map(const mat<T,M,N> & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
 
     // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
     template<class T, int M> bool operator == (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) == reinterpret_cast<const std::array<T,M> &>(b); } 
