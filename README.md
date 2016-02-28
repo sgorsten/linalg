@@ -53,20 +53,26 @@ The library is built on two fundamental template types, `linalg::vec<T,M>` and `
 
 ### Convenience Aliases
 
-A variety of useful `typedef`s are provided in `namespace linalg::aliases`, which can be brought into scope with a `using` declaration.
+A variety of useful `typedef`s are provided in `namespace linalg::aliases`, which can be brought into scope with a `using` declaration. The typedefs for `float` based vectors and matrices are shown below:
 
-* `floatM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<float,M>`
-* `doubleM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<double,M>`
-* `intM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<int,M>`
-* `uintM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<unsigned,M>` 
-* `shortM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<int16_t,M>`
-* `ushortM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<uint16_t,M>` 
-* `byteM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<uint8_t,M>`
-* `boolM` for `M` in `2`,`3`,`4` is an alias for `linalg::vec<bool,M>`
-* `floatMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<float,M,N>`
-* `doubleMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<double,M,N>`
-* `intMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<int,M,N>`
-* `boolMxN` for `M` and `N` in `2`,`3`,`4` is an alias for `linalg::mat<bool,M,N>`
+|          | vector   | `2` columns | `3` columns | `4` columns |
+|----------|----------|-------------|-------------|-------------|
+| `2` rows | `float2` | `float2x2`  | `float2x3`  | `float2x4`  |
+| `3` rows | `float3` | `float3x2`  | `float3x3`  | `float3x4`  |
+| `4` rows | `float4` | `float4x2`  | `float4x3`  | `float4x4`  |
+
+The general pattern for vectors and matrices of other types are shown in the following table:
+
+| underlying type | `vec<T,M>` typedef | `mat<T,M,N>` typedef |
+|-----------------|--------------------|----------------------|
+| `float`         | `floatM`           | `floatMxN`           |
+| `double`        | `doubleM`          | `doubleMxN`          |
+| `int`           | `intM`             | `intMxN`             |
+| `bool`          | `boolM `           | `boolMxN`            |
+| `unsigned`      | `uintM`            |                      |
+| `int16_t`       | `shortM`           |                      |
+| `uint16_t`      | `ushortM`          |                      |
+| `uint8_t`       | `byteM`            |                      |
 
 ## Relational Operators
 
