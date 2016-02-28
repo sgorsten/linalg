@@ -192,7 +192,7 @@ Additionally, there are several functions which assume that a quaternion `q` rep
 
 ## Matrix Algebra
 
-These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `vec<T,M>` represents an `M`x`1` matrix.
+These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `vec<T,M>` represents an `M`x`1` matrix. Note that matrix multiplication is explicitly denoted via the function `mul`, as `operator *` already refers to elementwise multiplication of two matrices.
 
 * `mul(a,b)` computes the product `ab` of matrices `a` and `b`
 * `transpose(a)` computes the transpose of matrix `a`
