@@ -4,7 +4,9 @@ using namespace linalg::aliases;
 
 #include <vector>
 #include <type_traits>
-#define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__)
+
+template<class T> void take(const T &) {}
+#define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
 
 int main()
 {
@@ -12,7 +14,7 @@ int main()
     const float2 cf2; const float3 cf3; const float4 cf4;
     float2 f2; float3 f3; float4 f4; int2 i2; int3 i3; int4 i4;
     float fs[] = {1,2,3,4};
-    
+
     // Exercise vec<T,2>
     MATCH(float2, float2());
     MATCH(float2, float2(1,2) );
@@ -47,8 +49,9 @@ int main()
     // TODO: Exercise mat<T,M,N> for N=2,3,4
 
     // Exercise sequence functions
-    for(float & f : f4) {}
-    for(float f : float4()) {}
+    for(float & f : f4) take(f);
+    for(float f : float4()) take(f);
+    for(float4 & f : float4x4()) take(f);
 
     // Exercise relational operators
     MATCH(bool, int2() == int2() );
