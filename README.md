@@ -55,11 +55,11 @@ The library is built on two fundamental template types, `linalg::vec<T,M>` and `
 
 A variety of useful `typedef`s are provided in `namespace linalg::aliases`, which can be brought into scope with a `using` declaration. The typedefs for `float` based vectors and matrices are shown below:
 
-|          | vector   | `2` columns | `3` columns | `4` columns |
-|----------|----------|-------------|-------------|-------------|
-| `2` rows | `float2` | `float2x2`  | `float2x3`  | `float2x4`  |
-| `3` rows | `float3` | `float3x2`  | `float3x3`  | `float3x4`  |
-| `4` rows | `float4` | `float4x2`  | `float4x3`  | `float4x4`  |
+|          | vector   | 2 columns  | 3 columns  | 4 columns  |
+|----------|----------|------------|------------|------------|
+| *2 rows* | `float2` | `float2x2` | `float2x3` | `float2x4` |
+| *3 rows* | `float3` | `float3x2` | `float3x3` | `float3x4` |
+| *4 rows* | `float4` | `float4x2` | `float4x3` | `float4x4` |
 
 The general pattern for vectors and matrices of other types are shown in the following table:
 
