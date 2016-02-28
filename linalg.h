@@ -47,9 +47,10 @@
 #ifndef LINALG_H
 #define LINALG_H
 
-#include <cmath>    // For various unary math functions, such as std::sqrt
-#include <cstdint>  // For implementing namespace linalg::aliases
-#include <array>    // For std::array, used in the relational operator overloads
+#include <cmath>        // For various unary math functions, such as std::sqrt
+#include <cstdint>      // For implementing namespace linalg::aliases
+#include <array>        // For std::array, used in the relational operator overloads
+#include <type_traits>  // For std::result_of
 
 namespace linalg
 {
@@ -152,27 +153,21 @@ namespace linalg
     template<class T, class F> T fold(const vec<T,3> & a, F f) { return f(f(a.x,a.y),a.z); }
     template<class T, class F> T fold(const vec<T,4> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
-    // Produce a vector/matrix by applying f(T,T) -> R to corresponding pairs of elements from vectors/matrix a and b
-    template<class T, class F, class R=T> vec<R,2> zip(const vec<T,2> & a, const vec<T,2> & b, F f) { return {R(f(a.x,b.x)), R(f(a.y,b.y))}; }
-    template<class T, class F, class R=T> vec<R,3> zip(const vec<T,3> & a, const vec<T,3> & b, F f) { return {R(f(a.x,b.x)), R(f(a.y,b.y)), R(f(a.z,b.z))}; }
-    template<class T, class F, class R=T> vec<R,4> zip(const vec<T,4> & a, const vec<T,4> & b, F f) { return {R(f(a.x,b.x)), R(f(a.y,b.y)), R(f(a.z,b.z)), R(f(a.w,b.w))}; }
-    template<class T, int M, class F> vec<bool,M> zipb(const vec<T,M> & a, const vec<T,M> & b, F f) { return zip<T,F,bool>(a,b,f); }
-    template<class T, int M, class F, class R=T> mat<R,M,2> zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return {zip<T,F,R>(a.x,b.x,f), zip<T,F,R>(a.y,b.y,f)}; }
-    template<class T, int M, class F, class R=T> mat<R,M,3> zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return {zip<T,F,R>(a.x,b.x,f), zip<T,F,R>(a.y,b.y,f), zip<T,F,R>(a.z,b.z,f)}; }
-    template<class T, int M, class F, class R=T> mat<R,M,4> zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return {zip<T,F,R>(a.x,b.x,f), zip<T,F,R>(a.y,b.y,f), zip<T,F,R>(a.z,b.z,f), zip<T,F,R>(a.w,b.w,f)}; }
-    template<class T, int M, int N, class F> mat<bool,M,N> zipb(const mat<T,M,N> & a, const mat<T,M,N> & b, F f) { return zip<T,M,F,bool>(a,b,f); }
+    // Produce a vector/matrix by applying f(T,T) to corresponding pairs of elements from vectors/matrix a and b
+    template<class T,               class F> vec<std::result_of_t<F(T,T)>,2  > zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y)}; }
+    template<class T,               class F> vec<std::result_of_t<F(T,T)>,3  > zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
+    template<class T,               class F> vec<std::result_of_t<F(T,T)>,4  > zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
+    template<class T, int M,        class F> vec<std::result_of_t<F(T,T)>,M  > zip(const vec<T,M  > & a,                  T b, F f) { return zip(a, vec<T,M>(b), f); }
+    template<class T, int M,        class F> vec<std::result_of_t<F(T,T)>,M  > zip(                 T a, const vec<T,M  > & b, F f) { return zip(vec<T,M>(a), b, f); }
+    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,2> zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
+    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,3> zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
+    template<class T, int M,        class F> mat<std::result_of_t<F(T,T)>,M,4> zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
+    template<class T, int M, int N, class F> mat<std::result_of_t<F(T,T)>,M,N> zip(const mat<T,M,N> & a,                  T b, F f) { return zip(a, mat<T,M,N>(b), f); }
+    template<class T, int M, int N, class F> mat<std::result_of_t<F(T,T)>,M,N> zip(                 T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
 
-    template<class T, int M, class F> vec<T,M> zip(const vec<T,M> & a, T b, F f) { return zip(a, vec<T,M>(b), f); }
-    template<class T, int M, class F> vec<T,M> zip(T a, const vec<T,M> & b, F f) { return zip(vec<T,M>(a), b, f); }
-    template<class T, int M, class F> vec<bool,M> zipb(const vec<T,M> & a, T b, F f) { return zipb(a, vec<T,M>(b), f); }
-    template<class T, int M, class F> vec<bool,M> zipb(T a, const vec<T,M> & b, F f) { return zipb(vec<T,M>(a), b, f); }
-    template<class T, int M, int N, class F> mat<T,M,N> zip(const mat<T,M,N> & a, T b, F f) { return zip(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> mat<T,M,N> zip(T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
-    template<class T, int M, int N, class F> mat<bool,M,N> zipb(const mat<T,M,N> & a, T b, F f) { return zipb(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> mat<bool,M,N> zipb(T a, const mat<T,M,N> & b, F f) { return zipb(mat<T,M,N>(a), b, f); }
-
-    template<class A, class F> result_t<A> map(const A & a, F f) { return zip(a, a, [f](scalar_t<A,A> l, scalar_t<A>) { return f(l); }); }
-    template<class A, class F> bool_result_t<A> mapb(const A & a, F f) { return zipb(a, a, [f](scalar_t<A,A> l, scalar_t<A>) { return f(l); }); }
+    // Produce a vector/matrix by applying f(T) to elements from vector/matrix a
+    template<class T, int M,        class F> vec<std::result_of_t<F(T)>,M  > map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
+    template<class T, int M, int N, class F> mat<std::result_of_t<F(T)>,M,N> map(const mat<T,M,N> & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
 
     // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
     template<class T, int M> bool operator == (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) == reinterpret_cast<const std::array<T,M> &>(b); } 
@@ -202,7 +197,7 @@ namespace linalg
     template<class A> result_t<A> operator + (const A & a) { return map(a, [](scalar_t<A> l) { return +l; }); }
     template<class A> result_t<A> operator - (const A & a) { return map(a, [](scalar_t<A> l) { return -l; }); }
     template<class A> result_t<A> operator ~ (const A & a) { return map(a, [](scalar_t<A> l) { return ~l; }); }
-    template<class A> bool_result_t<A> operator ! (const A & a) { return mapb(a, [](scalar_t<A> l) { return !l; }); }
+    template<class A> bool_result_t<A> operator ! (const A & a) { return map(a, [](scalar_t<A> l) { return !l; }); }
 
     // Mirror the set of unary scalar math functions to apply elementwise to vectors
     template<class A> result_t<A> abs  (const A & a) { return map(a, [](scalar_t<A> l) { return std::abs  (l); }); }
@@ -223,18 +218,18 @@ namespace linalg
     template<class A> result_t<A> tanh (const A & a) { return map(a, [](scalar_t<A> l) { return std::tanh (l); }); }
     template<class A> result_t<A> round(const A & a) { return map(a, [](scalar_t<A> l) { return std::round(l); }); }
 
-    // Overloads for vector op vector are implemented in terms of elementwise application of the operator
-    template<class A, class B> result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l + r; }); }
-    template<class A, class B> result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l - r; }); }
-    template<class A, class B> result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l * r; }); }
-    template<class A, class B> result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l / r; }); }
-    template<class A, class B> result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l % r; }); }
-    template<class A, class B> result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l | r; }); }
-    template<class A, class B> result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l ^ r; }); }
-    template<class A, class B> result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l & r; }); }
-    template<class A, class B> result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l << r; }); }
-    template<class A, class B> result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >> r; }); }
-
+    // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
+    template<class A, class B> result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l + r; }); }
+    template<class A, class B> result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l - r; }); }
+    template<class A, class B> result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l * r; }); }
+    template<class A, class B> result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l / r; }); }
+    template<class A, class B> result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l % r; }); }
+    template<class A, class B> result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l | r; }); }
+    template<class A, class B> result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l ^ r; }); }
+    template<class A, class B> result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l & r; }); }
+    template<class A, class B> result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l << r; }); }
+    template<class A, class B> result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l >> r; }); }
+    
     // Overloads for assignment operators are implemented trivially
     template<class A, class B> result_t<A,A> & operator +=  (A & a, const B & b) { return a = a + b; }
     template<class A, class B> result_t<A,A> & operator -=  (A & a, const B & b) { return a = a - b; }
@@ -256,12 +251,12 @@ namespace linalg
     template<class A, class B> result_t<A,B> clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
 
     // Functions for componentwise application of equivalence and relational operators
-    template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l == r; }); }
-    template<class A, class B> bool_result_t<A,B> nequal (const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l != r; }); }
-    template<class A, class B> bool_result_t<A,B> less   (const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l <  r; }); }
-    template<class A, class B> bool_result_t<A,B> greater(const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >  r; }); }
-    template<class A, class B> bool_result_t<A,B> lequal (const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l <= r; }); }
-    template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zipb(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >= r; }); }
+    template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l == r; }); }
+    template<class A, class B> bool_result_t<A,B> nequal (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l != r; }); }
+    template<class A, class B> bool_result_t<A,B> less   (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l <  r; }); }
+    template<class A, class B> bool_result_t<A,B> greater(const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >  r; }); }
+    template<class A, class B> bool_result_t<A,B> lequal (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l <= r; }); }
+    template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >= r; }); }
 
     // Support for vector algebra
     template<class T>        T        cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }
@@ -339,7 +334,7 @@ namespace linalg
     template<class T, int M, int N>       vec<T,M> * end  (      mat<T,M,N> & a) { return begin(a) + N; }
     template<class T, int M, int N> const vec<T,M> * end  (const mat<T,M,N> & a) { return begin(a) + N; }
 
-    // Factory functions for 3D spatial transformations
+    // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
     template<class T> vec<T,4>   rotation_quat     (const vec<T,3> & axis, T angle)         { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
     template<class T> mat<T,4,4> translation_matrix(const vec<T,3> & translation)           { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
     template<class T> mat<T,4,4> rotation_matrix   (const vec<T,4> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }

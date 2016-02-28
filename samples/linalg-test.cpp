@@ -64,12 +64,12 @@ int main()
     MATCH(bool, int2() > int2() );
     MATCH(bool, float3() <= float3() );
     MATCH(bool, double4() >= double4() );
-
+    
     // Exercise unary operators and functions
     MATCH(float3 , +float3() );
     MATCH(float2 , -float2() );
     MATCH(int4   , ~int4() );
-    MATCH(bool2  , !bool2() );
+    MATCH(bool2  , !short2() );
     MATCH(float3 , abs  (float3()) );
     MATCH(float4 , floor(float4()) );
     MATCH(float3 , ceil (float3()) );
