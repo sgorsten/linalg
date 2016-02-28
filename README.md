@@ -169,5 +169,5 @@ These functions exist for easy interoperability with 3D APIs, which frequently u
 
 The following higher order functions are provided by the library:
 
-* `fold(a, f)` - combine the elements of `a` using the binary function `f` in left-to-right order
-* `zip(a, b, f)` - produce a vector or matrix by passing componentwise pairs of elements from `a` and `b` to binary function `f`
+* `fold(a, f)` combines the elements of `a` using the binary function `f` in left-to-right order
+* `zip(a, b, f)` produces a vector or matrix by passing componentwise pairs of elements from `a` and `b` to binary function `f`
