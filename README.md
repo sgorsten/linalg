@@ -174,8 +174,10 @@ These functions assume that a `vec<T,M>` represents a mathematical vector within
 * `normalize(a)` computes a vector of unit length with the same direction as `a`
 * `distance(a,b)` computes the Euclidean distance between two points `a` and `b`
 * `distance2(a,b)` computes the square of the Euclidean distance between two points `a` and `b`
+* `uangle(a,b)` computes the angle, in radians, between unit length vectors `a` and `b`
 * `lerp(a,b,t)` linearly interpolates between `a` and `b` using parameter `t`
 * `nlerp(a,b,t)` is equivalent to `normalize(lerp(a,b,t))`
+* `slerp(a,b,t)` performs spherical linear interpolation between unit length vectors `a` and `b` using parameter `t`
 
 ## Quaternion Algebra
 
@@ -189,7 +191,8 @@ Additionally, there are several functions which assume that a quaternion `q` rep
 
 * `qangle(q)` computes the angle of rotation for quaternion `q`, in radians
 * `qaxis(q)` computes the axis of rotation for quaternion `q`
-* `qlerp(a,b,t)` interpolates between the spatial rotations represented by `a` and `b` using parameter `t`
+* `qnlerp(a,b,t)` performs normalized linear interpolation between the spatial rotations represented by `a` and `b` using parameter `t`
+* `qslerp(a,b,t)` performs spherical linear interpolation between the spatial rotations represented by `a` and `b` using parameter `t`
 * `qrot(q,v)` computes the result of rotating the vector `v` by quaternion `q`
 * `qxdir(q)` computes the result of rotating the vector `{1,0,0}` by quaternion `q`
 * `qydir(q)` computes the result of rotating the vector `{0,1,0}` by quaternion `q`
