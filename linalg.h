@@ -49,7 +49,7 @@
 
 #include <cmath>    // For various unary math functions, such as std::sqrt
 #include <cstdint>  // For implementing namespace linalg::aliases
-#include <tuple>    // For std::tie, used in the relational operator overloads
+#include <array>    // For std::array, used in the relational operator overloads
 
 namespace linalg
 {
@@ -171,32 +171,22 @@ namespace linalg
     template<class T, int M, int N, class F> mat<bool,M,N> zipb(const mat<T,M,N> & a, T b, F f) { return zipb(a, mat<T,M,N>(b), f); }
     template<class T, int M, int N, class F> mat<bool,M,N> zipb(T a, const mat<T,M,N> & b, F f) { return zipb(mat<T,M,N>(a), b, f); }
 
-    template<class A, class F> result_t<A> map(const A & a, F f) { return zip(a, a, [f](scalar_t<A> l, scalar_t<A>) { return f(l); }); }
-    template<class A, class F> bool_result_t<A> mapb(const A & a, F f) { return zipb(a, a, [f](scalar_t<A> l, scalar_t<A>) { return f(l); }); }
+    template<class A, class F> result_t<A> map(const A & a, F f) { return zip(a, a, [f](scalar_t<A,A> l, scalar_t<A>) { return f(l); }); }
+    template<class A, class F> bool_result_t<A> mapb(const A & a, F f) { return zipb(a, a, [f](scalar_t<A,A> l, scalar_t<A>) { return f(l); }); }
 
-    // Relational operators are defined to compare the elements of two vectors lexicographically
-    template<class T> bool operator == (const vec<T,2> & a, const vec<T,2> & b) { return a.x==b.x && a.y==b.y; }
-    template<class T> bool operator == (const vec<T,3> & a, const vec<T,3> & b) { return a.x==b.x && a.y==b.y && a.z==b.z; }
-    template<class T> bool operator == (const vec<T,4> & a, const vec<T,4> & b) { return a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w; }
-    template<class T> bool operator <  (const vec<T,2> & a, const vec<T,2> & b) { return std::tie(a.x,a.y) < std::tie(b.x,b.y); }
-    template<class T> bool operator <  (const vec<T,3> & a, const vec<T,3> & b) { return std::tie(a.x,a.y,a.z) < std::tie(b.x,b.y,b.z); }
-    template<class T> bool operator <  (const vec<T,4> & a, const vec<T,4> & b) { return std::tie(a.x,a.y,a.z,a.w) < std::tie(b.x,b.y,b.z,b.w); }
-    template<class T, int M> bool operator != (const vec<T,M> & a, const vec<T,M> & b) { return !(a == b); }
-    template<class T, int M> bool operator >  (const vec<T,M> & a, const vec<T,M> & b) { return b < a; }
-    template<class T, int M> bool operator <= (const vec<T,M> & a, const vec<T,M> & b) { return !(b < a); }
-    template<class T, int M> bool operator >= (const vec<T,M> & a, const vec<T,M> & b) { return !(a < b); }
-
-    // Relational operators are defined to compare the elements of two matrices lexicographically in column-major order
-    template<class T, int M> bool operator == (const mat<T,M,2> & a, const mat<T,M,2> & b) { return a.x==b.x && a.y==b.y; }
-    template<class T, int M> bool operator == (const mat<T,M,3> & a, const mat<T,M,3> & b) { return a.x==b.x && a.y==b.y && a.z==b.z; }
-    template<class T, int M> bool operator == (const mat<T,M,4> & a, const mat<T,M,4> & b) { return a.x==b.x && a.y==b.y && a.z==b.z && a.w==b.w; }
-    template<class T, int M> bool operator <  (const mat<T,M,2> & a, const mat<T,M,2> & b) { return std::tie(a.x,a.y) < std::tie(b.x,b.y); }
-    template<class T, int M> bool operator <  (const mat<T,M,3> & a, const mat<T,M,3> & b) { return std::tie(a.x,a.y,a.z) < std::tie(b.x,b.y,b.z); }
-    template<class T, int M> bool operator <  (const mat<T,M,4> & a, const mat<T,M,4> & b) { return std::tie(a.x,a.y,a.z,a.w) < std::tie(b.x,b.y,b.z,b.w); } 
-    template<class T, int M, int N> bool operator != (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(a == b); }
-    template<class T, int M, int N> bool operator >  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return b < a; }
-    template<class T, int M, int N> bool operator <= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(b < a); }
-    template<class T, int M, int N> bool operator >= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(a < b); }    
+    // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
+    template<class T, int M> bool operator == (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) == reinterpret_cast<const std::array<T,M> &>(b); } 
+    template<class T, int M> bool operator != (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) != reinterpret_cast<const std::array<T,M> &>(b); } 
+    template<class T, int M> bool operator <  (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) <  reinterpret_cast<const std::array<T,M> &>(b); } 
+    template<class T, int M> bool operator >  (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) >  reinterpret_cast<const std::array<T,M> &>(b); } 
+    template<class T, int M> bool operator <= (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) <= reinterpret_cast<const std::array<T,M> &>(b); } 
+    template<class T, int M> bool operator >= (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) >= reinterpret_cast<const std::array<T,M> &>(b); }
+    template<class T, int M, int N> bool operator == (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) == reinterpret_cast<const std::array<T,M*N> &>(b); } 
+    template<class T, int M, int N> bool operator != (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) != reinterpret_cast<const std::array<T,M*N> &>(b); } 
+    template<class T, int M, int N> bool operator <  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) <  reinterpret_cast<const std::array<T,M*N> &>(b); } 
+    template<class T, int M, int N> bool operator >  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) >  reinterpret_cast<const std::array<T,M*N> &>(b); } 
+    template<class T, int M, int N> bool operator <= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) <= reinterpret_cast<const std::array<T,M*N> &>(b); } 
+    template<class T, int M, int N> bool operator >= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) >= reinterpret_cast<const std::array<T,M*N> &>(b); }  
 
     // Functions for coalescing scalar values
     template<int M> bool         any    (const vec<bool,M> & a) { return fold(a, [](bool l, bool r) { return l || r; }); }
