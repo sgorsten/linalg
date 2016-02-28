@@ -137,16 +137,17 @@ namespace linalg
     };
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
-    template<class A, class B     > struct traits {};
-    template<class T, int M       > struct traits<  vec<T,M>,   vec<T,M>> { typedef T scalar; typedef   vec<T,M> result; typedef   vec<bool,M> bool_result; };
-    template<class T, int M       > struct traits<  vec<T,M>,          T> { typedef T scalar; typedef   vec<T,M> result; typedef   vec<bool,M> bool_result; };
-    template<class T, int M       > struct traits<         T,   vec<T,M>> { typedef T scalar; typedef   vec<T,M> result; typedef   vec<bool,M> bool_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>,          T> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<         T, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar;
-    template<class A, class B=A> using result_t = typename traits<A,B>::result;
-    template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result;
+    template<class A, class B> struct traits {};
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(T()+T()),M  > arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(T()+T()),M,N> arith_result; };
+    template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
+    template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
+    template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
+    template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
 
     // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector a in left-to-right order (matching the associativity of arithmetic and logical operators)
     template<class T, class F> T fold(const vec<T,2> & a, F f) { return f(a.x,a.y); }
@@ -194,9 +195,9 @@ namespace linalg
     template<class T, int M> T   maxelem(const vec<T,M> & a)    { return a[argmax(a)]; }
 
     // Overloads for unary operators on vectors are implemented in terms of elementwise application of the operator
-    template<class A> result_t<A> operator + (const A & a) { return map(a, [](scalar_t<A> l) { return +l; }); }
-    template<class A> result_t<A> operator - (const A & a) { return map(a, [](scalar_t<A> l) { return -l; }); }
-    template<class A> result_t<A> operator ~ (const A & a) { return map(a, [](scalar_t<A> l) { return ~l; }); }
+    template<class A> arith_result_t<A> operator + (const A & a) { return map(a, [](scalar_t<A> l) { return +l; }); }
+    template<class A> arith_result_t<A> operator - (const A & a) { return map(a, [](scalar_t<A> l) { return -l; }); }
+    template<class A> arith_result_t<A> operator ~ (const A & a) { return map(a, [](scalar_t<A> l) { return ~l; }); }
     template<class A> bool_result_t<A> operator ! (const A & a) { return map(a, [](scalar_t<A> l) { return !l; }); }
 
     // Mirror the set of unary scalar math functions to apply elementwise to vectors
@@ -219,16 +220,16 @@ namespace linalg
     template<class A> result_t<A> round(const A & a) { return map(a, [](scalar_t<A> l) { return std::round(l); }); }
 
     // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
-    template<class A, class B> result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l + r; }); }
-    template<class A, class B> result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l - r; }); }
-    template<class A, class B> result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l * r; }); }
-    template<class A, class B> result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l / r; }); }
-    template<class A, class B> result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l % r; }); }
-    template<class A, class B> result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l | r; }); }
-    template<class A, class B> result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l ^ r; }); }
-    template<class A, class B> result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l & r; }); }
-    template<class A, class B> result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l << r; }); }
-    template<class A, class B> result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) -> scalar_t<A,B> { return l >> r; }); }
+    template<class A, class B> arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l + r; }); }
+    template<class A, class B> arith_result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l - r; }); }
+    template<class A, class B> arith_result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l * r; }); }
+    template<class A, class B> arith_result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l / r; }); }
+    template<class A, class B> arith_result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l % r; }); }
+    template<class A, class B> arith_result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l | r; }); }
+    template<class A, class B> arith_result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l ^ r; }); }
+    template<class A, class B> arith_result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l & r; }); }
+    template<class A, class B> arith_result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l << r; }); }
+    template<class A, class B> arith_result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >> r; }); }
     
     // Overloads for assignment operators are implemented trivially
     template<class A, class B> result_t<A,A> & operator +=  (A & a, const B & b) { return a = a + b; }
