@@ -10,7 +10,7 @@ GCC 4.8 | [![Build status](https://travis-ci.org/sgorsten/linalg.svg?branch=mast
 
 linalg.h is a single header public domain linear algebra library for C++11. 
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 500 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
 # Documentation
 
@@ -170,4 +170,5 @@ These functions exist for easy interoperability with 3D APIs, which frequently u
 The following higher order functions are provided by the library:
 
 * `fold(a, f)` combines the elements of `a` using the binary function `f` in left-to-right order
+* `map(a, f)` produces a vector or matrix by passing elements from `a` to unary function `f`
 * `zip(a, b, f)` produces a vector or matrix by passing componentwise pairs of elements from `a` and `b` to binary function `f`
