@@ -137,10 +137,10 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; typedef std::array<T,M> compare_as; };
     template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
     template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; typedef std::array<T,M*N> compare_as; };
     template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
@@ -170,18 +170,12 @@ namespace linalg
     template<class T, int M, int N, class F> auto map(const mat<T,M,N> & a, F f) -> mat<decltype(f(T())),M,N> { return zip(a, a, [f](T l, T) { return f(l); }); }
 
     // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
-    template<class T, int M> bool operator == (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) == reinterpret_cast<const std::array<T,M> &>(b); } 
-    template<class T, int M> bool operator != (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) != reinterpret_cast<const std::array<T,M> &>(b); } 
-    template<class T, int M> bool operator <  (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) <  reinterpret_cast<const std::array<T,M> &>(b); } 
-    template<class T, int M> bool operator >  (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) >  reinterpret_cast<const std::array<T,M> &>(b); } 
-    template<class T, int M> bool operator <= (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) <= reinterpret_cast<const std::array<T,M> &>(b); } 
-    template<class T, int M> bool operator >= (const vec<T,M> & a, const vec<T,M> & b) { return reinterpret_cast<const std::array<T,M> &>(a) >= reinterpret_cast<const std::array<T,M> &>(b); }
-    template<class T, int M, int N> bool operator == (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) == reinterpret_cast<const std::array<T,M*N> &>(b); } 
-    template<class T, int M, int N> bool operator != (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) != reinterpret_cast<const std::array<T,M*N> &>(b); } 
-    template<class T, int M, int N> bool operator <  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) <  reinterpret_cast<const std::array<T,M*N> &>(b); } 
-    template<class T, int M, int N> bool operator >  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) >  reinterpret_cast<const std::array<T,M*N> &>(b); } 
-    template<class T, int M, int N> bool operator <= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) <= reinterpret_cast<const std::array<T,M*N> &>(b); } 
-    template<class T, int M, int N> bool operator >= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return reinterpret_cast<const std::array<T,M*N> &>(a) >= reinterpret_cast<const std::array<T,M*N> &>(b); }  
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator == (const A & a, const A & b) { return reinterpret_cast<const C &>(a) == reinterpret_cast<const C &>(b); } 
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator != (const A & a, const A & b) { return reinterpret_cast<const C &>(a) != reinterpret_cast<const C &>(b); } 
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator <  (const A & a, const A & b) { return reinterpret_cast<const C &>(a) <  reinterpret_cast<const C &>(b); } 
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator >  (const A & a, const A & b) { return reinterpret_cast<const C &>(a) >  reinterpret_cast<const C &>(b); } 
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator <= (const A & a, const A & b) { return reinterpret_cast<const C &>(a) <= reinterpret_cast<const C &>(b); } 
+    template<class A, class C=typename traits<A,A>::compare_as> bool operator >= (const A & a, const A & b) { return reinterpret_cast<const C &>(a) >= reinterpret_cast<const C &>(b); }
 
     // Functions for coalescing scalar values
     template<int M> bool         any    (const vec<bool,M> & a) { return fold(a, [](bool l, bool r) { return l || r; }); }
