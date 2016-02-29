@@ -5,12 +5,30 @@
 
 Platform | Build Status |
 -------- | ------------ |
-Visual Studio 2013 | [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
-GCC 4.8 | [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
+Visual Studio 2013 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
+GCC 4.8 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
 
 [linalg.h](http://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+
+# FAQ
+
+###### Why another linear algebra library?
+
+Existing linear algebra libraries are good but most are rather large, slowing down compile times and complicating inclusion into projects. `linalg.h` is a single file designed to be dropped directly into your source tree, and imposes no restrictions on your software from a technical, architectural, or legal standpoint.
+
+###### Why C++11?
+
+Mostly due to broad availability of mostly compliant C++11 compilers. Earlier versions of C++ lack the features (lambdas, decltype, braced initializer lists, etc.) needed to implement `linalg.h` as generically and tersely as it has been. Later versions of C++ do provide useful features which could be used to make `linalg.h` even smaller and cleaner (generic lambdas and auto return types in particular), but do not appreciably improve the functionality of the library in its current form.
+
+###### Why doesn't `operator *` perform matrix multiplication?
+
+Most operator overloads and many function definitions in `linalg.h` use only a single line of code to define vector/vector, vector/scalar, scalar/vector, matrix/matrix, matrix/scalar, and scalar/matrix variations, for all possible element types and all dimensions of vector and matrix, and provide the behavior of applying the given operation to corresponding pairs of elements to produce a vector or matrix valued result. I chose to implement `operator *` in terms of elementwise multiplication for consistency with the rest of the library, and defined the `mul` function to provide matrix multiplication, alongside `dot`, `cross`, and `qmul`.
+
+###### In that case, why do `operator ==`, `operator <` return a `bool` instead of a vector or matrix?
+
+I wanted all instances of `linalg.h` types to model value semantics, and satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library. This means that code like `if(a == b) ...` behaves as it typically would, and data structures like `std::set` and `std::map` and functions like `std::find` and `std::sort` can be used with `linalg.h` types without modification.
 
 # Documentation
 
@@ -110,16 +128,16 @@ For any vector or matrix `a`, the following unary operations will result in a ve
 
 ### Binary Operations
 
-For values `a` and `b`, there are a number of binary operations available, which produce vectors or matrices by performing the operation on elementwise pairs from `a` and `b`. If either `a` or `b` (but not both) are a scalar, the scalar is paired with each element from the other value, as
+For values `a` and `b`, there are a number of binary operations available, which produce vectors or matrices by performing the operation on elementwise pairs from `a` and `b`. If either `a` or `b` (but not both) are a scalar, the scalar is paired with each element from the other value, as described in the following table:
 
-type of `a`  | type of `b`  | `f(a,b)` produces | by combining            |
------------- | ------------ | ------------------|-------------------------|
-`vec<T,M>`   | `vec<T,M>`   | `vec<T,M>`        | `a[i]` and `b[i]`       |
-`vec<T,M>`   | `T`          | `vec<T,M>`        | `a[i]` and `b`          |
-`T`          | `vec<T,M>`   | `vec<T,M>`        | `a` and `b[i]`          |
-`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N>`      | `a[j][i]` and `b[j][i]` |
-`mat<T,M,N>` | `T`          | `mat<T,M,N>`      | `a[j][i]` and `b`       |
-`T`          | `mat<T,M,N>` | `mat<T,M,N>`      | `a` and `b[j][i]`       |
+type of `a`  | type of `b`  | `f(a,b)` yields |
+------------ | ------------ | ----------------|
+`vec<T,M>`   | `vec<T,M>`   | `vec<T,M> { f(a[0], b[0]), f(a[1], b[1]), ... }` |
+`vec<T,M>`   | `T`          | `vec<T,M> { f(a[0], b), f(a[1], b), ... }` |
+`T`          | `vec<T,M>`   | `vec<T,M> { f(a, b[0]), f(a, b[1]), ... }` |
+`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N> { {f(a[0][0], b[0][0]), f(a[0][1], b[0][1]), ...}, ... }` |
+`mat<T,M,N>` | `T`          | `mat<T,M,N> { {f(a[0][0], b), f(a[0][1], b), ...}, ... }` |
+`T`          | `mat<T,M,N>` | `mat<T,M,N> { {f(a, b[0][0]), f(a, b[0][1]), ...}, ... }` |
 
 The following operations are available:
 
