@@ -76,7 +76,7 @@ The general pattern for vectors and matrices of other types are shown in the fol
 
 ## Relational Operators
 
-The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the `EqualityComparable` and `LessThanComparable` concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
+The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
 
 ## Elementwise Functions
 
@@ -174,8 +174,10 @@ These functions assume that a `vec<T,M>` represents a mathematical vector within
 * `normalize(a)` computes a vector of unit length with the same direction as `a`
 * `distance(a,b)` computes the Euclidean distance between two points `a` and `b`
 * `distance2(a,b)` computes the square of the Euclidean distance between two points `a` and `b`
+* `uangle(a,b)` computes the angle, in radians, between unit length vectors `a` and `b`
 * `lerp(a,b,t)` linearly interpolates between `a` and `b` using parameter `t`
 * `nlerp(a,b,t)` is equivalent to `normalize(lerp(a,b,t))`
+* `slerp(a,b,t)` performs spherical linear interpolation between unit length vectors `a` and `b` using parameter `t`
 
 ## Quaternion Algebra
 
@@ -185,11 +187,12 @@ These functions assume that a `vec<T,4>` represents a quaternion, expressed as `
 * `qinv(q)` computes the multiplicative inverse of quaternion `q`
 * `qconj(q)` computes `q*`, the conjugate of quaternion `q`
 
-Additionally, there are several functions which assume that a quaternion `q` represents a spatial rotation in 3D space, which transforms a vector `v` via the formula `qvq*`.
+Additionally, there are several functions which assume that a quaternion `q` represents a spatial rotation in 3D space, which transforms a vector `v` via the formula `qvq*`. The unit length quaternions form a double cover over spatial rotations. Therefore, the following functions assume quaternion parameters are of unit length and treat `q` as logically identical to `-q`.
 
 * `qangle(q)` computes the angle of rotation for quaternion `q`, in radians
 * `qaxis(q)` computes the axis of rotation for quaternion `q`
-* `qlerp(a,b,t)` interpolates between the spatial rotations represented by `a` and `b` using parameter `t`
+* `qnlerp(a,b,t)` performs normalized linear interpolation between the spatial rotations represented by `a` and `b` using parameter `t`
+* `qslerp(a,b,t)` performs spherical linear interpolation between the spatial rotations represented by `a` and `b` using parameter `t`
 * `qrot(q,v)` computes the result of rotating the vector `v` by quaternion `q`
 * `qxdir(q)` computes the result of rotating the vector `{1,0,0}` by quaternion `q`
 * `qydir(q)` computes the result of rotating the vector `{0,1,0}` by quaternion `q`
