@@ -12,6 +12,24 @@ GCC 4.8 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.o
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
+# FAQ
+
+###### Why another linear algebra library?
+
+Existing linear algebra libraries are good but most are rather large, slowing down compile times and complicating inclusion into projects. `linalg.h` is a single file designed to be dropped directly into your source tree, and imposes no restrictions on your software from a technical, architectural, or legal standpoint.
+
+###### Why C++11?
+
+Mostly due to broad availability of mostly compliant C++11 compilers. Earlier versions of C++ lack the features (lambdas, decltype, braced initializer lists, etc.) needed to implement `linalg.h` as generically and tersely as it has been. Later versions of C++ do provide useful features which could be used to make `linalg.h` even smaller and cleaner (generic lambdas and auto return types in particular), but do not appreciably improve the functionality of the library in its current form.
+
+###### Why doesn't `operator *` perform matrix multiplication?
+
+Most operator overloads and many function definitions in `linalg.h` use only a single line of code to define vector/vector, vector/scalar, scalar/vector, matrix/matrix, matrix/scalar, and scalar/matrix variations, for all possible element types and all dimensions of vector and matrix, and provide the behavior of applying the given operation to corresponding pairs of elements to produce a vector or matrix valued result. I chose to implement `operator *` in terms of elementwise multiplication for consistency with the rest of the library, and defined the `mul` function to provide matrix multiplication, alongside `dot`, `cross`, and `qmul`.
+
+###### In that case, why do `operator ==`, `operator <` return a `bool` instead of a vector or matrix?
+
+I wanted all instances of `linalg.h` types to model value semantics, and satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library. This means that code like `if(a == b) ...` behaves as it typically would, and data structures like `std::set` and `std::map` and functions like `std::find` and `std::sort` can be used with `linalg.h` types without modification.
+
 # Documentation
 
 * [Data Structures](#data-structures)
