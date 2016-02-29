@@ -9,3 +9,5 @@ addons:
 script: 
   cd samples;
   make;
+  ./linalg-test;
+  

@@ -3,6 +3,11 @@
 
 os: Visual Studio 2013
 
+configuration: Debug
+
 build:
   verbosity: minimal
   project: samples/msvc120/linalg-msvc120.sln
+  
+test_script:
+  - samples\msvc120\Debug\linalg-test.exe
