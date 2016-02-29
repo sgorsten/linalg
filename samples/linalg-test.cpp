@@ -33,6 +33,25 @@ TEST_CASE( "equality and inequality operators" )
     REQUIRE(   float4(1,2,3,4) != float4(1,2,3,5)  );
 }
 
+TEST_CASE( "vector and matrix can be constructed from pointer to const elements" )
+{
+    // Vectors load elements in order
+    const float f2[] = {1,2}, f3[] = {2,3,4}, f4[] = {5,6,7,8};
+    REQUIRE( float2(f2) == float2(1,2) );
+    REQUIRE( float3(f3) == float3(2,3,4) );
+    REQUIRE( float4(f4) == float4(5,6,7,8) );
+
+    // Matrices load elements in column major order
+    const float f2x2[] = {1,2,3,4}, f2x3[] = {2,3,4,5,6,7}, f2x4[] = {3,4,5,6,7,8,9,10};
+    REQUIRE( float2x2(f2x2) == float2x2({1,2},{3,4}) );
+    REQUIRE( float2x3(f2x3) == float2x3({2,3},{4,5},{6,7}) );
+    REQUIRE( float2x4(f2x4) == float2x4({3,4},{5,6},{7,8},{9,10}) );
+
+    // Should be possible to load the same data in multiple ways
+    REQUIRE( float3x2(f2x3) == float3x2({2,3,4},{5,6,7}) );
+    REQUIRE( float4x2(f2x4) == float4x2({3,4,5,6},{7,8,9,10}) );
+}
+
 TEST_CASE( "operator overloads produce correct results" )
 {
     // All operators can be applied to vector types, and results are computed elementwise
@@ -150,6 +169,54 @@ TEST_CASE( "elementwise comparison functions produce correct results" )
     REQUIRE( gequal (float3(1,2,3), float3(4,-2,3)) == bool3(false, true,  true ) );
 }
 
+TEST_CASE( "no unintended ADL on operator +=" )
+{
+    std::vector<int3> tris_a = {{0,1,2}, {0,2,3}, {0,3,4}}, tris_b;
+    tris_b = std::move(tris_a); // This line is known to cause problems if linalg::operator+= is allowed to match too broadly.
+    REQUIRE( tris_b.size() == 3 );
+    REQUIRE( tris_a.size() == 0 );
+}
+
+TEST_CASE( "unary functions behave as intended" )
+{
+    // Unary functions should apply elementwise to their arguments
+    REQUIRE( abs  (float3(1.1f, -2.3f, 3.5f)) == float3(std::abs  (1.1f), std::abs  (-2.3f), std::abs  (3.5f)) );
+    REQUIRE( floor(float3(1.1f, -2.3f, 3.5f)) == float3(std::floor(1.1f), std::floor(-2.3f), std::floor(3.5f)) );
+    REQUIRE( ceil (float3(1.1f, -2.3f, 3.5f)) == float3(std::ceil (1.1f), std::ceil (-2.3f), std::ceil (3.5f)) );
+    REQUIRE( exp  (float3(1.1f, -2.3f, 3.5f)) == float3(std::exp  (1.1f), std::exp  (-2.3f), std::exp  (3.5f)) );
+    REQUIRE( log  (float3(1.1f, +2.3f, 3.5f)) == float3(std::log  (1.1f), std::log  (+2.3f), std::log  (3.5f)) );
+    REQUIRE( log10(float3(1.1f, +2.3f, 3.5f)) == float3(std::log10(1.1f), std::log10(+2.3f), std::log10(3.5f)) );
+    REQUIRE( sqrt (float3(1.1f, +2.3f, 3.5f)) == float3(std::sqrt (1.1f), std::sqrt (+2.3f), std::sqrt (3.5f)) );
+    REQUIRE( sin  (float3(1.1f, -2.3f, 3.5f)) == float3(std::sin  (1.1f), std::sin  (-2.3f), std::sin  (3.5f)) );
+    REQUIRE( cos  (float3(1.1f, -2.3f, 3.5f)) == float3(std::cos  (1.1f), std::cos  (-2.3f), std::cos  (3.5f)) );
+    REQUIRE( tan  (float3(1.1f, -2.3f, 3.5f)) == float3(std::tan  (1.1f), std::tan  (-2.3f), std::tan  (3.5f)) );
+    REQUIRE( asin (float3(0.3f, -0.6f, 0.9f)) == float3(std::asin (0.3f), std::asin (-0.6f), std::asin (0.9f)) );
+    REQUIRE( acos (float3(0.3f, -0.6f, 0.9f)) == float3(std::acos (0.3f), std::acos (-0.6f), std::acos (0.9f)) );
+    REQUIRE( atan (float3(1.1f, -2.3f, 3.5f)) == float3(std::atan (1.1f), std::atan (-2.3f), std::atan (3.5f)) );
+    REQUIRE( sinh (float3(1.1f, -2.3f, 3.5f)) == float3(std::sinh (1.1f), std::sinh (-2.3f), std::sinh (3.5f)) );
+    REQUIRE( cosh (float3(1.1f, -2.3f, 3.5f)) == float3(std::cosh (1.1f), std::cosh (-2.3f), std::cosh (3.5f)) );
+    REQUIRE( tanh (float3(1.1f, -2.3f, 3.5f)) == float3(std::tanh (1.1f), std::tanh (-2.3f), std::tanh (3.5f)) );
+    REQUIRE( round(float3(1.1f, -2.3f, 3.5f)) == float3(std::round(1.1f), std::round(-2.3f), std::round(3.5f)) );
+
+    // Unary functions should retain element type and vector/matrix size
+    REQUIRE( abs(int4(-5)) == int4(5) );
+    REQUIRE( floor(float2(7.7f)) == float2(std::floor(7.7f)) );
+    REQUIRE( ceil (float3(7.7f)) == float3(std::ceil (7.7f)) );
+    REQUIRE( exp  (float4(7.7f)) == float4(std::exp  (7.7f)) );
+    REQUIRE( log  (double2(7.7)) == double2(std::log  (7.7)) );
+    REQUIRE( log10(double3(7.7)) == double3(std::log10(7.7)) );
+    REQUIRE( sqrt (double4(7.7)) == double4(std::sqrt (7.7)) );
+    REQUIRE( sin  (float2x2(7.7f)) == float2x2(std::sin (7.7f)) );
+    REQUIRE( cos  (float2x3(7.7f)) == float2x3(std::cos (7.7f)) );
+    REQUIRE( tan  (float2x4(7.7f)) == float2x4(std::tan (7.7f)) );
+    REQUIRE( asin (float3x2(0.5f)) == float3x2(std::asin(0.5f)) );
+    REQUIRE( acos (float3x3(0.5f)) == float3x3(std::acos(0.5f)) );
+    REQUIRE( atan (float3x4(7.7f)) == float3x4(std::atan(7.7f)) );
+    REQUIRE( sinh (float4x2(7.7f)) == float4x2(std::sinh(7.7f)) );
+    REQUIRE( cosh (float4x3(7.7f)) == float4x3(std::cosh(7.7f)) );
+    REQUIRE( tanh (float4x4(7.7f)) == float4x4(std::tanh(7.7f)) );
+}
+
 #include <vector>
 #include <type_traits>
 
@@ -212,29 +279,6 @@ TEST_CASE( "templates instantiate correctly", "" )
     MATCH(bool, int2() > int2() );
     MATCH(bool, float3() <= float3() );
     MATCH(bool, double4() >= double4() );
-    
-    // Exercise unary operators and functions
-    MATCH(float3 , +float3() );
-    MATCH(float2 , -float2() );
-    MATCH(int4   , ~int4() );
-    MATCH(bool2  , !short2() );
-    MATCH(float3 , abs  (float3()) );
-    MATCH(float4 , floor(float4()) );
-    MATCH(float3 , ceil (float3()) );
-    MATCH(float2 , exp  (float2()) );
-    MATCH(float4 , log  (float4()) );
-    MATCH(float2 , log10(float2()) );
-    MATCH(float3 , sqrt (float3()) );
-    MATCH(double4, sin  (double4()) );
-    MATCH(double3, cos  (double3()) );
-    MATCH(double4, tan  (double4()) );
-    MATCH(double3, asin (double3()) );
-    MATCH(double2, acos (double2()) );
-    MATCH(double4, atan (double4()) );
-    MATCH(double2, sinh (double2()) );
-    MATCH(double3, cosh (double3()) );
-    MATCH(double4, tanh (double4()) );
-    MATCH(double4, round(double4()) );
 
     // Exercise binary operators
     MATCH(float2 , float2 () +  float2 () );
@@ -372,8 +416,4 @@ TEST_CASE( "templates instantiate correctly", "" )
     MATCH(float4x4, pose_matrix(float4(), float3()) );
     MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
     MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
-
-    // Problematic cases, which break if the code is expressed too generically
-    std::vector<int3> tris_a, tris_b;
-    tris_a = std::move(tris_b);
 }
