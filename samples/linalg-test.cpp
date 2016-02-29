@@ -4,6 +4,10 @@ using namespace linalg::aliases;
 #define CATCH_CONFIG_MAIN
 #include "thirdparty/catch.hpp"
 
+#include <vector>
+#include <algorithm>
+#include <functional>
+
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int j=0; j<N; ++j) require_zero(m[j]); }
 
@@ -135,7 +139,7 @@ TEST_CASE( "integer promotion rules apply" )
 
     // unsigned is not promoted
     REQUIRE(+uint3()             == uint3());
-    REQUIRE(-uint4()             == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably what we want
+    REQUIRE(-uint4()             == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
     REQUIRE(~uint2()             == uint2(~0));
     REQUIRE(!uint3()             == bool3(true)); // operator! always returns a vector of bools
     REQUIRE((uint3() +  uint3()) == uint3());
@@ -217,8 +221,97 @@ TEST_CASE( "unary functions behave as intended" )
     REQUIRE( tanh (float4x4(7.7f)) == float4x4(std::tanh(7.7f)) );
 }
 
-#include <vector>
-#include <type_traits>
+TEST_CASE( "relational operators model LessThanComparable" )
+{
+    // Should not compare equal to begin with
+    std::vector<int3> points = {{3,5,2}, {1,2,6}, {3,2,2}, {8,2,5}, {4,5,8}, {3,5,8}, {1,2,2}, {4,2,9}};
+    std::vector<int3> ordered_points = {{1,2,2}, {1,2,6}, {3,2,2}, {3,5,2}, {3,5,8}, {4,2,9}, {4,5,8}, {8,2,5}};
+    REQUIRE( points != ordered_points );
+
+    // After sorting, points should be in ascending order, and match ordered_points
+    std::sort(begin(points), end(points));
+    REQUIRE( points == ordered_points );
+
+    // Sorting in descending order should produce the reverse ordering
+    std::sort(begin(points), end(points), std::greater<int3>());
+    std::reverse(begin(ordered_points), end(ordered_points));
+    REQUIRE( points == ordered_points );
+}
+
+TEST_CASE( "matrix multiplication produces correct result dimensions" )
+{
+    REQUIRE( mul(float2x2(), float2()) == float2() );
+    REQUIRE( mul(float2x3(), float3()) == float2() );
+    REQUIRE( mul(float2x4(), float4()) == float2() );
+    REQUIRE( mul(float3x2(), float2()) == float3() );
+    REQUIRE( mul(float3x3(), float3()) == float3() );
+    REQUIRE( mul(float3x4(), float4()) == float3() );
+    REQUIRE( mul(float4x2(), float2()) == float4() );
+    REQUIRE( mul(float4x3(), float3()) == float4() );
+    REQUIRE( mul(float4x4(), float4()) == float4() );
+
+    REQUIRE( mul(float2x2(), float2x2()) == float2x2() );
+    REQUIRE( mul(float2x3(), float3x2()) == float2x2() );
+    REQUIRE( mul(float2x4(), float4x2()) == float2x2() );
+    REQUIRE( mul(float2x2(), float2x3()) == float2x3() );
+    REQUIRE( mul(float2x3(), float3x3()) == float2x3() );
+    REQUIRE( mul(float2x4(), float4x3()) == float2x3() );
+    REQUIRE( mul(float2x2(), float2x4()) == float2x4() );
+    REQUIRE( mul(float2x3(), float3x4()) == float2x4() );
+    REQUIRE( mul(float2x4(), float4x4()) == float2x4() );
+    REQUIRE( mul(float3x2(), float2x2()) == float3x2() );
+    REQUIRE( mul(float3x3(), float3x2()) == float3x2() );
+    REQUIRE( mul(float3x4(), float4x2()) == float3x2() );
+    REQUIRE( mul(float3x2(), float2x3()) == float3x3() );
+    REQUIRE( mul(float3x3(), float3x3()) == float3x3() );
+    REQUIRE( mul(float3x4(), float4x3()) == float3x3() );
+    REQUIRE( mul(float3x2(), float2x4()) == float3x4() );
+    REQUIRE( mul(float3x3(), float3x4()) == float3x4() );
+    REQUIRE( mul(float3x4(), float4x4()) == float3x4() );
+    REQUIRE( mul(float4x2(), float2x2()) == float4x2() );
+    REQUIRE( mul(float4x3(), float3x2()) == float4x2() );
+    REQUIRE( mul(float4x4(), float4x2()) == float4x2() );
+    REQUIRE( mul(float4x2(), float2x3()) == float4x3() );
+    REQUIRE( mul(float4x3(), float3x3()) == float4x3() );
+    REQUIRE( mul(float4x4(), float4x3()) == float4x3() );
+    REQUIRE( mul(float4x2(), float2x4()) == float4x4() );
+    REQUIRE( mul(float4x3(), float3x4()) == float4x4() );
+    REQUIRE( mul(float4x4(), float4x4()) == float4x4() );
+}
+
+TEST_CASE( "matrix inverse is correct for trivial cases" )
+{
+    const float2x2 id2 {{1,0},{0,1}};
+    const float3x3 id3 {{1,0,0},{0,1,0},{0,0,1}};
+    const float4x4 id4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+    REQUIRE( transpose(id2) == id2 );
+    REQUIRE( transpose(id3) == id3 );
+    REQUIRE( transpose(id4) == id4 );
+    REQUIRE( inverse(id2) == id2 );
+    REQUIRE( inverse(id3) == id3 );
+    REQUIRE( inverse(id4) == id4 );
+    REQUIRE( adjugate(id2) == id2 );
+    REQUIRE( adjugate(id3) == id3 );
+    REQUIRE( adjugate(id4) == id4 );
+    REQUIRE( determinant(id2) == 1.0f );
+    REQUIRE( determinant(id3) == 1.0f );
+    REQUIRE( determinant(id4) == 1.0f );
+}
+
+TEST_CASE( "matrix inverse is correct for general case" )
+{
+    const float4x4 mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
+    const float4x4 inv = inverse(mat);
+    const float4x4 id = mul(mat, inv);
+    for(int j=0; j<4; ++j)
+    {
+        for(int i=0; i<4; ++i)
+        {
+            if(i == j) REQUIRE( id[j][i] == Approx(1.0f) );
+            else REQUIRE( id[j][i] == Approx(0.0f) );
+        }
+    }
+}
 
 template<class T> void take(const T &) {}
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
@@ -388,26 +481,6 @@ TEST_CASE( "templates instantiate correctly", "" )
     MATCH(float3, qaxis(float4()) );
     MATCH(float4, qnlerp(float4(), float4(), float()) );
     MATCH(float4, qslerp(float4(), float4(), float()) );
-
-    // TODO: mul, adjugate, determinant, inverse, transpose
-    MATCH(float3  , mul(float3x2(), float2()) );
-    MATCH(float4  , mul(float4x3(), float3()) );
-    MATCH(float2  , mul(float2x4(), float4()) );
-    MATCH(float3x4, mul(float3x2(), float2x4()) );
-    MATCH(float4x2, mul(float4x3(), float3x2()) );
-    MATCH(float2x3, mul(float2x4(), float4x3()) );
-    MATCH(float2x2, adjugate(float2x2()) );
-    MATCH(float3x3, adjugate(float3x3()) );
-    MATCH(float4x4, adjugate(float4x4()) );
-    MATCH(float   , determinant(float2x2()) );
-    MATCH(float   , determinant(float3x3()) );
-    MATCH(float   , determinant(float4x4()) );
-    MATCH(float2x2, inverse(float2x2()) );
-    MATCH(float3x3, inverse(float3x3()) );
-    MATCH(float4x4, inverse(float4x4()) );
-    MATCH(float3x4, transpose(float4x3()) );
-    MATCH(float4x2, transpose(float2x4()) );
-    MATCH(float2x3, transpose(float3x2()) );
 
     // Exercise factory functions
     MATCH(float4, rotation_quat(float3(), float()) );
