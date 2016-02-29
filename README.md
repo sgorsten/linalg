@@ -110,16 +110,16 @@ For any vector or matrix `a`, the following unary operations will result in a ve
 
 ### Binary Operations
 
-For values `a` and `b`, there are a number of binary operations available, which produce vectors or matrices by performing the operation on elementwise pairs from `a` and `b`. If either `a` or `b` (but not both) are a scalar, the scalar is paired with each element from the other value, as
+For values `a` and `b`, there are a number of binary operations available, which produce vectors or matrices by performing the operation on elementwise pairs from `a` and `b`. If either `a` or `b` (but not both) are a scalar, the scalar is paired with each element from the other value, as described in the following table:
 
-type of `a`  | type of `b`  | `f(a,b)` produces | by combining            |
------------- | ------------ | ------------------|-------------------------|
-`vec<T,M>`   | `vec<T,M>`   | `vec<T,M>`        | `a[i]` and `b[i]`       |
-`vec<T,M>`   | `T`          | `vec<T,M>`        | `a[i]` and `b`          |
-`T`          | `vec<T,M>`   | `vec<T,M>`        | `a` and `b[i]`          |
-`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N>`      | `a[j][i]` and `b[j][i]` |
-`mat<T,M,N>` | `T`          | `mat<T,M,N>`      | `a[j][i]` and `b`       |
-`T`          | `mat<T,M,N>` | `mat<T,M,N>`      | `a` and `b[j][i]`       |
+type of `a`  | type of `b`  | `f(a,b)` yields |
+------------ | ------------ | ----------------|
+`vec<T,M>`   | `vec<T,M>`   | `vec<T,M> { f(a[0], b[0]), f(a[1], b[1]), ... }` |
+`vec<T,M>`   | `T`          | `vec<T,M> { f(a[0], b), f(a[1], b), ... }` |
+`T`          | `vec<T,M>`   | `vec<T,M> { f(a, b[0]), f(a, b[1]), ... }` |
+`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N> { {f(a[0][0], b[0][0]), f(a[0][1], b[0][1]), ...}, ... }` |
+`mat<T,M,N>` | `T`          | `mat<T,M,N> { {f(a[0][0], b), f(a[0][1], b), ...}, ... }` |
+`T`          | `mat<T,M,N>` | `mat<T,M,N> { {f(a, b[0][0]), f(a, b[0][1]), ...}, ... }` |
 
 The following operations are available:
 
