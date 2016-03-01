@@ -277,6 +277,17 @@ TEST_CASE( "matrix multiplication produces correct result dimensions" )
     REQUIRE( mul(float4x2(), float2x4()) == float4x4() );
     REQUIRE( mul(float4x3(), float3x4()) == float4x4() );
     REQUIRE( mul(float4x4(), float4x4()) == float4x4() );
+
+    // Outer product of vec<T,M> and vec<T,N> is equivalent to product of Mx1 and 1xN matrices
+    REQUIRE( outerprod(float2(), float2()) == float2x2() );
+    REQUIRE( outerprod(float2(), float3()) == float2x3() );
+    REQUIRE( outerprod(float2(), float4()) == float2x4() );
+    REQUIRE( outerprod(float3(), float2()) == float3x2() );
+    REQUIRE( outerprod(float3(), float3()) == float3x3() );
+    REQUIRE( outerprod(float3(), float4()) == float3x4() );
+    REQUIRE( outerprod(float4(), float2()) == float4x2() );
+    REQUIRE( outerprod(float4(), float3()) == float4x3() );
+    REQUIRE( outerprod(float4(), float4()) == float4x4() );
 }
 
 TEST_CASE( "matrix inverse is correct for trivial cases" )

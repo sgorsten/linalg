@@ -196,6 +196,7 @@ These functions assume that a `vec<T,M>` represents a mathematical vector within
 * `lerp(a,b,t)` linearly interpolates between `a` and `b` using parameter `t`
 * `nlerp(a,b,t)` is equivalent to `normalize(lerp(a,b,t))`
 * `slerp(a,b,t)` performs spherical linear interpolation between unit length vectors `a` and `b` using parameter `t`
+* `outerprod(a,b)` compute the outer product of `a` and `b`
 
 ## Quaternion Algebra
 

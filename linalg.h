@@ -253,18 +253,21 @@ namespace linalg
     template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l >= r; }); }
 
     // Support for vector algebra
-    template<class T>        T        cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }
-    template<class T>        vec<T,3> cross    (const vec<T,3> & a, const vec<T,3> & b)      { return {a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x}; }
-    template<class T, int M> T        dot      (const vec<T,M> & a, const vec<T,M> & b)      { return sum(a*b); }
-    template<class T, int M> T        length2  (const vec<T,M> & a)                          { return dot(a,a); }
-    template<class T, int M> T        length   (const vec<T,M> & a)                          { return std::sqrt(length2(a)); }
-    template<class T, int M> vec<T,M> normalize(const vec<T,M> & a)                          { return a / length(a); }
-    template<class T, int M> T        distance2(const vec<T,M> & a, const vec<T,M> & b)      { return length2(b-a); }
-    template<class T, int M> T        distance (const vec<T,M> & a, const vec<T,M> & b)      { return length(b-a); }
-    template<class T, int M> T        uangle   (const vec<T,M> & a, const vec<T,M> & b)      { T d=dot(a,b); return d > 1 ? 0 : std::acos(d < -1 ? -1 : d); }
-    template<class T, int M> vec<T,M> lerp     (const vec<T,M> & a, const vec<T,M> & b, T t) { return a*(1-t) + b*t; }
-    template<class T, int M> vec<T,M> nlerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { return normalize(lerp(a,b,t)); }
-    template<class T, int M> vec<T,M> slerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { T th=uangle(a,b); return th == 0 ? a : a*(std::sin(th*(1-t))/std::sin(th)) + b*(std::sin(th*t)/std::sin(th)); }
+    template<class T>        T          cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }
+    template<class T>        vec<T,3>   cross    (const vec<T,3> & a, const vec<T,3> & b)      { return {a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x}; }
+    template<class T, int M> T          dot      (const vec<T,M> & a, const vec<T,M> & b)      { return sum(a*b); }
+    template<class T, int M> T          length2  (const vec<T,M> & a)                          { return dot(a,a); }
+    template<class T, int M> T          length   (const vec<T,M> & a)                          { return std::sqrt(length2(a)); }
+    template<class T, int M> vec<T,M>   normalize(const vec<T,M> & a)                          { return a / length(a); }
+    template<class T, int M> T          distance2(const vec<T,M> & a, const vec<T,M> & b)      { return length2(b-a); }
+    template<class T, int M> T          distance (const vec<T,M> & a, const vec<T,M> & b)      { return length(b-a); }
+    template<class T, int M> T          uangle   (const vec<T,M> & a, const vec<T,M> & b)      { T d=dot(a,b); return d > 1 ? 0 : std::acos(d < -1 ? -1 : d); }
+    template<class T, int M> vec<T,M>   lerp     (const vec<T,M> & a, const vec<T,M> & b, T t) { return a*(1-t) + b*t; }
+    template<class T, int M> vec<T,M>   nlerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { return normalize(lerp(a,b,t)); }
+    template<class T, int M> vec<T,M>   slerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { T th=uangle(a,b); return th == 0 ? a : a*(std::sin(th*(1-t))/std::sin(th)) + b*(std::sin(th*t)/std::sin(th)); }
+    template<class T, int M> mat<T,M,2> outerprod(const vec<T,M> & a, const vec<T,2> & b)      { return {a*b.x, a*b.y}; }
+    template<class T, int M> mat<T,M,3> outerprod(const vec<T,M> & a, const vec<T,3> & b)      { return {a*b.x, a*b.y, a*b.z}; }
+    template<class T, int M> mat<T,M,4> outerprod(const vec<T,M> & a, const vec<T,4> & b)      { return {a*b.x, a*b.y, a*b.z, a*b.w}; }
 
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
     template<class T> vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
