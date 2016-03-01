@@ -77,7 +77,8 @@ namespace linalg
                                     vec(const vec<T,2> & xy, T z)   : vec(xy.x, xy.y, z) {}
         const T &                   operator[] (int i) const        { return (&x)[i]; }
         T &                         operator[] (int i)              { return (&x)[i]; }
-        vec<T,2>                    xy() const                      { return {x,y}; }
+        const vec<T,2> &            xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
+        vec<T,2> &                  xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }
     };
     template<class T> struct vec<T,4>
     {
@@ -90,7 +91,8 @@ namespace linalg
                                     vec(const vec<T,3> & xyz, T w)  : vec(xyz.x, xyz.y, xyz.z, w) {}
         const T &                   operator[] (int i) const        { return (&x)[i]; }
         T &                         operator[] (int i)              { return (&x)[i]; }
-        vec<T,3>                    xyz() const                     { return {x,y,z}; }
+        const vec<T,3> &            xyz() const                     { return *reinterpret_cast<const vec<T,3> *>(this); }
+        vec<T,3> &                  xyz()                           { return *reinterpret_cast<vec<T,3> *>(this); }
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
@@ -273,6 +275,7 @@ namespace linalg
     template<class T> vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
     template<class T> vec<T,4> qinv (const vec<T,4> & q)                     { return q/length2(q); }
     template<class T> vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
+    template<class T, class... R> vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
     // TODO: qexp, qlog
 
     // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
@@ -293,6 +296,7 @@ namespace linalg
     template<class T, int M, int N> mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
     template<class T, int M, int N> mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
     template<class T, int M, int N> mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
+    template<class T, int M, int N, class... R> auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
     template<class T, int M> mat<T,M,2> transpose(const mat<T,2,M> & m) { return {m.row(0), m.row(1)}; }
     template<class T, int M> mat<T,M,3> transpose(const mat<T,3,M> & m) { return {m.row(0), m.row(1), m.row(2)}; }
     template<class T, int M> mat<T,M,4> transpose(const mat<T,4,M> & m) { return {m.row(0), m.row(1), m.row(2), m.row(3)}; }
