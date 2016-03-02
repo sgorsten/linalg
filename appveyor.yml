@@ -10,4 +10,4 @@ build:
   project: samples/msvc120/linalg-msvc120.sln
   
 test_script:
-  - samples\msvc120\Debug\linalg-test.exe
+  - samples\msvc120\bin\linalg-test-Debug-Win32.exe

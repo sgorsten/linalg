@@ -1,5 +1,5 @@
-Debug/
-Release/
+bin/
+obj/
 *.opensdf
 *.sdf
 *.suo
