@@ -1,62 +1,158 @@
-// This file exists to assist in testing that the abstractions used in linalg.h do not interfere with the optimizer's ability
-// to inline math code. For now, we are looking to see that there are no function calls to linalg.h functions, and that the
-// number of math operations (addss, subss, mulss, divss) does not exceed the amount required to compute the solution using
-// scalar arithmetic. In Visual Studio, this can be done by setting a breakpoint, running with the debugger attached, and
-// hitting Alt-8. I'd eventually like to automate this process and have it run as part of our test suite.
+// The purpose of this test is to check how thoroughly the optimizer is able to inline linalg.h.
+// Ideally, no calls should ever exist to linalg:: functions, they should be fully inlined into
+// whatever function is making use of them.
+
+// This test is pretty tricky. During compilation, we use volatile variables to force the
+// compiler to compile the test functions we want, and to not optimize away the computations
+// we wish to evaluate. The program must be compiled with /FAs, to produce a .asm output
+// with source annotations. The program then parses its own assembly output, looking for
+// specific functions, and counts up the various opcodes found within.
+
+// Finally, we return success or failure on the basis of whether or not each test function
+// made the expected number of function calls, which would typically be zero for purely
+// algebraic expressions, or some nonzero number for expressions which contain calls to
+// sqrt or other math functions.
+
+//////////////
+// Preamble //
+//////////////
+
+#include <string>
+#include <vector>
+#include <map>
+
+struct record 
+{ 
+    static std::vector<record *> records;
+    void (*func)(); const char * name; int expected_calls; bool found; std::map<std::string, int> opcodes; std::vector<std::string> calls; 
+    record(void (*func)(), const char * name, int expected_calls) : func(func), name(name), expected_calls(expected_calls), found() { records.push_back(this); }
+};
+std::vector<record *> record::records;
+
+#define TEST(F, C) void F(); record r_##F(&F, #F, C); void F()
+
+///////////
+// Tests //
+///////////
 
 #include "../linalg.h"
 using namespace linalg::aliases;
 
-// A small number of functions, such as matrix multiplication with 4x4 matrices, are SIMD friendly and could conceivably be
-// done with fewer operations. The compiler might be smart enough to auto-vectorize. If not, the following trick can be done
-// to hint to the compiler which operations can be done with SSE instructions.
-
-#if 0 // Change to 1 to hint to the compiler that it can do ops on float4 (and by proxy, float4xN) using SSE ops
-#include <xmmintrin.h>
-namespace linalg
-{
-    float4 operator + (const float4 & a, const float4 & b) { return (const float4 &)_mm_add_ps((const __m128 &)a, (const __m128 &)b); }
-    float4 operator - (const float4 & a, const float4 & b) { return (const float4 &)_mm_sub_ps((const __m128 &)a, (const __m128 &)b); }
-    float4 operator * (const float4 & a, const float4 & b) { return (const float4 &)_mm_mul_ps((const __m128 &)a, (const __m128 &)b); }
-    float4 operator / (const float4 & a, const float4 & b) { return (const float4 &)_mm_div_ps((const __m128 &)a, (const __m128 &)b); }
-    float4 operator + (const float4 & a, const float &  b) { return (const float4 &)_mm_add_ps((const __m128 &)a, _mm_set1_ps(b)); }
-    float4 operator - (const float4 & a, const float &  b) { return (const float4 &)_mm_sub_ps((const __m128 &)a, _mm_set1_ps(b)); }
-    float4 operator * (const float4 & a, const float &  b) { return (const float4 &)_mm_mul_ps((const __m128 &)a, _mm_set1_ps(b)); }
-    float4 operator / (const float4 & a, const float &  b) { return (const float4 &)_mm_div_ps((const __m128 &)a, _mm_set1_ps(b)); }
-    float4 operator + (const float &  a, const float4 & b) { return (const float4 &)_mm_add_ps(_mm_set1_ps(a), (const __m128 &)b); }
-    float4 operator - (const float &  a, const float4 & b) { return (const float4 &)_mm_sub_ps(_mm_set1_ps(a), (const __m128 &)b); }
-    float4 operator * (const float &  a, const float4 & b) { return (const float4 &)_mm_mul_ps(_mm_set1_ps(a), (const __m128 &)b); }
-    float4 operator / (const float &  a, const float4 & b) { return (const float4 &)_mm_div_ps(_mm_set1_ps(a), (const __m128 &)b); }
-}
-#endif
-
 volatile float v;
 
-// Release Win32 codegen should contain 3 mulss and 2 addss, no function calls
-__declspec(noinline) void test_dot_float3_float3()
+TEST(test_dot_float3_float3, 0) // Should fully inline
 {
     v = dot(float3(v,v,v), float3(v,v,v)); 
 }
 
-// Release Win32 codegen should contain 9 mulss, 3 divss, 5 addss, 1 subss, and 1 call to __libm_sse2_sqrt_precise
-__declspec(noinline) void test_nlerp_float3_float3()
+TEST(test_nlerp_float3_float3, 1) // Should call sqrtf
 {
     auto r = nlerp(float3(v,v,v), float3(v,v,v), v);
     v = r.x; v = r.y; v = r.z;
 }
 
-// Release Win32 codegen should contain no more than 16 mulss and 12 addss, no function calls
-// If SSE definitions above are brought into play, should contain no more than 4 mulss and 3 addss, no function calls
-__declspec(noinline) void test_mul_float4x4_float4()
+TEST(test_mul_float4x4_float4, 0) // Should fully inline
 {
     auto r = linalg::mul(float4x4({v,v,v,v},{v,v,v,v},{v,v,v,v},{v,v,v,v}), float4(v,v,v,v));
     v = r.x; v = r.y; v = r.z; v = r.w;
 }
 
-int main()
+TEST(test_sin_float4, 4) // Should call sinf four times
 {
-    test_dot_float3_float3();
-    test_nlerp_float3_float3();
-    test_mul_float4x4_float4();
-    return 0;
+    auto r = sin(float4(v,v,v,v));
+    v = r.x; v = r.y; v = r.z; v = r.w;
+}
+
+/////////////////
+// Test driver //
+/////////////////
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+int main() try
+{
+    std::string path = "obj/linalg-codegen/Release-";
+    path += sizeof(void *) == 8 ? "x64" : "Win32";
+    path += "/linalg-codegen.asm";
+    std::ifstream in(path);
+    if(!in) throw std::runtime_error("Unable to open ./"+path);
+    record * current_record = 0;
+    std::string line, token0, token1;
+    while(true)
+    {
+        if(!std::getline(in, line)) break;
+        if(line.empty()) continue;
+        if(line[0] == ';' || line[0] == '$') continue;
+        if(line[0] == '?')
+        {
+            if(!(std::istringstream(line) >> token0 >> token1)) continue;
+            if(token1 == "PROC")
+            {
+                if(current_record) throw std::runtime_error("PROC without matching ENDP");
+                auto i = token0.find('@', 1);
+                if(i == std::string::npos) throw std::runtime_error("symbol without @");
+                auto name = token0.substr(1, i-1);
+                for(auto r : record::records)
+                {
+                    if(name == r->name)
+                    {
+                        current_record = r;
+                        r->found = true;
+                        break;
+                    }
+                }
+            }
+            else if(token1 == "ENDP")
+            {
+                current_record = nullptr;
+            }
+            continue;
+        }
+        if(!current_record) continue;        
+        if(!(std::istringstream(line) >> token0 >> token1)) continue;
+        if(token0 == "call" || token0 == "jmp")
+        {
+            auto i = line.find(';');
+            if(i != std::string::npos)
+            {
+                current_record->calls.push_back(line.substr(i+2));
+                continue;
+            }
+            else if(token0 == "call")
+            {
+                current_record->calls.push_back(token1);
+                continue;
+            }
+        }
+        ++current_record->opcodes[token0];
+    }
+
+    int retval = EXIT_SUCCESS;
+    void (* volatile v_func)() = 0;
+    for(auto * r : record::records)
+    {
+        if(!r->found) throw std::runtime_error("Function not found: " + std::string(r->name));
+
+        std::cout << r->name << ":\n    ops: ";
+        for(auto & p : r->opcodes) std::cout << p.first << "*" << p.second << " ";
+        std::cout << "\n    calls: ";
+        for(auto & c : r->calls) std::cout << c << " ";
+        if(r->calls.empty()) std::cout << "none";
+        std::cout << "\n    status: ";
+        if(r->calls.size() == r->expected_calls) std::cout << "PASS\n\n";
+        else
+        {
+            retval = EXIT_FAILURE;
+            std::cout << "FAIL\n\n";
+        }
+        v_func = r->func;
+    }
+    return retval;
+}
+catch(const std::exception & e)
+{
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
 }
