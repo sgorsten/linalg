@@ -273,7 +273,7 @@ namespace linalg
 
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
     template<class T> vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
-    template<class T> vec<T,4> qinv (const vec<T,4> & q)                     { return q/length2(q); }
+    template<class T> vec<T,4> qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
     template<class T> vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
     template<class T, class... R> vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
     // TODO: qexp, qlog
