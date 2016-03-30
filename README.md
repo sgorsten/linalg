@@ -223,6 +223,7 @@ Additionally, there are several functions which assume that a quaternion `q` rep
 These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `vec<T,M>` represents an `M`x`1` matrix. Note that matrix multiplication is explicitly denoted via the function `mul`, as `operator *` already refers to elementwise multiplication of two matrices.
 
 * `mul(a,b)` computes the product `ab` of matrices `a` and `b`
+* `diagonal(a)` returns the diagonal of square matrix `a` as a vector
 * `transpose(a)` computes the transpose of matrix `a`
 * `inverse(a)` computes the inverse of matrix `a`
 * `determinant(a)` computes the determinant of matrix `a`
@@ -235,6 +236,7 @@ These functions exist for easy interoperability with 3D APIs, which frequently u
 * `rotation_quat(axis,angle)` constructs a quaternion of `angle` radians about the `axis` vector
 * `translation_matrix(translation)` constructs a transformation matrix which translates by vector `translation`
 * `rotation_matrix(rotation)` constructs a transformation matrix which rotates by quaternion `rotation`
+* `scaling_matrix(scaling)` constructs a transformation matrix which scales on the x, y, and z axes by the components of vector `scaling`
 * `pose_matrix(q,p)` constructs a transformation matrix which rotates by quaternion `q` and translates by vector `p`
 * `frustum_matrix(l,r,b,t,n,f)` constructs a transformation matrix which projects by a specified frustum
 * `perspective_matrix(fovy,aspect,n,f)` constructs a transformation matrix for a right handed perspective projection

@@ -295,6 +295,9 @@ TEST_CASE( "matrix inverse is correct for trivial cases" )
     const float2x2 id2 {{1,0},{0,1}};
     const float3x3 id3 {{1,0,0},{0,1,0},{0,0,1}};
     const float4x4 id4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+    REQUIRE( diagonal(id2) == float2(1,1) );
+    REQUIRE( diagonal(id3) == float3(1,1,1) );
+    REQUIRE( diagonal(id4) == float4(1,1,1,1) );
     REQUIRE( transpose(id2) == id2 );
     REQUIRE( transpose(id3) == id3 );
     REQUIRE( transpose(id4) == id4 );
@@ -497,6 +500,7 @@ TEST_CASE( "templates instantiate correctly", "" )
     MATCH(float4, rotation_quat(float3(), float()) );
     MATCH(float4x4, translation_matrix(float3()) );
     MATCH(float4x4, rotation_matrix(float4()) );
+    MATCH(float4x4, scaling_matrix(float3()) );
     MATCH(float4x4, pose_matrix(float4(), float3()) );
     MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
     MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
