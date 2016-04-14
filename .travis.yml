@@ -1,13 +1,29 @@
 sudo: false
 language: cpp
-compiler: gcc
-install: export CXX="g++-4.8";
+compiler: 
+  - gcc
+  - clang
+
 addons:
   apt:
-    sources: ubuntu-toolchain-r-test
-    packages: g++-4.8
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.7
+    packages:
+    - gcc-4.9
+    - g++-4.9
+    - clang-3.7
+
+install:
+  # /usr/bin/gcc is 4.6 always, but gcc-X.Y is available.
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  # /usr/bin/clang is 3.4, lets override with modern one.
+  - if [ "$CXX" = "clang++" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+  - echo ${CXX}
+  - ${CXX} --version
+  - ${CXX} -v
+
 script: 
   cd samples;
   make;
   ./linalg-test;
-  
