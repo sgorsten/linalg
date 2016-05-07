@@ -4,9 +4,7 @@ using namespace linalg::aliases;
 #define CATCH_CONFIG_MAIN
 #include "thirdparty/catch.hpp"
 
-#include <vector>
 #include <algorithm>
-#include <functional>
 
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int j=0; j<N; ++j) require_zero(m[j]); }
@@ -233,7 +231,7 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 
     // Sorting in descending order should produce the reverse ordering
-    std::sort(begin(points), end(points), std::greater<int3>());
+    std::sort(begin(points), end(points), [](const int3 & a, const int3 & b) { return a > b; });
     std::reverse(begin(ordered_points), end(ordered_points));
     REQUIRE( points == ordered_points );
 }
@@ -323,6 +321,33 @@ TEST_CASE( "matrix inverse is correct for general case" )
         {
             if(i == j) REQUIRE( id[j][i] == Approx(1.0f) );
             else REQUIRE( id[j][i] == Approx(0.0f) );
+        }
+    }
+}
+
+TEST_CASE( "hashing works as expected" )
+{
+    // std::hash specializations should take their specified type and return size_t
+    REQUIRE( typeid(std::hash<int2     >()(int2     {})) == typeid(size_t) );
+    REQUIRE( typeid(std::hash<float3   >()(float3   {})) == typeid(size_t) );
+    REQUIRE( typeid(std::hash<double4  >()(double4  {})) == typeid(size_t) );
+    REQUIRE( typeid(std::hash<int2x4   >()(int2x4   {})) == typeid(size_t) );
+    REQUIRE( typeid(std::hash<float3x2 >()(float3x2 {})) == typeid(size_t) );
+    REQUIRE( typeid(std::hash<double4x3>()(double4x3{})) == typeid(size_t) );
+
+    // Small list of items which are known to have no duplicate hashes
+    const float3 points[] = {
+        {1,2,3}, {1,3,2}, {2,1,3}, {2,3,1}, {3,1,2}, {3,2,1},
+        {1,1,1}, {2,2,2}, {3,3,3}, {4,4,4}, {5,5,5}, {6,6,6},
+        {0,0,0}, {0,0,1}, {0,1,0}, {1,0,0}, {0,1,1}, {1,1,0}
+    };
+    const std::hash<float3> h;
+    for(auto & a : points)
+    {
+        for(auto & b : points)
+        {
+            if(a == b) REQUIRE( h(a) == h(b) );
+            else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
         }
     }
 }
