@@ -341,7 +341,7 @@ TEST_CASE( "hashing works as expected" )
         {1,1,1}, {2,2,2}, {3,3,3}, {4,4,4}, {5,5,5}, {6,6,6},
         {0,0,0}, {0,0,1}, {0,1,0}, {1,0,0}, {0,1,1}, {1,1,0}
     };
-    const std::hash<float3> h;
+    const std::hash<float3> h = {};
     for(auto & a : points)
     {
         for(auto & b : points)
