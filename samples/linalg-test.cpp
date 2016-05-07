@@ -57,99 +57,99 @@ TEST_CASE( "vector and matrix can be constructed from pointer to const elements"
 TEST_CASE( "operator overloads produce correct results" )
 {
     // All operators can be applied to vector types, and results are computed elementwise
-    REQUIRE( float2(2,3) + float2(4,12) == float2(  6,  15) );
-    REQUIRE( float2(2,3) - float2(4,12) == float2( -2,  -9) );
-    REQUIRE( float2(2,3) * float2(4,12) == float2(  8,  36) );
-    REQUIRE( float2(2,3) / float2(4,12) == float2(0.5,0.25) );
-    REQUIRE(  int2(27,31) % int2(5,8)  == int2( 2,  7) );
-    REQUIRE( (int2(27,31) | int2(5,8)) == int2(31, 31) );
-    REQUIRE( (int2(27,31) ^ int2(5,8)) == int2(30, 23) );
-    REQUIRE( (int2(27,31) & int2(5,8)) == int2( 1,  8) );
-    REQUIRE(  int2(14,35) << int2(2,3) == int2(56,280) );
-    REQUIRE(  int2(14,35) >> int2(2,3) == int2( 3,  4) );
+    REQUIRE( (float2(2,3) +  float2(4,12)) == float2(  6,  15) );
+    REQUIRE( (float2(2,3) -  float2(4,12)) == float2( -2,  -9) );
+    REQUIRE( (float2(2,3) *  float2(4,12)) == float2(  8,  36) );
+    REQUIRE( (float2(2,3) /  float2(4,12)) == float2(0.5,0.25) );
+    REQUIRE( (int2(27,31) %  int2(5,8))    == int2( 2,  7) );
+    REQUIRE( (int2(27,31) |  int2(5,8))    == int2(31, 31) );
+    REQUIRE( (int2(27,31) ^  int2(5,8))    == int2(30, 23) );
+    REQUIRE( (int2(27,31) &  int2(5,8))    == int2( 1,  8) );
+    REQUIRE( (int2(14,35) << int2(2,3))    == int2(56,280) );
+    REQUIRE( (int2(14,35) >> int2(2,3))    == int2( 3,  4) );
 }
 
 TEST_CASE( "integer promotion rules apply" )
 {
     // uint8_t promotes to int
-    REQUIRE(+byte2()             == int2());
-    REQUIRE(-byte3()             == int3());
-    REQUIRE(~byte4()             == int4(~0));
-    REQUIRE(!byte2()             == bool2(true)); // operator! always returns a vector of bools
-    REQUIRE((byte2() +  byte2()) == int2());
-    REQUIRE((byte3() -  byte3()) == int3());
-    REQUIRE((byte4() *  byte4()) == int4());
+    REQUIRE(+byte2()              == int2());
+    REQUIRE(-byte3()              == int3());
+    REQUIRE(~byte4()              == int4(~0));
+    REQUIRE(!byte2()              == bool2(true)); // operator! always returns a vector of bools
+    REQUIRE((byte2() +  byte2())  == int2());
+    REQUIRE((byte3() -  byte3())  == int3());
+    REQUIRE((byte4() *  byte4())  == int4());
     REQUIRE((byte2() /  byte2(1)) == int2());
     REQUIRE((byte3() %  byte3(1)) == int3());
-    REQUIRE((byte4() |  byte4()) == int4());
-    REQUIRE((byte2() ^  byte2()) == int2());
-    REQUIRE((byte3() &  byte3()) == int3());
-    REQUIRE((byte4() << byte4()) == int4());
-    REQUIRE((byte2() >> byte2()) == int2());
+    REQUIRE((byte4() |  byte4())  == int4());
+    REQUIRE((byte2() ^  byte2())  == int2());
+    REQUIRE((byte3() &  byte3())  == int3());
+    REQUIRE((byte4() << byte4())  == int4());
+    REQUIRE((byte2() >> byte2())  == int2());
 
     // int16_t promotes to int
-    REQUIRE(+short3()              == int3());
-    REQUIRE(-short4()              == int4());
-    REQUIRE(~short2()              == int2(~0));
-    REQUIRE(!short3()              == bool3(true)); // operator! always returns a vector of bools
-    REQUIRE((short3() +  short3()) == int3());
-    REQUIRE((short4() -  short4()) == int4());
-    REQUIRE((short2() *  short2()) == int2());
+    REQUIRE(+short3()               == int3());
+    REQUIRE(-short4()               == int4());
+    REQUIRE(~short2()               == int2(~0));
+    REQUIRE(!short3()               == bool3(true)); // operator! always returns a vector of bools
+    REQUIRE((short3() +  short3())  == int3());
+    REQUIRE((short4() -  short4())  == int4());
+    REQUIRE((short2() *  short2())  == int2());
     REQUIRE((short3() /  short3(1)) == int3());
     REQUIRE((short4() %  short4(1)) == int4());
-    REQUIRE((short2() |  short2()) == int2());
-    REQUIRE((short3() ^  short3()) == int3());
-    REQUIRE((short4() &  short4()) == int4());
-    REQUIRE((short2() << short2()) == int2());
-    REQUIRE((short3() >> short3()) == int3());
+    REQUIRE((short2() |  short2())  == int2());
+    REQUIRE((short3() ^  short3())  == int3());
+    REQUIRE((short4() &  short4())  == int4());
+    REQUIRE((short2() << short2())  == int2());
+    REQUIRE((short3() >> short3())  == int3());
 
     // uint16_t promotes to int
-    REQUIRE(+ushort4()               == int4());
-    REQUIRE(-ushort2()               == int2());
-    REQUIRE(~ushort3()               == int3(~0));
-    REQUIRE(!ushort4()               == bool4(true)); // operator! always returns a vector of bools
-    REQUIRE((ushort4() +  ushort4()) == int4());
-    REQUIRE((ushort2() -  ushort2()) == int2());
-    REQUIRE((ushort3() *  ushort3()) == int3());
+    REQUIRE(+ushort4()                == int4());
+    REQUIRE(-ushort2()                == int2());
+    REQUIRE(~ushort3()                == int3(~0));
+    REQUIRE(!ushort4()                == bool4(true)); // operator! always returns a vector of bools
+    REQUIRE((ushort4() +  ushort4())  == int4());
+    REQUIRE((ushort2() -  ushort2())  == int2());
+    REQUIRE((ushort3() *  ushort3())  == int3());
     REQUIRE((ushort4() /  ushort4(1)) == int4());
     REQUIRE((ushort2() %  ushort2(1)) == int2());
-    REQUIRE((ushort3() |  ushort3()) == int3());
-    REQUIRE((ushort4() ^  ushort4()) == int4());
-    REQUIRE((ushort2() &  ushort2()) == int2());
-    REQUIRE((ushort3() << ushort3()) == int3());
-    REQUIRE((ushort4() >> ushort4()) == int4());
+    REQUIRE((ushort3() |  ushort3())  == int3());
+    REQUIRE((ushort4() ^  ushort4())  == int4());
+    REQUIRE((ushort2() &  ushort2())  == int2());
+    REQUIRE((ushort3() << ushort3())  == int3());
+    REQUIRE((ushort4() >> ushort4())  == int4());
 
     // int is not promoted
-    REQUIRE(+int2()            == int2());
-    REQUIRE(-int3()            == int3());
-    REQUIRE(~int4()            == int4(~0));
-    REQUIRE(!int2()            == bool2(true)); // operator! always returns a vector of bools
-    REQUIRE((int2() +  int2()) == int2());
-    REQUIRE((int3() -  int3()) == int3());
-    REQUIRE((int4() *  int4()) == int4());
+    REQUIRE(+int2()             == int2());
+    REQUIRE(-int3()             == int3());
+    REQUIRE(~int4()             == int4(~0));
+    REQUIRE(!int2()             == bool2(true)); // operator! always returns a vector of bools
+    REQUIRE((int2() +  int2())  == int2());
+    REQUIRE((int3() -  int3())  == int3());
+    REQUIRE((int4() *  int4())  == int4());
     REQUIRE((int2() /  int2(1)) == int2());
     REQUIRE((int3() %  int3(1)) == int3());
-    REQUIRE((int4() |  int4()) == int4());
-    REQUIRE((int2() ^  int2()) == int2());
-    REQUIRE((int3() &  int3()) == int3());
-    REQUIRE((int4() << int4()) == int4());
-    REQUIRE((int2() >> int2()) == int2());
+    REQUIRE((int4() |  int4())  == int4());
+    REQUIRE((int2() ^  int2())  == int2());
+    REQUIRE((int3() &  int3())  == int3());
+    REQUIRE((int4() << int4())  == int4());
+    REQUIRE((int2() >> int2())  == int2());
 
     // unsigned is not promoted
-    REQUIRE(+uint3()             == uint3());
-    REQUIRE(-uint4()             == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
-    REQUIRE(~uint2()             == uint2(~0));
-    REQUIRE(!uint3()             == bool3(true)); // operator! always returns a vector of bools
-    REQUIRE((uint3() +  uint3()) == uint3());
-    REQUIRE((uint4() -  uint4()) == uint4());
-    REQUIRE((uint2() *  uint2()) == uint2());
+    REQUIRE(+uint3()              == uint3());
+    REQUIRE(-uint4()              == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
+    REQUIRE(~uint2()              == uint2(~0));
+    REQUIRE(!uint3()              == bool3(true)); // operator! always returns a vector of bools
+    REQUIRE((uint3() +  uint3())  == uint3());
+    REQUIRE((uint4() -  uint4())  == uint4());
+    REQUIRE((uint2() *  uint2())  == uint2());
     REQUIRE((uint3() /  uint3(1)) == uint3());
     REQUIRE((uint4() %  uint4(1)) == uint4());
-    REQUIRE((uint2() |  uint2()) == uint2());
-    REQUIRE((uint3() ^  uint3()) == uint3());
-    REQUIRE((uint4() &  uint4()) == uint4());
-    REQUIRE((uint2() << uint2()) == uint2());
-    REQUIRE((uint3() >> uint3()) == uint3());
+    REQUIRE((uint2() |  uint2())  == uint2());
+    REQUIRE((uint3() ^  uint3())  == uint3());
+    REQUIRE((uint4() &  uint4())  == uint4());
+    REQUIRE((uint2() << uint2())  == uint2());
+    REQUIRE((uint3() >> uint3())  == uint3());
 
     // float is not promoted
     REQUIRE(+float4()              == float4());

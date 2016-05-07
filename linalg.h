@@ -375,12 +375,12 @@ namespace linalg
 // Provide specializations for std::hash<...> with linalg types
 namespace std 
 { 
-    template<class T> struct hash<linalg::vec<T,2>> { std::size_t operator()(const linalg::vec<T,2> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1); } };
-    template<class T> struct hash<linalg::vec<T,3>> { std::size_t operator()(const linalg::vec<T,3> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2); } };
-    template<class T> struct hash<linalg::vec<T,4>> { std::size_t operator()(const linalg::vec<T,4> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2) ^ (h(v.w) << 3); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,2>> { std::size_t operator()(const linalg::mat<T,M,2> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,3>> { std::size_t operator()(const linalg::mat<T,M,3> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,4>> { std::size_t operator()(const linalg::mat<T,M,4> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)) ^ (h(v.w) << (M*3)); } };
+    template<class T> struct hash<linalg::vec<T,2>> { hash() = default; std::size_t operator()(const linalg::vec<T,2> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1); } };
+    template<class T> struct hash<linalg::vec<T,3>> { hash() = default; std::size_t operator()(const linalg::vec<T,3> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2); } };
+    template<class T> struct hash<linalg::vec<T,4>> { hash() = default; std::size_t operator()(const linalg::vec<T,4> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2) ^ (h(v.w) << 3); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,2>> { hash() = default; std::size_t operator()(const linalg::mat<T,M,2> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,3>> { hash() = default; std::size_t operator()(const linalg::mat<T,M,3> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,4>> { hash() = default; std::size_t operator()(const linalg::mat<T,M,4> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)) ^ (h(v.w) << (M*3)); } };
 }
 
 #endif
