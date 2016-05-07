@@ -6,7 +6,7 @@
 Platform | Build Status |
 -------- | ------------ |
 Visual Studio 2013 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
-GCC 4.9 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
+GCC 4.9 and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
 
@@ -95,6 +95,8 @@ The general pattern for vectors and matrices of other types are shown in the fol
 ## Relational Operators
 
 The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
+
+Additionally, specializations are provided for `std::hash<T>` for both `vec<T,M>` and `mat<T,M,N>`, making them suitable for use as the key type in `std::unordered_set` and `std::unordered_map`.
 
 ## Elementwise Functions
 
@@ -193,6 +195,7 @@ These functions assume that a `vec<T,M>` represents a mathematical vector within
 * `distance(a,b)` computes the Euclidean distance between two points `a` and `b`
 * `distance2(a,b)` computes the square of the Euclidean distance between two points `a` and `b`
 * `uangle(a,b)` computes the angle, in radians, between unit length vectors `a` and `b`
+* `angle(a,b)` computes the angle, in radians, between nonzero length vectors `a` and `b`
 * `lerp(a,b,t)` linearly interpolates between `a` and `b` using parameter `t`
 * `nlerp(a,b,t)` is equivalent to `normalize(lerp(a,b,t))`
 * `slerp(a,b,t)` performs spherical linear interpolation between unit length vectors `a` and `b` using parameter `t`
