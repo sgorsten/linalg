@@ -158,6 +158,7 @@ The following operations are available:
 * `fmod(a,b)` applies `std::fmod(...)` to componentwise pairs of elements from `a` and `b`
 * `pow(a,b)` applies `std::pow(...)` to componentwise pairs of elements from `a` and `b`
 * `atan2(a,b)` applies `std::atan2(...)` to componentwise pairs of elements from `a` and `b`
+* `copysign(a,b)` applies `std::copysign(...)` to componentwise pairs of elements from `a` and `b`
 
 * `equal(a,b)` applies the `operator ==` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
 * `nequal(a,b)` applies the `operator !=` to componentwise pairs of elements from `a` and `b`, producing a vector or matrix of bools
@@ -236,7 +237,8 @@ These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `
 
 These functions exist for easy interoperability with 3D APIs, which frequently use `4`x`4` homogeneous matrices to represent general 3D transformations, and quaternions to represent 3D rotations.
 
-* `rotation_quat(axis,angle)` constructs a quaternion of `angle` radians about the `axis` vector
+* `rotation_quat(axis,angle)` constructs a rotation quaternion of `angle` radians about the `axis` vector
+* `rotation_quat(matrix)` constructs a rotation quaternion from a `3`x`3` rotation matrix
 * `translation_matrix(translation)` constructs a transformation matrix which translates by vector `translation`
 * `rotation_matrix(rotation)` constructs a transformation matrix which rotates by quaternion `rotation`
 * `scaling_matrix(scaling)` constructs a transformation matrix which scales on the x, y, and z axes by the components of vector `scaling`

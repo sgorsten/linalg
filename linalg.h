@@ -239,12 +239,13 @@ namespace linalg
     template<class A, class B> result_t<A,A> & operator >>= (A & a, const B & b) { return a = a >> b; }
 
     // Mirror the set of binary scalar math functions to apply elementwise to vectors
-    template<class A, class B> result_t<A,B> min  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l < r ? l : r; }); }
-    template<class A, class B> result_t<A,B> max  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l > r ? l : r; }); }
-    template<class A, class B> result_t<A,B> fmod (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::fmod (l, r); }); }
-    template<class A, class B> result_t<A,B> pow  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::pow  (l, r); }); }
-    template<class A, class B> result_t<A,B> atan2(const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::atan2(l, r); }); }
-    template<class A, class B> result_t<A,B> clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
+    template<class A, class B> result_t<A,B> min     (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l < r ? l : r; }); }
+    template<class A, class B> result_t<A,B> max     (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l > r ? l : r; }); }
+    template<class A, class B> result_t<A,B> fmod    (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::fmod    (l, r); }); }
+    template<class A, class B> result_t<A,B> pow     (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::pow     (l, r); }); }
+    template<class A, class B> result_t<A,B> atan2   (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::atan2   (l, r); }); }
+    template<class A, class B> result_t<A,B> copysign(const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::copysign(l, r); }); }
+    template<class A, class B> result_t<A,B> clamp   (const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
 
     // Functions for componentwise application of equivalence and relational operators
     template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return l == r; }); }
@@ -344,6 +345,7 @@ namespace linalg
 
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
     template<class T> vec<T,4>   rotation_quat     (const vec<T,3> & axis, T angle)         { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
+    template<class T> vec<T,4>   rotation_quat     (const mat<T,3,3> & m)                   { return copysign(sqrt(max(T(0), T(1) + vec<T,4>(m.x.x-m.y.y-m.z.z, m.y.y-m.x.x-m.z.z, m.z.z-m.x.x-m.y.y, m.x.x+m.y.y+m.z.z))) / T(2), vec<T,4>(m.y.z-m.z.y, m.z.x-m.x.z, m.x.y-m.y.x, 1)); }
     template<class T> mat<T,4,4> translation_matrix(const vec<T,3> & translation)           { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
     template<class T> mat<T,4,4> rotation_matrix   (const vec<T,4> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
     template<class T> mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)               { return {{scaling.x,0,0,0}, {0,scaling.y,0,0}, {0,0,scaling.z,0}, {0,0,0,1}}; }

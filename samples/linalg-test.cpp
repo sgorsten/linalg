@@ -4,6 +4,7 @@ using namespace linalg::aliases;
 #define CATCH_CONFIG_MAIN
 #include "thirdparty/catch.hpp"
 
+#include <random>
 #include <algorithm>
 
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
@@ -322,6 +323,37 @@ TEST_CASE( "matrix inverse is correct for general case" )
             if(i == j) REQUIRE( id[j][i] == Approx(1.0f) );
             else REQUIRE( id[j][i] == Approx(0.0f) );
         }
+    }
+}
+
+TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
+{
+    std::mt19937 engine;
+    std::normal_distribution<float> f;
+    std::normal_distribution<double> d;
+
+    for(int i=0; i<1000; ++i)
+    {
+        float4 q = normalize(float4(f(engine), f(engine), f(engine), f(engine)));
+        if(q.w < 0) q = -q; // rotation_quat(float3x3) always returns a quat with q.w >= 0
+        float4 q2 = rotation_quat(qmat(q));
+
+        REQUIRE( abs(q.x - q2.x) < 0.0001f );
+        REQUIRE( abs(q.y - q2.y) < 0.0001f );
+        REQUIRE( abs(q.z - q2.z) < 0.0001f );
+        REQUIRE( abs(q.w - q2.w) < 0.0001f );
+    }
+
+    for(int i=0; i<1000; ++i)
+    {
+        double4 q = normalize(double4(d(engine), d(engine), d(engine), d(engine)));
+        if(q.w < 0) q = -q; // rotation_quat(double3x3) always returns a quat with q.w >= 0
+        double4 q2 = rotation_quat(qmat(q));
+
+        REQUIRE( abs(q.x - q2.x) < 0.00000001 );
+        REQUIRE( abs(q.y - q2.y) < 0.00000001 );
+        REQUIRE( abs(q.z - q2.z) < 0.00000001 );
+        REQUIRE( abs(q.w - q2.w) < 0.00000001 );
     }
 }
 
