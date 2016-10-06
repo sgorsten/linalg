@@ -203,7 +203,7 @@ namespace linalg
         template<class T> struct lshift { constexpr auto operator() (T l, T r) const -> decltype(l << r) { return l << r; } };
         template<class T> struct rshift { constexpr auto operator() (T l, T r) const -> decltype(l >> r) { return l >> r; } };        
 
-        template<class T> struct binary_not { constexpr auto operator() (T r) const -> decltype(~r) { return ~r; } };
+        template<class T> struct binary_not { constexpr auto operator() (T r) const -> decltype(+r) { return ~r; } };
         template<class T> struct binary_or  { constexpr auto operator() (T l, T r) const -> decltype(l | r) { return l | r; } };
         template<class T> struct binary_xor { constexpr auto operator() (T l, T r) const -> decltype(l ^ r) { return l ^ r; } };
         template<class T> struct binary_and { constexpr auto operator() (T l, T r) const -> decltype(l & r) { return l & r; } };
@@ -224,14 +224,14 @@ namespace linalg
     }
 
     // Functions for coalescing scalar values
-    template<int M> constexpr bool         any    (const vec<bool,M> & a) { return fold(a, op::logical_or<bool>{}); }
-    template<int M> constexpr bool         all    (const vec<bool,M> & a) { return fold(a, op::logical_and<bool>{}); }
-    template<class T, int M> constexpr T   sum    (const vec<T,M> & a)    { return fold(a, op::add<T>{}); }
-    template<class T, int M> constexpr T   product(const vec<T,M> & a)    { return fold(a, op::mul<T>{}); }
-    template<class T, int M> constexpr int argmin (const vec<T,M> & a)    { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
-    template<class T, int M> constexpr int argmax (const vec<T,M> & a)    { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
-    template<class T, int M> constexpr T   minelem(const vec<T,M> & a)    { return a[argmin(a)]; }
-    template<class T, int M> constexpr T   maxelem(const vec<T,M> & a)    { return a[argmax(a)]; }
+    template<int M> constexpr bool any(const vec<bool,M> & a) { return fold(a, op::logical_or<bool>{}); }
+    template<int M> constexpr bool all(const vec<bool,M> & a) { return fold(a, op::logical_and<bool>{}); }
+    template<class T, int M> constexpr T sum    (const vec<T,M> & a)  { return fold(a, op::add<T>{}); }
+    template<class T, int M> constexpr T product(const vec<T,M> & a)  { return fold(a, op::mul<T>{}); }
+    template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
+    template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
+    template<class T, int M> T minelem(const vec<T,M> & a) { return a[argmin(a)]; }
+    template<class T, int M> T maxelem(const vec<T,M> & a) { return a[argmax(a)]; }
 
     // Overloads for unary operators on vectors are implemented in terms of elementwise application of the operator
     template<class A> constexpr arith_result_t<A> operator + (const A & a) { return map(a, op::pos<scalar_t<A>>{}); }

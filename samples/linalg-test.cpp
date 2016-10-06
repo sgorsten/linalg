@@ -136,6 +136,9 @@ TEST_CASE( "integer promotion rules apply" )
     REQUIRE((int4() << int4())  == int4());
     REQUIRE((int2() >> int2())  == int2());
 
+    char c;
+    auto x = ~c;
+
     // unsigned is not promoted
     REQUIRE(+uint3()              == uint3());
     REQUIRE(-uint4()              == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
@@ -338,10 +341,10 @@ TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
         if(q.w < 0) q = -q; // rotation_quat(float3x3) always returns a quat with q.w >= 0
         float4 q2 = rotation_quat(qmat(q));
 
-        REQUIRE( abs(q.x - q2.x) < 0.0001f );
-        REQUIRE( abs(q.y - q2.y) < 0.0001f );
-        REQUIRE( abs(q.z - q2.z) < 0.0001f );
-        REQUIRE( abs(q.w - q2.w) < 0.0001f );
+        REQUIRE( std::abs(q.x - q2.x) < 0.0001f );
+        REQUIRE( std::abs(q.y - q2.y) < 0.0001f );
+        REQUIRE( std::abs(q.z - q2.z) < 0.0001f );
+        REQUIRE( std::abs(q.w - q2.w) < 0.0001f );
     }
 
     for(int i=0; i<1000; ++i)
@@ -350,10 +353,10 @@ TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
         if(q.w < 0) q = -q; // rotation_quat(double3x3) always returns a quat with q.w >= 0
         double4 q2 = rotation_quat(qmat(q));
 
-        REQUIRE( abs(q.x - q2.x) < 0.00000001 );
-        REQUIRE( abs(q.y - q2.y) < 0.00000001 );
-        REQUIRE( abs(q.z - q2.z) < 0.00000001 );
-        REQUIRE( abs(q.w - q2.w) < 0.00000001 );
+        REQUIRE( std::abs(q.x - q2.x) < 0.00000001 );
+        REQUIRE( std::abs(q.y - q2.y) < 0.00000001 );
+        REQUIRE( std::abs(q.z - q2.z) < 0.00000001 );
+        REQUIRE( std::abs(q.w - q2.w) < 0.00000001 );
     }
 }
 
