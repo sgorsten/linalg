@@ -136,9 +136,6 @@ TEST_CASE( "integer promotion rules apply" )
     REQUIRE((int4() << int4())  == int4());
     REQUIRE((int2() >> int2())  == int2());
 
-    char c;
-    auto x = ~c;
-
     // unsigned is not promoted
     REQUIRE(+uint3()              == uint3());
     REQUIRE(-uint4()              == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
