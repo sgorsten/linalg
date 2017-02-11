@@ -257,6 +257,7 @@ namespace linalg
     template<class A> result_t<A> cosh (const A & a) { return map(a, [](scalar_t<A> l) { return std::cosh (l); }); }
     template<class A> result_t<A> tanh (const A & a) { return map(a, [](scalar_t<A> l) { return std::tanh (l); }); }
     template<class A> result_t<A> round(const A & a) { return map(a, [](scalar_t<A> l) { return std::round(l); }); }
+	template<class A> result_t<A> fract(const A & a) { return map(a, [](scalar_t<A> l) { return l - std::floor(l); }); }
 
     // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
     template<class A, class B> constexpr arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, op::add<scalar_t<A,B>>{}); }
