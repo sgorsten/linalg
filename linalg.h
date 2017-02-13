@@ -50,6 +50,7 @@
 #include <cmath>        // For various unary math functions, such as std::sqrt
 #include <cstdint>      // For implementing namespace linalg::aliases
 #include <array>        // For std::array, used in the relational operator overloads
+#include <limits>       // For std::numeric_limits/epsilon
 
 // Visual Studio versions prior to 2015 lack constexpr support
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(constexpr)
@@ -257,6 +258,7 @@ namespace linalg
     template<class A> result_t<A> cosh (const A & a) { return map(a, [](scalar_t<A> l) { return std::cosh (l); }); }
     template<class A> result_t<A> tanh (const A & a) { return map(a, [](scalar_t<A> l) { return std::tanh (l); }); }
     template<class A> result_t<A> round(const A & a) { return map(a, [](scalar_t<A> l) { return std::round(l); }); }
+    template<class A> result_t<A> fract(const A & a) { return map(a, [](scalar_t<A> l) { return l - std::floor(l); }); }
 
     // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
     template<class A, class B> constexpr arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, op::add<scalar_t<A,B>>{}); }
@@ -321,8 +323,35 @@ namespace linalg
     template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
     template<class T> vec<T,4>           qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
     template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
-    template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
-    // TODO: qexp, qlog
+    template<class T, class... R> constexpr vec<T, 4> qmul(const vec<T, 4> & a, R... r){ return qmul(a, qmul(r...)); }
+    template<class T> vec<T, 4> qexp(const vec<T, 4> & q)
+    {
+        const vec<T, 3> u(q.xyz());
+        const T a = length(u);
+        if (a < std::numeric_limits<T>::epsilon()) return{ 0, 0, 0, 1 };
+        return{ std::sin(a) * vec<T, 3>(u / a), std::cos(a) };
+    }
+    template<class T> vec<T, 4> qlog(const vec<T, 4> & q)
+    {
+        const vec<T, 3> u(q.xyz());
+        const T len = length(u);
+        if (len < std::numeric_limits<T>::epsilon())
+        {
+            if (q.w > 0) return{ 0, 0, 0, std::log(q.w) };
+            else if (q.w < 0) return{ static_cast<T>(3.1415926535), 0, 0, std::log(-q.w) };
+            else return{ std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity() };
+        }
+        else return{ q.xyz() * std::atan2(len, q.w) / len, static_cast<T>(0.5) * std::log(len * len + q.w * q.w) };
+    }
+    template<class T> vec<T, 4> qpow(const vec<T, 4> & q, const T & p)
+    {
+        const auto eps = std::numeric_limits<T>::epsilon();
+        if (p > -eps && p < eps) return{ 0, 0, 0, 1 };
+        const T m = std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+        if (std::abs(q.w / m) > static_cast<T>(1) - eps && std::abs(q.w / m) < static_cast<T>(1) + eps) return{ 0, 0, 0, std::pow(q.w, p) };
+        T a = std::acos(q.w / m), n = a * p, d = std::sin(n) / std::sin(a), mag = std::pow(m, p - static_cast<T>(1));
+        return{ q.x * d * mag, q.y * d * mag, q.z * d * mag, std::cos(n) * m * mag };
+    }
 
     // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
     template<class T> constexpr vec<T,3>   qxdir (const vec<T,4> & q)                          { return {q.w*q.w+q.x*q.x-q.y*q.y-q.z*q.z, (q.x*q.y+q.z*q.w)*2, (q.z*q.x-q.y*q.w)*2}; }
@@ -330,7 +359,7 @@ namespace linalg
     template<class T> constexpr vec<T,3>   qzdir (const vec<T,4> & q)                          { return {(q.z*q.x+q.y*q.w)*2, (q.y*q.z-q.x*q.w)*2, q.w*q.w-q.x*q.x-q.y*q.y+q.z*q.z}; }
     template<class T> constexpr mat<T,3,3> qmat  (const vec<T,4> & q)                          { return {qxdir(q), qydir(q), qzdir(q)}; }
     template<class T> constexpr vec<T,3>   qrot  (const vec<T,4> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
-    template<class T> T	                   qangle(const vec<T,4> & q)                          { return std::acos(q.w)*2; }
+    template<class T> T                    qangle(const vec<T,4> & q)                          { return std::acos(q.w)*2; }
     template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { return normalize(q.xyz()); }
     template<class T> vec<T,4>             qnlerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
