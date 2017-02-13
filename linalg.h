@@ -50,6 +50,7 @@
 #include <cmath>        // For various unary math functions, such as std::sqrt
 #include <cstdint>      // For implementing namespace linalg::aliases
 #include <array>        // For std::array, used in the relational operator overloads
+#include <limits>       // For std::numeric_limits/epsilon
 
 // Visual Studio versions prior to 2015 lack constexpr support
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(constexpr)
