@@ -324,19 +324,10 @@ namespace linalg
     template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
     template<class T> vec<T,4>           qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
     template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
-    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/length(v) : 0), std::log(qq)}; }
+    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
+    template<class T> vec<T,4>           qpow (const vec<T,4> & q, const T & p)        { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
     template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
     template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
-    
-    template<class T> vec<T, 4> qpow(const vec<T, 4> & q, const T & p)
-    {
-        const auto eps = std::numeric_limits<T>::epsilon();
-        if (p > -eps && p < eps) return{ 0, 0, 0, 1 };
-        const T m = std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
-        if (std::abs(q.w / m) > static_cast<T>(1) - eps && std::abs(q.w / m) < static_cast<T>(1) + eps) return{ 0, 0, 0, std::pow(q.w, p) };
-        T a = std::acos(q.w / m), n = a * p, d = std::sin(n) / std::sin(a), mag = std::pow(m, p - static_cast<T>(1));
-        return{ q.x * d * mag, q.y * d * mag, q.z * d * mag, std::cos(n) * m * mag };
-    }
 
     // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
     template<class T> constexpr vec<T,3>   qxdir (const vec<T,4> & q)                          { return {q.w*q.w+q.x*q.x-q.y*q.y-q.z*q.z, (q.x*q.y+q.z*q.w)*2, (q.z*q.x-q.y*q.w)*2}; }
