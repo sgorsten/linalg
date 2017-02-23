@@ -399,14 +399,16 @@ namespace linalg
     template<class T, int M, int N> const vec<T,M> * end  (const mat<T,M,N> & a) { return begin(a) + N; }
 
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
+	enum fwd_axis { neg_z, pos_z };					// Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
+	enum z_range { neg_one_to_one, zero_to_one };	// Should projection matrices map z into the range of [-1,1] or [0,1]?
     template<class T> vec<T,4>   rotation_quat     (const vec<T,3> & axis, T angle)         { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
     template<class T> vec<T,4>   rotation_quat     (const mat<T,3,3> & m)                   { return copysign(sqrt(max(T(0), T(1) + vec<T,4>(m.x.x-m.y.y-m.z.z, m.y.y-m.x.x-m.z.z, m.z.z-m.x.x-m.y.y, m.x.x+m.y.y+m.z.z))) / T(2), vec<T,4>(m.y.z-m.z.y, m.z.x-m.x.z, m.x.y-m.y.x, 1)); }
     template<class T> mat<T,4,4> translation_matrix(const vec<T,3> & translation)           { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
     template<class T> mat<T,4,4> rotation_matrix   (const vec<T,4> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
     template<class T> mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)               { return {{scaling.x,0,0,0}, {0,scaling.y,0,0}, {0,0,scaling.z,0}, {0,0,0,1}}; }
     template<class T> mat<T,4,4> pose_matrix       (const vec<T,4> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
-    template<class T> mat<T,4,4> frustum_matrix    (T l, T r, T b, T t, T n, T f)           { return {{2*n/(r-l),0,0,0}, {0,2*n/(t-b),0,0}, {(r+l)/(r-l),(t+b)/(t-b),-(f+n)/(f-n),-1}, {0,0,-2*f*n/(f-n),0}}; }
-    template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f)             { T y = n*std::tan(fovy/2), x=y*aspect; return frustum_matrix(-x,x,-y,y,n,f); }
+	template<class T> mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { const T s = a == pos_z ? 1 : -1; return z == zero_to_one ? mat<T,4,4>{{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {(x0+x1)/(x1-x0),(y0+y1)/(y1-y0),s*(f+0)/(f-n),s}, {0,0,-1*n*f/(f-n),0}} : mat<T,4,4>{{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {(x0+x1)/(x1-x0),(y0+y1)/(y1-y0),s*(f+n)/(f-n),s}, {0,0,-2*n*f/(f-n),0}}; }
+	template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
 
     // Provide typedefs for common element types and vector/matrix sizes
     namespace aliases

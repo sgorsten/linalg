@@ -8,6 +8,7 @@ using namespace linalg::aliases;
 #include <algorithm>
 
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
+template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int i=0; i<M; ++i) REQUIRE( a[i] == Approx(b[i]) ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int j=0; j<N; ++j) require_zero(m[j]); }
 
 TEST_CASE( "linalg types default construct to zero" ) 
@@ -387,14 +388,6 @@ TEST_CASE( "hashing works as expected" )
     }
 }
 
-void require_approx_equal(const float4 & a, const float4 & b)
-{
-    REQUIRE( a.x == Approx(b.x) );
-    REQUIRE( a.y == Approx(b.y) );
-    REQUIRE( a.z == Approx(b.z) );
-    REQUIRE( a.w == Approx(b.w) );
-}
-
 TEST_CASE( "special quaternion functions behave as expected" )
 {
     // qexp of a scalar should simply be the exp of that scalar
@@ -423,6 +416,67 @@ TEST_CASE( "special quaternion functions behave as expected" )
 
     // qpow(qpow(q,2),3) == qpow(q,2*3)
     require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
+}
+
+float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = mul(m,float4(p,1)); return r.xyz()/r.w; }
+
+TEST_CASE( "Projection matrices behave as intended" )
+{
+    const float fovy = 1.0f, aspect = 1920.0f/1200.0f, n = 0.1f, f = 10.0f;
+    const float ny1 = n*std::tan(fovy/2), ny0 = -ny1, nx0 = ny0*aspect, nx1 = ny1*aspect;
+    const float fy1 = f*std::tan(fovy/2), fy0 = -fy1, fx0 = fy0*aspect, fx1 = fy1*aspect;
+
+    // Right handed OpenGL convention, x-right, y-up, z-back
+    const float4x4 gl_rh = perspective_matrix(fovy, aspect, n, f, linalg::neg_z, linalg::neg_one_to_one); 
+    require_approx_equal( transform_point(gl_rh, float3(  0,   0, -n)), float3( 0,  0, -1) );
+    require_approx_equal( transform_point(gl_rh, float3(  0, ny0, -n)), float3( 0, -1, -1) );
+    require_approx_equal( transform_point(gl_rh, float3(  0, ny1, -n)), float3( 0, +1, -1) );
+    require_approx_equal( transform_point(gl_rh, float3(nx0,   0, -n)), float3(-1,  0, -1) );
+    require_approx_equal( transform_point(gl_rh, float3(nx1,   0, -n)), float3(+1,  0, -1) );
+    require_approx_equal( transform_point(gl_rh, float3(  0,   0, -f)), float3( 0,  0, +1) );
+    require_approx_equal( transform_point(gl_rh, float3(  0, fy0, -f)), float3( 0, -1, +1) );
+    require_approx_equal( transform_point(gl_rh, float3(  0, fy1, -f)), float3( 0, +1, +1) );
+    require_approx_equal( transform_point(gl_rh, float3(fx0,   0, -f)), float3(-1,  0, +1) );
+    require_approx_equal( transform_point(gl_rh, float3(fx1,   0, -f)), float3(+1,  0, +1) );
+
+    // Left handed OpenGL convention, x-right, y-up, z-forward
+    const float4x4 gl_lh = perspective_matrix(fovy, aspect, n, f, linalg::pos_z, linalg::neg_one_to_one);
+    require_approx_equal( transform_point(gl_lh, float3(  0,   0, +n)), float3( 0,  0, -1) );
+    require_approx_equal( transform_point(gl_lh, float3(  0, ny0, +n)), float3( 0, -1, -1) );
+    require_approx_equal( transform_point(gl_lh, float3(  0, ny1, +n)), float3( 0, +1, -1) );
+    require_approx_equal( transform_point(gl_lh, float3(nx0,   0, +n)), float3(-1,  0, -1) );
+    require_approx_equal( transform_point(gl_lh, float3(nx1,   0, +n)), float3(+1,  0, -1) );
+    require_approx_equal( transform_point(gl_lh, float3(  0,   0, +f)), float3( 0,  0, +1) );
+    require_approx_equal( transform_point(gl_lh, float3(  0, fy0, +f)), float3( 0, -1, +1) );
+    require_approx_equal( transform_point(gl_lh, float3(  0, fy1, +f)), float3( 0, +1, +1) );
+    require_approx_equal( transform_point(gl_lh, float3(fx0,   0, +f)), float3(-1,  0, +1) );
+    require_approx_equal( transform_point(gl_lh, float3(fx1,   0, +f)), float3(+1,  0, +1) );
+
+    // Right handed Vulkan convention, x-right, y-down, z-forward
+    const float4x4 vk_rh = perspective_matrix(fovy, aspect, n, f, linalg::pos_z, linalg::zero_to_one);
+    require_approx_equal( transform_point(vk_rh, float3(  0,   0, +n)), float3( 0,  0, 0) );
+    require_approx_equal( transform_point(vk_rh, float3(  0, ny0, +n)), float3( 0, -1, 0) );
+    require_approx_equal( transform_point(vk_rh, float3(  0, ny1, +n)), float3( 0, +1, 0) );
+    require_approx_equal( transform_point(vk_rh, float3(nx0,   0, +n)), float3(-1,  0, 0) );
+    require_approx_equal( transform_point(vk_rh, float3(nx1,   0, +n)), float3(+1,  0, 0) );
+    require_approx_equal( transform_point(vk_rh, float3(  0,   0, +f)), float3( 0,  0, 1) );
+    require_approx_equal( transform_point(vk_rh, float3(  0, fy0, +f)), float3( 0, -1, 1) );
+    require_approx_equal( transform_point(vk_rh, float3(  0, fy1, +f)), float3( 0, +1, 1) );
+    require_approx_equal( transform_point(vk_rh, float3(fx0,   0, +f)), float3(-1,  0, 1) );
+    require_approx_equal( transform_point(vk_rh, float3(fx1,   0, +f)), float3(+1,  0, 1) );
+
+    // Left handed Vulkan convention, x-right, y-down, z-back
+    const float4x4 vk_lh = perspective_matrix(fovy, aspect, n, f, linalg::neg_z, linalg::zero_to_one); 
+    require_approx_equal( transform_point(vk_lh, float3(  0,   0, -n)), float3( 0,  0, 0) );
+    require_approx_equal( transform_point(vk_lh, float3(  0, ny0, -n)), float3( 0, -1, 0) );
+    require_approx_equal( transform_point(vk_lh, float3(  0, ny1, -n)), float3( 0, +1, 0) );
+    require_approx_equal( transform_point(vk_lh, float3(nx0,   0, -n)), float3(-1,  0, 0) );
+    require_approx_equal( transform_point(vk_lh, float3(nx1,   0, -n)), float3(+1,  0, 0) );
+    require_approx_equal( transform_point(vk_lh, float3(  0,   0, -f)), float3( 0,  0, 1) );
+    require_approx_equal( transform_point(vk_lh, float3(  0, fy0, -f)), float3( 0, -1, 1) );
+    require_approx_equal( transform_point(vk_lh, float3(  0, fy1, -f)), float3( 0, +1, 1) );
+    require_approx_equal( transform_point(vk_lh, float3(fx0,   0, -f)), float3(-1,  0, 1) );
+    require_approx_equal( transform_point(vk_lh, float3(fx1,   0, -f)), float3(+1,  0, 1) );
 }
 
 template<class T> void take(const T &) {}
