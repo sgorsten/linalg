@@ -48,6 +48,7 @@
 #define LINALG_H
 
 #include <cmath>        // For various unary math functions, such as std::sqrt
+#include <cstdlib>      // To resolve std::abs ambiguity on clang
 #include <cstdint>      // For implementing namespace linalg::aliases
 #include <array>        // For std::array, used in the relational operator overloads
 #include <limits>       // For std::numeric_limits/epsilon
