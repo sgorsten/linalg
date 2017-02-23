@@ -12,6 +12,9 @@ template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) 
 
 TEST_CASE( "linalg types default construct to zero" ) 
 {
+    double x = 3.1415926f, f;
+    double r = modf(x, &f);
+
     require_zero( uint2() );
     require_zero( int3x4() );
     require_zero( ushort4() );
@@ -382,6 +385,36 @@ TEST_CASE( "hashing works as expected" )
             else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
         }
     }
+}
+
+TEST_CASE( "special quaternion functions behave as expected" )
+{
+    // qexp of a scalar should simply be the exp of that scalar
+    REQUIRE( qexp(float4(0,0,0,5)) == float4(0,0,0,std::exp(5.0f)) );
+
+    // e^(tau*i) == 1
+    const auto etaui = qexp(float4(6.28318531f,0,0,0));
+    REQUIRE( etaui.x == Approx(0) );
+    REQUIRE( etaui.y == Approx(0) );
+    REQUIRE( etaui.z == Approx(0) );
+    REQUIRE( etaui.w == Approx(1) );
+
+    // e^(tau*j) == 1
+    const auto etauj = qexp(float4(0,6.28318531f,0,0));
+    REQUIRE( etaui.x == Approx(0) );
+    REQUIRE( etaui.y == Approx(0) );
+    REQUIRE( etaui.z == Approx(0) );
+    REQUIRE( etaui.w == Approx(1) );
+
+    // qlog of a scalar should simply be the log of that scalar
+    REQUIRE( qlog(float4(0,0,0,5)) == float4(0,0,0,std::log(5.0f)) );
+
+    // qexp(qlog(q)) == q
+    const auto q = qexp(qlog(float4(1,2,3,4)));
+    REQUIRE( q.x == Approx(1) );
+    REQUIRE( q.y == Approx(2) );
+    REQUIRE( q.z == Approx(3) );
+    REQUIRE( q.w == Approx(4) );
 }
 
 template<class T> void take(const T &) {}

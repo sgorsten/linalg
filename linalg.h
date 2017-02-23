@@ -323,27 +323,11 @@ namespace linalg
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
     template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
     template<class T> vec<T,4>           qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
+    template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
+    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/length(v) : 0), std::log(qq)}; }
     template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
-    template<class T, class... R> constexpr vec<T, 4> qmul(const vec<T, 4> & a, R... r){ return qmul(a, qmul(r...)); }
-    template<class T> vec<T, 4> qexp(const vec<T, 4> & q)
-    {
-        const vec<T, 3> u(q.xyz());
-        const T a = length(u);
-        if (a < std::numeric_limits<T>::epsilon()) return{ 0, 0, 0, 1 };
-        return{ std::sin(a) * vec<T, 3>(u / a), std::cos(a) };
-    }
-    template<class T> vec<T, 4> qlog(const vec<T, 4> & q)
-    {
-        const vec<T, 3> u(q.xyz());
-        const T len = length(u);
-        if (len < std::numeric_limits<T>::epsilon())
-        {
-            if (q.w > 0) return{ 0, 0, 0, std::log(q.w) };
-            else if (q.w < 0) return{ static_cast<T>(3.1415926535), 0, 0, std::log(-q.w) };
-            else return{ std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity() };
-        }
-        else return{ q.xyz() * std::atan2(len, q.w) / len, static_cast<T>(0.5) * std::log(len * len + q.w * q.w) };
-    }
+    template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
+    
     template<class T> vec<T, 4> qpow(const vec<T, 4> & q, const T & p)
     {
         const auto eps = std::numeric_limits<T>::epsilon();
