@@ -372,7 +372,11 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
     template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
     template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
+    #if _MSC_VER >= 1700
+    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
+    #else
     template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
+    #endif    
     template<class T> constexpr vec<T,2> diagonal(const mat<T,2,2> & a) { return {a.x.x, a.y.y}; }
     template<class T> constexpr vec<T,3> diagonal(const mat<T,3,3> & a) { return {a.x.x, a.y.y, a.z.z}; }
     template<class T> constexpr vec<T,4> diagonal(const mat<T,4,4> & a) { return {a.x.x, a.y.y, a.z.z, a.w.w}; }

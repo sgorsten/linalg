@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25008.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "linalg-test", "linalg-test\linalg-test.vcxproj", "{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Debug|x64.ActiveCfg = Debug|x64
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Debug|x64.Build.0 = Debug|x64
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Debug|x86.ActiveCfg = Debug|Win32
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Debug|x86.Build.0 = Debug|Win32
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Release|x64.ActiveCfg = Release|x64
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Release|x64.Build.0 = Release|x64
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Release|x86.ActiveCfg = Release|Win32
+		{71E31E28-216E-4BFF-8ADD-53FF2F3C4471}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
