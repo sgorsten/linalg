@@ -1,5 +1,5 @@
 .vs/
-Debug/
-Release/
+bin/
+obj/
 *.opendb
 *.db
