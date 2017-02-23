@@ -8,6 +8,7 @@ environment:
   - os: Visual Studio 2015
     DIR: msvc140
 
+platform: x64
 configuration: Debug
 
 build:
@@ -15,4 +16,4 @@ build:
   project: samples/%DIR%/linalg-%DIR%.sln
   
 test_script:
-  - samples\%DIR%\bin\linalg-test-Debug-Win32.exe
+  - samples\%DIR%\bin\linalg-test-Debug-x64.exe
