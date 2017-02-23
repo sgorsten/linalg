@@ -1,13 +1,18 @@
 # appveyor file
 # http://www.appveyor.com/docs/appveyor-yml
 
-os: Visual Studio 2013
+environment:
+  matrix:
+  - os: Visual Studio 2013
+    DIR: msvc120
+  - os: Visual Studio 2015
+    DIR: msvc140
 
 configuration: Debug
 
 build:
   verbosity: minimal
-  project: samples/msvc120/linalg-msvc120.sln
+  project: samples/%DIR%/linalg-%DIR%.sln
   
 test_script:
-  - samples\msvc120\bin\linalg-test-Debug-Win32.exe
+  - samples\%DIR%\bin\linalg-test-Debug-Win32.exe
