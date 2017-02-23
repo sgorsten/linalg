@@ -398,31 +398,31 @@ void require_approx_equal(const float4 & a, const float4 & b)
 TEST_CASE( "special quaternion functions behave as expected" )
 {
     // qexp of a scalar should simply be the exp of that scalar
-    require_approx_equal( qexp(float4{0,0,0,5}), float4{0,0,0,std::exp(5.0f)} );
+    require_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
 
     // e^(tau*i) == 1
-    require_approx_equal( qexp(float4{6.28318531f,0,0,0}), float4{0,0,0,1} );
+    require_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
 
     // e^(tau*j) == 1
-    require_approx_equal( qexp(float4{0,6.28318531f,0,0}), float4{0,0,0,1} );
+    require_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
 
     // qlog of a scalar should simply be the log of that scalar
-    require_approx_equal( qlog(float4{0,0,0,5}), float4{0,0,0,std::log(5.0f)} );
+    require_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
 
     // qexp(qlog(q)) == q
-    require_approx_equal( qexp(qlog(float4{1,2,3,4})), float4{1,2,3,4} );
+    require_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
 
     // qpow of a scalar should simply be the pow of that scalar
-    require_approx_equal( qpow(float4{0,0,0,5}, 3.14f), float4{0,0,0,std::pow(5.0f, 3.14f)} );
+    require_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
 
     // qpow(q,2) == qmul(q,q)
-    require_approx_equal( qpow(float4{1,2,3,4}, 2.0f), qmul(float4{1,2,3,4}, float4{1,2,3,4}) );
+    require_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
 
     // qpow(q,3) == qmul(q,q,q)
-    require_approx_equal( qpow(float4{1,2,3,4}, 3.0f), qmul(float4{1,2,3,4}, float4{1,2,3,4}, float4{1,2,3,4}) );
+    require_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
 
     // qpow(qpow(q,2),3) == qpow(q,2*3)
-    require_approx_equal( qpow(qpow(float4{1,2,3,4}, 2.0f), 3.0f), qpow(float4{1,2,3,4}, 2.0f*3.0f) );
+    require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
 template<class T> void take(const T &) {}
