@@ -77,17 +77,17 @@ namespace linalg
     template<class T> struct vec<T,3>
     {
         T                           x,y,z;
-       constexpr                    vec()                           : x(), y(), z() {}
-       constexpr                    vec(T x, T y, T z)              : x(x), y(y), z(z) {}
-       constexpr explicit           vec(T s)                        : x(s), y(s), z(s) {}
-       constexpr explicit           vec(const T * p)                : vec(p[0], p[1], p[2]) {}
-       template<class U>
-       constexpr explicit           vec(const vec<U,3> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-       constexpr                    vec(const vec<T,2> & xy, T z)   : vec(xy.x, xy.y, z) {}
-       constexpr const T &          operator[] (int i) const        { return (&x)[i]; }
-       T &                          operator[] (int i)              { return (&x)[i]; }
-       constexpr const vec<T,2> &   xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
-       vec<T,2> &                   xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }
+        constexpr                   vec()                           : x(), y(), z() {}
+        constexpr                   vec(T x, T y, T z)              : x(x), y(y), z(z) {}
+        constexpr explicit          vec(T s)                        : x(s), y(s), z(s) {}
+        constexpr explicit          vec(const T * p)                : vec(p[0], p[1], p[2]) {}
+        template<class U>
+        constexpr explicit          vec(const vec<U,3> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
+        constexpr                   vec(const vec<T,2> & xy, T z)   : vec(xy.x, xy.y, z) {}
+        constexpr const T &         operator[] (int i) const        { return (&x)[i]; }
+        T &                         operator[] (int i)              { return (&x)[i]; }
+        constexpr const vec<T,2> &  xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
+        vec<T,2> &                  xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }
     };
     template<class T> struct vec<T,4>
     {
@@ -98,10 +98,13 @@ namespace linalg
         constexpr explicit          vec(const T * p)                : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
+        constexpr                   vec(const vec<T,2> & xy,T z,T w): vec(xy.x, xy.y, z, w) {}
         constexpr                   vec(const vec<T,3> & xyz, T w)  : vec(xyz.x, xyz.y, xyz.z, w) {}
         constexpr const T &         operator[] (int i) const        { return (&x)[i]; }
         T &                         operator[] (int i)              { return (&x)[i]; }
+        constexpr const vec<T,2> &  xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
         constexpr const vec<T,3> &  xyz() const                     { return *reinterpret_cast<const vec<T,3> *>(this); }
+        vec<T,2> &                  xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }                
         vec<T,3> &                  xyz()                           { return *reinterpret_cast<vec<T,3> *>(this); }
     };
 
