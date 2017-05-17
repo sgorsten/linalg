@@ -361,6 +361,27 @@ TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
     }
 }
 
+TEST_CASE( "tricky rotation matrices round trip with rotation quaternions" )
+{
+    const float3x3 matrices[] {
+        {{0,-1,0},{-1,0,0},{0,0,-1}}    
+    };
+
+    for(auto & m : matrices)
+    {
+        float3x3 m2 = qmat(rotation_quat(m));
+        REQUIRE( m2.x.x == Approx(m.x.x) );
+        REQUIRE( m2.x.y == Approx(m.x.y) );
+        REQUIRE( m2.x.z == Approx(m.x.z) );
+        REQUIRE( m2.y.x == Approx(m.y.x) );
+        REQUIRE( m2.y.y == Approx(m.y.y) );
+        REQUIRE( m2.y.z == Approx(m.y.z) );
+        REQUIRE( m2.z.x == Approx(m.z.x) );
+        REQUIRE( m2.z.y == Approx(m.z.y) );
+        REQUIRE( m2.z.z == Approx(m.z.z) );
+    }
+}
+
 TEST_CASE( "hashing works as expected" )
 {
     // std::hash specializations should take their specified type and return size_t
