@@ -7,15 +7,13 @@ using namespace linalg::aliases;
 #include <random>
 #include <algorithm>
 
-template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int i=0; i<M; ++i) REQUIRE( v[i] == 0 ); }
-template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int i=0; i<M; ++i) REQUIRE( a[i] == Approx(b[i]) ); }
-template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int j=0; j<N; ++j) require_zero(m[j]); }
+template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int j=0; j<M; ++j) REQUIRE( v[j] == 0 ); }
+template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == Approx(b[j]) ); }
+template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int i=0; i<N; ++i) require_zero(m[i]); }
+template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
 
 TEST_CASE( "linalg types default construct to zero" ) 
 {
-    double x = 3.1415926f, f;
-    double r = modf(x, &f);
-
     require_zero( uint2() );
     require_zero( int3x4() );
     require_zero( ushort4() );
@@ -160,8 +158,8 @@ TEST_CASE( "integer promotion rules apply" )
     REQUIRE(+float4()              == float4());
     REQUIRE(-float2()              == float2());
     REQUIRE(!float4()              == bool4(true)); // operator! always returns a vector of bools
-    REQUIRE((float4() + float4()) == float4());
-    REQUIRE((float2() - float2()) == float2());
+    REQUIRE((float4() + float4())  == float4());
+    REQUIRE((float2() - float2())  == float2());
     REQUIRE((float3() * float3(1)) == float3());
     REQUIRE((float4() / float4(1)) == float4());
 }
@@ -407,16 +405,7 @@ TEST_CASE( "90 degree rotation matrices round trip with rotation quaternions" )
     };
     for(auto & m : matrices)
     {
-        float3x3 m2 = qmat(rotation_quat(m));
-        REQUIRE( m2.x.x == Approx(m.x.x) );
-        REQUIRE( m2.x.y == Approx(m.x.y) );
-        REQUIRE( m2.x.z == Approx(m.x.z) );
-        REQUIRE( m2.y.x == Approx(m.y.x) );
-        REQUIRE( m2.y.y == Approx(m.y.y) );
-        REQUIRE( m2.y.z == Approx(m.y.z) );
-        REQUIRE( m2.z.x == Approx(m.z.x) );
-        REQUIRE( m2.z.y == Approx(m.z.y) );
-        REQUIRE( m2.z.z == Approx(m.z.z) );
+        require_approx_equal(m, qmat(rotation_quat(m)));
     }
 }
 

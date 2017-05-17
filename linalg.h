@@ -461,7 +461,7 @@ template<class T> constexpr T linalg::determinant(const mat<T,4,4> & a)
 
 template<class T> linalg::vec<T,4> linalg::rotation_quat(const mat<T,3,3> & m)
 {
-    const linalg::vec<T,4> q {m.x.x-m.y.y-m.z.z, m.y.y-m.x.x-m.z.z, m.z.z-m.x.x-m.y.y, m.x.x+m.y.y+m.z.z}, s[] {
+    const vec<T,4> q {m.x.x-m.y.y-m.z.z, m.y.y-m.x.x-m.z.z, m.z.z-m.x.x-m.y.y, m.x.x+m.y.y+m.z.z}, s[] {
         {1, m.x.y + m.y.x, m.z.x + m.x.z, m.y.z - m.z.y}, 
         {m.x.y + m.y.x, 1, m.y.z + m.z.y, m.z.x - m.x.z},
         {m.x.z + m.z.x, m.y.z + m.z.y, 1, m.x.y - m.y.x},
