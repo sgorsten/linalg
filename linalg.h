@@ -65,47 +65,47 @@ namespace linalg
     template<class T> struct vec<T,2>
     {
         T                           x,y;
-        constexpr                   vec()                           : x(), y() {}
-        constexpr                   vec(T x, T y)                   : x(x), y(y) {}
-        constexpr explicit          vec(T s)                        : x(s), y(s) {}
-        constexpr explicit          vec(const T * p)                : vec(p[0], p[1]) {}
+        constexpr                   vec()                               : x(), y() {}
+        constexpr                   vec(T x_, T y_)                     : x(x_), y(y_) {}
+        constexpr explicit          vec(T s)                            : vec(s, s) {}
+        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
-        constexpr explicit          vec(const vec<U,2> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const        { return (&x)[i]; }
-        T &                         operator[] (int i)              { return (&x)[i]; }
+        constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
+        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
+        T &                         operator[] (int i)                  { return (&x)[i]; }
     };
     template<class T> struct vec<T,3>
     {
         T                           x,y,z;
-        constexpr                   vec()                           : x(), y(), z() {}
-        constexpr                   vec(T x, T y, T z)              : x(x), y(y), z(z) {}
-        constexpr explicit          vec(T s)                        : x(s), y(s), z(s) {}
-        constexpr explicit          vec(const T * p)                : vec(p[0], p[1], p[2]) {}
+        constexpr                   vec()                               : x(), y(), z() {}
+        constexpr                   vec(T x_, T y_, T z_)               : x(x_), y(y_), z(z_) {}
+        constexpr                   vec(const vec<T,2> & xy, T z_)      : vec(xy.x, xy.y, z_) {}
+        constexpr explicit          vec(T s)                            : vec(s, s, s) {}
+        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
-        constexpr explicit          vec(const vec<U,3> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr                   vec(const vec<T,2> & xy, T z)   : vec(xy.x, xy.y, z) {}
-        constexpr const T &         operator[] (int i) const        { return (&x)[i]; }
-        T &                         operator[] (int i)              { return (&x)[i]; }
-        constexpr const vec<T,2> &  xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
-        vec<T,2> &                  xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }
+        constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
+        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
+        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
+        vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }
     };
     template<class T> struct vec<T,4>
     {
         T                           x,y,z,w;
-        constexpr                   vec()                           : x(), y(), z(), w() {}
-        constexpr                   vec(T x, T y, T z, T w)         : x(x), y(y), z(z), w(w) {}
-        constexpr explicit          vec(T s)                        : x(s), y(s), z(s), w(s) {}
-        constexpr explicit          vec(const T * p)                : vec(p[0], p[1], p[2], p[3]) {}
+        constexpr                   vec()                               : x(), y(), z(), w() {}
+        constexpr                   vec(T x_, T y_, T z_, T w_)         : x(x_), y(y_), z(z_), w(w_) {}
+        constexpr                   vec(const vec<T,2> & xy, T z_, T w_): vec(xy.x, xy.y, z_, w_) {}
+        constexpr                   vec(const vec<T,3> & xyz, T w_)     : vec(xyz.x, xyz.y, xyz.z, w_) {}
+        constexpr explicit          vec(T s)                            : vec(s, s, s, s) {}
+        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
-        constexpr explicit          vec(const vec<U,4> & v)         : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr                   vec(const vec<T,2> & xy,T z,T w): vec(xy.x, xy.y, z, w) {}
-        constexpr                   vec(const vec<T,3> & xyz, T w)  : vec(xyz.x, xyz.y, xyz.z, w) {}
-        constexpr const T &         operator[] (int i) const        { return (&x)[i]; }
-        T &                         operator[] (int i)              { return (&x)[i]; }
-        constexpr const vec<T,2> &  xy() const                      { return *reinterpret_cast<const vec<T,2> *>(this); }
-        constexpr const vec<T,3> &  xyz() const                     { return *reinterpret_cast<const vec<T,3> *>(this); }
-        vec<T,2> &                  xy()                            { return *reinterpret_cast<vec<T,2> *>(this); }                
-        vec<T,3> &                  xyz()                           { return *reinterpret_cast<vec<T,3> *>(this); }
+        constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
+        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
+        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
+        constexpr const vec<T,3> &  xyz() const                         { return *reinterpret_cast<const vec<T,3> *>(this); }
+        vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }                
+        vec<T,3> &                  xyz()                               { return *reinterpret_cast<vec<T,3> *>(this); }
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
@@ -114,43 +114,43 @@ namespace linalg
     {
         typedef vec<T,M>            V;
         V                           x,y;
-        constexpr                   mat()                           : x(), y() {}
-        constexpr                   mat(V x, V y)                   : x(x), y(y) {}
-        constexpr explicit          mat(T s)                        : x(s), y(s) {}
-        constexpr explicit          mat(const T * p)                : x(p+M*0), y(p+M*1) {}
+        constexpr                   mat()                               : x(), y() {}
+        constexpr                   mat(V x_, V y_)                     : x(x_), y(y_) {}
+        constexpr explicit          mat(T s)                            : x(s), y(s) {}
+        constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1) {}
         template<class U> 
-        constexpr explicit          mat(const mat<U,M,2> & m)       : mat(V(m.x), V(m.y)) {}
-        constexpr vec<T,2>          row(int i) const                { return {x[i], y[i]}; }
-        constexpr const V &         operator[] (int j) const        { return (&x)[j]; }
-        V &                         operator[] (int j)              { return (&x)[j]; }
+        constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
+        constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
+        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        V &                         operator[] (int j)                  { return (&x)[j]; }
     };
     template<class T, int M> struct mat<T,M,3>
     {
         typedef vec<T,M>            V;
         V                           x,y,z;
-        constexpr                   mat()                           : x(), y(), z() {}
-        constexpr                   mat(V x, V y, V z)              : x(x), y(y), z(z) {}
-        constexpr explicit          mat(T s)                        : x(s), y(s), z(s) {}
-        constexpr explicit          mat(const T * p)                : x(p+M*0), y(p+M*1), z(p+M*2) {}
+        constexpr                   mat()                               : x(), y(), z() {}
+        constexpr                   mat(V x_, V y_, V z_)               : x(x_), y(y_), z(z_) {}
+        constexpr explicit          mat(T s)                            : x(s), y(s), z(s) {}
+        constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2) {}
         template<class U> 
-        constexpr explicit          mat(const mat<U,M,3> & m)       : mat(V(m.x), V(m.y), V(m.z)) {}
-        constexpr vec<T,3>          row(int i) const                { return {x[i], y[i], z[i]}; }
-        constexpr const V &         operator[] (int j) const        { return (&x)[j]; }
-        V &                         operator[] (int j)              { return (&x)[j]; }
+        constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
+        constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
+        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        V &                         operator[] (int j)                  { return (&x)[j]; }
     };
     template<class T, int M> struct mat<T,M,4>
     {
         typedef vec<T,M>            V;
         V                           x,y,z,w;
-        constexpr                   mat()                           : x(), y(), z(), w() {}
-        constexpr                   mat(V x, V y, V z, V w)         : x(x), y(y), z(z), w(w) {}
-        constexpr explicit          mat(T s)                        : x(s), y(s), z(s), w(s) {}
-        constexpr explicit          mat(const T * p)                : x(p+M*0), y(p+M*1), z(p+M*2), w(p+M*3) {}
+        constexpr                   mat()                               : x(), y(), z(), w() {}
+        constexpr                   mat(V x_, V y_, V z_, V w_)         : x(x_), y(y_), z(z_), w(w_) {}
+        constexpr explicit          mat(T s)                            : x(s), y(s), z(s), w(s) {}
+        constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2), w(p+M*3) {}
         template<class U> 
-        constexpr explicit          mat(const mat<U,M,4> & m)       : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
-        constexpr vec<T,4>          row(int i) const                { return {x[i], y[i], z[i], w[i]}; }
-        constexpr const V &         operator[] (int j) const        { return (&x)[j]; }
-        V &                         operator[] (int j)              { return (&x)[j]; }
+        constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
+        constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
+        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        V &                         operator[] (int j)                  { return (&x)[j]; }
     };
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
