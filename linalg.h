@@ -471,9 +471,8 @@ template<class T> linalg::vec<T,4> linalg::rotation_quat(const mat<T,3,3> & m)
 
 template<class T> linalg::mat<T,4,4> linalg::frustum_matrix(T x0, T x1, T y0, T y1, T n, T f, fwd_axis a, z_range z) 
 { 
-    const T s = a == pos_z ? T(1) : T(-1); 
-    return z == zero_to_one ? mat<T,4,4>{{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {(x0+x1)/(x1-x0),(y0+y1)/(y1-y0),s*(f+0)/(f-n),s}, {0,0,-1*n*f/(f-n),0}} 
-                            : mat<T,4,4>{{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {(x0+x1)/(x1-x0),(y0+y1)/(y1-y0),s*(f+n)/(f-n),s}, {0,0,-2*n*f/(f-n),0}}; 
+    const T s = a == pos_z ? T(1) : T(-1), o = z == neg_one_to_one ? n : 0;
+    return {{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {-s*(x0+x1)/(x1-x0),-s*(y0+y1)/(y1-y0),s*(f+o)/(f-n),s}, {0,0,-(n+o)*f/(f-n),0}};
 }
 
 #endif
