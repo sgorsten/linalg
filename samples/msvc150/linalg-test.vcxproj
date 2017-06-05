@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\linalg-test.cpp" />
+    <ClCompile Include="..\linalg-test2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />

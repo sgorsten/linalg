@@ -184,19 +184,19 @@ TEST_CASE( "no unintended ADL on operator +=" )
 
 TEST_CASE( "fold functions behave as intended" )
 {
-    REQUIRE( any(bool3{false,false,false}) == false );
-    REQUIRE( any(bool3{true,false,false}) == true );
-    REQUIRE( any(bool3{false,true,false}) == true );
-    REQUIRE( any(bool3{false,false,true}) == true );
-    REQUIRE( all(bool2x2{{true,true},{true,true}}) == true );
-    REQUIRE( all(bool2x2{{false,true},{true,true}}) == false );
-    REQUIRE( all(bool2x2{{true,false},{true,true}}) == false );
-    REQUIRE( all(bool2x2{{true,true},{false,true}}) == false );
-    REQUIRE( all(bool2x2{{true,true},{true,false}}) == false );
-    REQUIRE( sum(int2{2,3}) == 5 );
-    REQUIRE( sum(float3{2,3,4.1f}) == 9.1f );
-    REQUIRE( sum(double4{2,3,4.1,5.2}) == 14.3 );
-    REQUIRE( sum(double4x4{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}}) == 136 );
+    REQUIRE( any(bool3(false,false,false)) == false );
+    REQUIRE( any(bool3(true,false,false)) == true );
+    REQUIRE( any(bool3(false,true,false)) == true );
+    REQUIRE( any(bool3(false,false,true)) == true );
+    REQUIRE( all(bool2x2(bool2(true,true),bool2(true,true))) == true );
+    REQUIRE( all(bool2x2(bool2(false,true),bool2(true,true))) == false );
+    REQUIRE( all(bool2x2(bool2(true,false),bool2(true,true))) == false );
+    REQUIRE( all(bool2x2(bool2(true,true),bool2(false,true))) == false );
+    REQUIRE( all(bool2x2(bool2(true,true),bool2(true,false))) == false );
+    REQUIRE( sum(int2(2,3)) == 5 );
+    REQUIRE( sum(float3(2,3,4.1f)) == 9.1f );
+    REQUIRE( sum(double4(2,3,4.1,5.2)) == 14.3 );
+    REQUIRE( sum(double4x4(double4(1,2,3,4),double4(5,6,7,8),double4(9,10,11,12),double4(13,14,15,16))) == 136 );
 }
 
 TEST_CASE( "unary functions behave as intended" )
@@ -343,6 +343,20 @@ TEST_CASE( "matrix inverse is correct for general case" )
             else REQUIRE( id[j][i] == Approx(0.0f) );
         }
     }
+}
+
+TEST_CASE( "linalg::identity functions correctly" )
+{
+    const int2x2 ia {linalg::identity}, ib {{1,0},{0,1}}, ic {};
+    const float3x3 fa {linalg::identity}, fb {{1,0,0},{0,1,0},{0,0,1}}, fc {};
+    const double4x4 da {linalg::identity}, db {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}, dc {};
+
+    REQUIRE(ia == ib);
+    REQUIRE(fa == fb);
+    REQUIRE(da == db);
+    REQUIRE(ia != ic);
+    REQUIRE(fa != fc);
+    REQUIRE(da != dc);
 }
 
 TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
