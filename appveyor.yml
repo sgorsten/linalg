@@ -7,6 +7,8 @@ environment:
     DIR: msvc120
   - os: Visual Studio 2015
     DIR: msvc140
+  - os: Visual Studio 2017
+    DIR: msvc150    
 
 platform: x64
 configuration: Debug
