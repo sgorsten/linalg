@@ -166,10 +166,13 @@ namespace linalg
     template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
     template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
 
-    // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector a in left-to-right order (matching the associativity of arithmetic and logical operators)
+    // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
     template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a.x,a.y); }
     template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a.x,a.y),a.z); }
     template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
+    template<class T, int M, class F> constexpr T fold(const mat<T,M,2> & a, F f) { return f(fold(a.x,f),fold(a.y,f)); }
+    template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a.x,f),fold(a.y,f)),fold(a.z,f)); }
+    template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a.x,f),fold(a.y,f)),fold(a.z,f)),fold(a.w,f)); }
 
     // Produce a vector/matrix by applying f(T,T) to corresponding pairs of elements from vectors/matrix a and b
     template<class T,               class F> constexpr auto zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) -> vec<decltype(f(T(),T())),2  > { return {f(a.x,b.x), f(a.y,b.y)}; }
@@ -229,10 +232,10 @@ namespace linalg
     }
 
     // Functions for coalescing scalar values
-    template<int M> constexpr bool any(const vec<bool,M> & a) { return fold(a, op::logical_or<bool>{}); }
-    template<int M> constexpr bool all(const vec<bool,M> & a) { return fold(a, op::logical_and<bool>{}); }
-    template<class T, int M> constexpr T sum    (const vec<T,M> & a)  { return fold(a, op::add<T>{}); }
-    template<class T, int M> constexpr T product(const vec<T,M> & a)  { return fold(a, op::mul<T>{}); }
+    template<class A> constexpr scalar_t<A> any    (const A & a) { return fold(a, op::logical_or<scalar_t<A>>{}); }
+    template<class A> constexpr scalar_t<A> all    (const A & a) { return fold(a, op::logical_and<scalar_t<A>>{}); }
+    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(a, op::add<scalar_t<A>>{}); }
+    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(a, op::mul<scalar_t<A>>{}); }
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
     template<class T, int M> T minelem(const vec<T,M> & a) { return a[argmin(a)]; }
@@ -379,9 +382,18 @@ namespace linalg
     template<class T, int M, int N>       vec<T,M> * end  (      mat<T,M,N> & a) { return begin(a) + N; }
     template<class T, int M, int N> const vec<T,M> * end  (const mat<T,M,N> & a) { return begin(a) + N; }
 
+    // linalg::identity is a constant which can be assigned to any square matrix type
+    struct identity_t
+    {
+        template<class T> constexpr operator mat<T,2,2>() const { return {{1,0},{0,1}}; }
+        template<class T> constexpr operator mat<T,3,3>() const { return {{1,0,0},{0,1,0},{0,0,1}}; }
+        template<class T> constexpr operator mat<T,4,4>() const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; }
+    };
+    static constexpr const identity_t identity;
+
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
-    enum fwd_axis { neg_z, pos_z };					// Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
-    enum z_range { neg_one_to_one, zero_to_one };	// Should projection matrices map z into the range of [-1,1] or [0,1]?
+    enum fwd_axis { neg_z, pos_z };                 // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
+    enum z_range { neg_one_to_one, zero_to_one };   // Should projection matrices map z into the range of [-1,1] or [0,1]?
     template<class T> vec<T,4>   rotation_quat     (const vec<T,3> & axis, T angle)         { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
     template<class T> vec<T,4>   rotation_quat     (const mat<T,3,3> & m);
     template<class T> mat<T,4,4> translation_matrix(const vec<T,3> & translation)           { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
