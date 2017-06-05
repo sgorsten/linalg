@@ -182,6 +182,23 @@ TEST_CASE( "no unintended ADL on operator +=" )
     REQUIRE( tris_a.size() == 0 );
 }
 
+TEST_CASE( "fold functions behave as intended" )
+{
+    REQUIRE( any(bool3{false,false,false}) == false );
+    REQUIRE( any(bool3{true,false,false}) == true );
+    REQUIRE( any(bool3{false,true,false}) == true );
+    REQUIRE( any(bool3{false,false,true}) == true );
+    REQUIRE( all(bool2x2{{true,true},{true,true}}) == true );
+    REQUIRE( all(bool2x2{{false,true},{true,true}}) == false );
+    REQUIRE( all(bool2x2{{true,false},{true,true}}) == false );
+    REQUIRE( all(bool2x2{{true,true},{false,true}}) == false );
+    REQUIRE( all(bool2x2{{true,true},{true,false}}) == false );
+    REQUIRE( sum(int2{2,3}) == 5 );
+    REQUIRE( sum(float3{2,3,4.1f}) == 9.1f );
+    REQUIRE( sum(double4{2,3,4.1,5.2}) == 14.3 );
+    REQUIRE( sum(double4x4{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}}) == 136 );
+}
+
 TEST_CASE( "unary functions behave as intended" )
 {
     // Unary functions should apply elementwise to their arguments
