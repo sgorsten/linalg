@@ -39,241 +39,443 @@ public:
 };
 static const int reps = 3; // Tests which use random data will be repeated this many times
 
-template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int j=0; j<M; ++j) REQUIRE( v[j] == 0 ); }
-template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
-template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int i=0; i<N; ++i) require_zero(m[i]); }
-template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
+//////////////////////////////////////////////////////////
+// Test semantics of vec<T,M> element-wise constructors //
+//////////////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE( "linalg types default construct to zero", T, numeric_types ) 
-{
-    require_zero( linalg::vec<T,2>() );
-    require_zero( linalg::vec<T,3>() );
-    require_zero( linalg::vec<T,4>() );
-    require_zero( linalg::mat<T,2,2>() );
-    require_zero( linalg::mat<T,2,3>() );
-    require_zero( linalg::mat<T,2,4>() );
-    require_zero( linalg::mat<T,3,2>() );
-    require_zero( linalg::mat<T,3,3>() );
-    require_zero( linalg::mat<T,3,4>() );
-    require_zero( linalg::mat<T,4,2>() );
-    require_zero( linalg::mat<T,4,3>() );
-    require_zero( linalg::mat<T,4,4>() );
-}
-
-TEST_CASE_TEMPLATE( "linalg types can be constructed from explicit values", T, numeric_types ) 
-{
-    random_number_generator rng;
-    for(int ii=0; ii<reps; ++ii)
-    {
-        T a=rng, b=rng, c=rng, d=rng;
-        T e=rng, f=rng, g=rng, h=rng;
-        T i=rng, j=rng, k=rng, l=rng;
-        T m=rng, n=rng, o=rng, p=rng;
-
-        // vec<T,2> stores 2 distinct elements of type T
-        const auto v2 = linalg::vec<T,2>(a,b);
-        CHECK(v2.x == a); CHECK(v2[0] == a);
-        CHECK(v2.y == b); CHECK(v2[1] == b);
-
-        // vec<T,3> stores 3 distinct elements of type T
-        const auto v3 = linalg::vec<T,3>(a,b,c);
-        CHECK(v3.x == a); CHECK(v3[0] == a);
-        CHECK(v3.y == b); CHECK(v3[1] == b);
-        CHECK(v3.z == c); CHECK(v3[2] == c);
-
-        // vec<T,4> stores 4 distinct elements of type T
-        const auto v4 = linalg::vec<T,4>(a,b,c,d);
-        CHECK(v4.x == a); CHECK(v4[0] == a);
-        CHECK(v4.y == b); CHECK(v4[1] == b);
-        CHECK(v4.z == c); CHECK(v4[2] == c);
-        CHECK(v4.w == d); CHECK(v4[3] == d);
-
-        // mat<T,2,2> stores a 2x2 matrix, represented as 2 column vectors of size 2
-        const auto m2x2 = linalg::mat<T,2,2>(
-            linalg::vec<T,2>(a,b),    
-            linalg::vec<T,2>(e,f)
-        );
-        CHECK(m2x2.x.x == a); CHECK(m2x2[0][0] == a); CHECK(m2x2.row(0)[0] == a);
-        CHECK(m2x2.x.y == b); CHECK(m2x2[0][1] == b); CHECK(m2x2.row(1)[0] == b);
-        CHECK(m2x2.y.x == e); CHECK(m2x2[1][0] == e); CHECK(m2x2.row(0)[1] == e);
-        CHECK(m2x2.y.y == f); CHECK(m2x2[1][1] == f); CHECK(m2x2.row(1)[1] == f);
-
-        // mat<T,2,3> stores a 2x3 matrix, represented as 3 column vectors of size 2
-        const auto m2x3 = linalg::mat<T,2,3>(
-            linalg::vec<T,2>(a,b),    
-            linalg::vec<T,2>(e,f),
-            linalg::vec<T,2>(i,j)
-        );
-        CHECK(m2x3.x.x == a); CHECK(m2x3[0][0] == a); CHECK(m2x3.row(0)[0] == a);
-        CHECK(m2x3.x.y == b); CHECK(m2x3[0][1] == b); CHECK(m2x3.row(1)[0] == b);
-        CHECK(m2x3.y.x == e); CHECK(m2x3[1][0] == e); CHECK(m2x3.row(0)[1] == e);
-        CHECK(m2x3.y.y == f); CHECK(m2x3[1][1] == f); CHECK(m2x3.row(1)[1] == f);
-        CHECK(m2x3.z.x == i); CHECK(m2x3[2][0] == i); CHECK(m2x3.row(0)[2] == i);
-        CHECK(m2x3.z.y == j); CHECK(m2x3[2][1] == j); CHECK(m2x3.row(1)[2] == j);
-
-        // mat<T,2,4> stores a 2x4 matrix, represented as 4 column vectors of size 2
-        const auto m2x4 = linalg::mat<T,2,4>(
-            linalg::vec<T,2>(a,b),    
-            linalg::vec<T,2>(e,f),
-            linalg::vec<T,2>(i,j),
-            linalg::vec<T,2>(m,n)
-        );
-        CHECK(m2x4.x.x == a); CHECK(m2x4[0][0] == a); CHECK(m2x4.row(0)[0] == a);
-        CHECK(m2x4.x.y == b); CHECK(m2x4[0][1] == b); CHECK(m2x4.row(1)[0] == b);
-        CHECK(m2x4.y.x == e); CHECK(m2x4[1][0] == e); CHECK(m2x4.row(0)[1] == e);
-        CHECK(m2x4.y.y == f); CHECK(m2x4[1][1] == f); CHECK(m2x4.row(1)[1] == f);
-        CHECK(m2x4.z.x == i); CHECK(m2x4[2][0] == i); CHECK(m2x4.row(0)[2] == i);
-        CHECK(m2x4.z.y == j); CHECK(m2x4[2][1] == j); CHECK(m2x4.row(1)[2] == j);
-        CHECK(m2x4.w.x == m); CHECK(m2x4[3][0] == m); CHECK(m2x4.row(0)[3] == m);
-        CHECK(m2x4.w.y == n); CHECK(m2x4[3][1] == n); CHECK(m2x4.row(1)[3] == n);       
-
-        // mat<T,3,2> stores a 3x2 matrix, represented as 2 column vectors of size 3
-        const auto m3x2 = linalg::mat<T,3,2>(
-            linalg::vec<T,3>(a,b,c),    
-            linalg::vec<T,3>(e,f,g)
-        );
-        CHECK(m3x2.x.x == a); CHECK(m3x2[0][0] == a); CHECK(m3x2.row(0)[0] == a);
-        CHECK(m3x2.x.y == b); CHECK(m3x2[0][1] == b); CHECK(m3x2.row(1)[0] == b);
-        CHECK(m3x2.x.z == c); CHECK(m3x2[0][2] == c); CHECK(m3x2.row(2)[0] == c);
-        CHECK(m3x2.y.x == e); CHECK(m3x2[1][0] == e); CHECK(m3x2.row(0)[1] == e);
-        CHECK(m3x2.y.y == f); CHECK(m3x2[1][1] == f); CHECK(m3x2.row(1)[1] == f);
-        CHECK(m3x2.y.z == g); CHECK(m3x2[1][2] == g); CHECK(m3x2.row(2)[1] == g);
-
-        // mat<T,3,3> stores a 3x3 matrix, represented as 3 column vectors of size 3
-        const auto m3x3 = linalg::mat<T,3,3>(
-            linalg::vec<T,3>(a,b,c),    
-            linalg::vec<T,3>(e,f,g),
-            linalg::vec<T,3>(i,j,k)
-        );
-        CHECK(m3x3.x.x == a); CHECK(m3x3[0][0] == a); CHECK(m3x3.row(0)[0] == a);
-        CHECK(m3x3.x.y == b); CHECK(m3x3[0][1] == b); CHECK(m3x3.row(1)[0] == b);
-        CHECK(m3x3.x.z == c); CHECK(m3x3[0][2] == c); CHECK(m3x3.row(2)[0] == c);
-        CHECK(m3x3.y.x == e); CHECK(m3x3[1][0] == e); CHECK(m3x3.row(0)[1] == e);
-        CHECK(m3x3.y.y == f); CHECK(m3x3[1][1] == f); CHECK(m3x3.row(1)[1] == f);
-        CHECK(m3x3.y.z == g); CHECK(m3x3[1][2] == g); CHECK(m3x3.row(2)[1] == g);
-        CHECK(m3x3.z.x == i); CHECK(m3x3[2][0] == i); CHECK(m3x3.row(0)[2] == i);
-        CHECK(m3x3.z.y == j); CHECK(m3x3[2][1] == j); CHECK(m3x3.row(1)[2] == j);
-        CHECK(m3x3.z.z == k); CHECK(m3x3[2][2] == k); CHECK(m3x3.row(2)[2] == k);
-
-        // mat<T,3,4> stores a 3x4 matrix, represented as 4 column vectors of size 3
-        const auto m3x4 = linalg::mat<T,3,4>(
-            linalg::vec<T,3>(a,b,c),    
-            linalg::vec<T,3>(e,f,g),
-            linalg::vec<T,3>(i,j,k),
-            linalg::vec<T,3>(m,n,o)
-        );
-        CHECK(m3x4.x.x == a); CHECK(m3x4[0][0] == a); CHECK(m3x4.row(0)[0] == a);
-        CHECK(m3x4.x.y == b); CHECK(m3x4[0][1] == b); CHECK(m3x4.row(1)[0] == b);
-        CHECK(m3x4.x.z == c); CHECK(m3x4[0][2] == c); CHECK(m3x4.row(2)[0] == c);
-        CHECK(m3x4.y.x == e); CHECK(m3x4[1][0] == e); CHECK(m3x4.row(0)[1] == e);
-        CHECK(m3x4.y.y == f); CHECK(m3x4[1][1] == f); CHECK(m3x4.row(1)[1] == f);
-        CHECK(m3x4.y.z == g); CHECK(m3x4[1][2] == g); CHECK(m3x4.row(2)[1] == g);
-        CHECK(m3x4.z.x == i); CHECK(m3x4[2][0] == i); CHECK(m3x4.row(0)[2] == i);
-        CHECK(m3x4.z.y == j); CHECK(m3x4[2][1] == j); CHECK(m3x4.row(1)[2] == j);
-        CHECK(m3x4.z.z == k); CHECK(m3x4[2][2] == k); CHECK(m3x4.row(2)[2] == k);
-        CHECK(m3x4.w.x == m); CHECK(m3x4[3][0] == m); CHECK(m3x4.row(0)[3] == m);
-        CHECK(m3x4.w.y == n); CHECK(m3x4[3][1] == n); CHECK(m3x4.row(1)[3] == n);
-        CHECK(m3x4.w.z == o); CHECK(m3x4[3][2] == o); CHECK(m3x4.row(2)[3] == o);
-
-        // mat<T,4,2> stores a 4x2 matrix, represented as 2 column vectors of size 4
-        const auto m4x2 = linalg::mat<T,4,2>(
-            linalg::vec<T,4>(a,b,c,d),    
-            linalg::vec<T,4>(e,f,g,h)
-        );
-        CHECK(m4x2.x.x == a); CHECK(m4x2[0][0] == a); CHECK(m4x2.row(0)[0] == a);
-        CHECK(m4x2.x.y == b); CHECK(m4x2[0][1] == b); CHECK(m4x2.row(1)[0] == b);
-        CHECK(m4x2.x.z == c); CHECK(m4x2[0][2] == c); CHECK(m4x2.row(2)[0] == c);
-        CHECK(m4x2.x.w == d); CHECK(m4x2[0][3] == d); CHECK(m4x2.row(3)[0] == d);
-        CHECK(m4x2.y.x == e); CHECK(m4x2[1][0] == e); CHECK(m4x2.row(0)[1] == e);
-        CHECK(m4x2.y.y == f); CHECK(m4x2[1][1] == f); CHECK(m4x2.row(1)[1] == f);
-        CHECK(m4x2.y.z == g); CHECK(m4x2[1][2] == g); CHECK(m4x2.row(2)[1] == g);
-        CHECK(m4x2.y.w == h); CHECK(m4x2[1][3] == h); CHECK(m4x2.row(3)[1] == h);
-
-        // mat<T,4,3> stores a 4x3 matrix, represented as 3 column vectors of size 4
-        const auto m4x3 = linalg::mat<T,4,3>(
-            linalg::vec<T,4>(a,b,c,d),    
-            linalg::vec<T,4>(e,f,g,h),
-            linalg::vec<T,4>(i,j,k,l)
-        );
-        CHECK(m4x3.x.x == a); CHECK(m4x3[0][0] == a); CHECK(m4x3.row(0)[0] == a);
-        CHECK(m4x3.x.y == b); CHECK(m4x3[0][1] == b); CHECK(m4x3.row(1)[0] == b);
-        CHECK(m4x3.x.z == c); CHECK(m4x3[0][2] == c); CHECK(m4x3.row(2)[0] == c);
-        CHECK(m4x3.x.w == d); CHECK(m4x3[0][3] == d); CHECK(m4x3.row(3)[0] == d);
-        CHECK(m4x3.y.x == e); CHECK(m4x3[1][0] == e); CHECK(m4x3.row(0)[1] == e);
-        CHECK(m4x3.y.y == f); CHECK(m4x3[1][1] == f); CHECK(m4x3.row(1)[1] == f);
-        CHECK(m4x3.y.z == g); CHECK(m4x3[1][2] == g); CHECK(m4x3.row(2)[1] == g);
-        CHECK(m4x3.y.w == h); CHECK(m4x3[1][3] == h); CHECK(m4x3.row(3)[1] == h);
-        CHECK(m4x3.z.x == i); CHECK(m4x3[2][0] == i); CHECK(m4x3.row(0)[2] == i);
-        CHECK(m4x3.z.y == j); CHECK(m4x3[2][1] == j); CHECK(m4x3.row(1)[2] == j);
-        CHECK(m4x3.z.z == k); CHECK(m4x3[2][2] == k); CHECK(m4x3.row(2)[2] == k);
-        CHECK(m4x3.z.w == l); CHECK(m4x3[2][3] == l); CHECK(m4x3.row(3)[2] == l);
-
-        // mat<T,4,4> stores a 4x4 matrix, represented as 4 column vectors of size 4
-        const auto m4x4 = linalg::mat<T,4,4>(
-            linalg::vec<T,4>(a,b,c,d),    
-            linalg::vec<T,4>(e,f,g,h),
-            linalg::vec<T,4>(i,j,k,l),
-            linalg::vec<T,4>(m,n,o,p)
-        );
-        CHECK(m4x4.x.x == a); CHECK(m4x4[0][0] == a); CHECK(m4x4.row(0)[0] == a);
-        CHECK(m4x4.x.y == b); CHECK(m4x4[0][1] == b); CHECK(m4x4.row(1)[0] == b);
-        CHECK(m4x4.x.z == c); CHECK(m4x4[0][2] == c); CHECK(m4x4.row(2)[0] == c);
-        CHECK(m4x4.x.w == d); CHECK(m4x4[0][3] == d); CHECK(m4x4.row(3)[0] == d);
-        CHECK(m4x4.y.x == e); CHECK(m4x4[1][0] == e); CHECK(m4x4.row(0)[1] == e);
-        CHECK(m4x4.y.y == f); CHECK(m4x4[1][1] == f); CHECK(m4x4.row(1)[1] == f);
-        CHECK(m4x4.y.z == g); CHECK(m4x4[1][2] == g); CHECK(m4x4.row(2)[1] == g);
-        CHECK(m4x4.y.w == h); CHECK(m4x4[1][3] == h); CHECK(m4x4.row(3)[1] == h);
-        CHECK(m4x4.z.x == i); CHECK(m4x4[2][0] == i); CHECK(m4x4.row(0)[2] == i);
-        CHECK(m4x4.z.y == j); CHECK(m4x4[2][1] == j); CHECK(m4x4.row(1)[2] == j);
-        CHECK(m4x4.z.z == k); CHECK(m4x4[2][2] == k); CHECK(m4x4.row(2)[2] == k);
-        CHECK(m4x4.z.w == l); CHECK(m4x4[2][3] == l); CHECK(m4x4.row(3)[2] == l);
-        CHECK(m4x4.w.x == m); CHECK(m4x4[3][0] == m); CHECK(m4x4.row(0)[3] == m);
-        CHECK(m4x4.w.y == n); CHECK(m4x4[3][1] == n); CHECK(m4x4.row(1)[3] == n);
-        CHECK(m4x4.w.z == o); CHECK(m4x4[3][2] == o); CHECK(m4x4.row(2)[3] == o);
-        CHECK(m4x4.w.w == p); CHECK(m4x4[3][3] == p); CHECK(m4x4.row(3)[3] == p);
-    }
-}
-
-TEST_CASE_TEMPLATE( "equality and inequality operators", T, numeric_types )
+TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, numeric_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        T a=rng, b=rng, c=rng, d=rng;
-
-        // Two vectors compare equal if all elements are equal
-        REQUIRE(   linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+0,b+0)  );
-        REQUIRE( !(linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+1,b+0)) );
-        REQUIRE( !(linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+0,b+1)) );
-
-        REQUIRE(   linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+0,c+0)  );
-        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+1,b+0,c+0)) );
-        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+1,c+0)) );
-        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+0,c+1)) );
-
-        REQUIRE(   linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+0,d+0)  );
-        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+1,b+0,c+0,d+0)) );
-        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+1,c+0,d+0)) );
-        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+1,d+0)) );
-        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+0,d+1)) );
-
-        // Two vectors compare inequal if at least one element is inequal
-        REQUIRE( !(linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+0,b+0)) );
-        REQUIRE(   linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+1,b+0)  );
-        REQUIRE(   linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+0,b+1)  );
-
-        REQUIRE( !(linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+0,c+0)) );
-        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+1,b+0,c+0)  );
-        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+1,c+0)  );
-        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+0,c+1)  );
-
-        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+0,d+0)) );
-        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+1,b+0,c+0,d+0)  );
-        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+1,c+0,d+0)  );
-        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+1,d+0)  );
-        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+0,d+1)  );
+        const T e0 = rng, e1 = rng;
+        const linalg::vec<T,2> v(e0,e1);
+        CHECK(v.x == e0); CHECK(v[0] == e0);
+        CHECK(v.y == e1); CHECK(v[1] == e1);
     }
 }
+
+TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, numeric_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T e0 = rng, e1 = rng, e2 = rng;
+        const linalg::vec<T,3> v(e0,e1,e2);
+        CHECK(v.x == e0); CHECK(v[0] == e0);
+        CHECK(v.y == e1); CHECK(v[1] == e1);
+        CHECK(v.z == e2); CHECK(v[2] == e2);
+    }
+}
+
+TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T e0 = rng, e1 = rng, e2 = rng, e3 = rng;
+        const linalg::vec<T,4> v(e0,e1,e2,e3);
+        CHECK(v.x == e0); CHECK(v[0] == e0);
+        CHECK(v.y == e1); CHECK(v[1] == e1);
+        CHECK(v.z == e2); CHECK(v[2] == e2);
+        CHECK(v.w == e3); CHECK(v[3] == e3);
+    }
+}
+
+///////////////////////////////////////////////////////////
+// Test semantics of mat<T,M,N> column-wise constructors //
+///////////////////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng;
+        const T m10=rng, m11=rng;
+        const linalg::mat<T,2,2> m(
+            linalg::vec<T,2>(m00,m10),    
+            linalg::vec<T,2>(m01,m11)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng;
+        const T m10=rng, m11=rng, m12=rng;
+        const linalg::mat<T,2,3> m(
+            linalg::vec<T,2>(m00,m10),    
+            linalg::vec<T,2>(m01,m11),
+            linalg::vec<T,2>(m02,m12)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng, m03=rng;
+        const T m10=rng, m11=rng, m12=rng, m13=rng;
+        const linalg::mat<T,2,4> m(
+            linalg::vec<T,2>(m00,m10),    
+            linalg::vec<T,2>(m01,m11),
+            linalg::vec<T,2>(m02,m12),
+            linalg::vec<T,2>(m03,m13)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng;
+        const T m10=rng, m11=rng;
+        const T m20=rng, m21=rng;
+        const linalg::mat<T,3,2> m(
+            linalg::vec<T,3>(m00,m10,m20),    
+            linalg::vec<T,3>(m01,m11,m21)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng;
+        const T m10=rng, m11=rng, m12=rng;
+        const T m20=rng, m21=rng, m22=rng;
+        const linalg::mat<T,3,3> m(
+            linalg::vec<T,3>(m00,m10,m20),    
+            linalg::vec<T,3>(m01,m11,m21),
+            linalg::vec<T,3>(m02,m12,m22)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng, m03=rng;
+        const T m10=rng, m11=rng, m12=rng, m13=rng;
+        const T m20=rng, m21=rng, m22=rng, m23=rng;
+        const linalg::mat<T,3,4> m(
+            linalg::vec<T,3>(m00,m10,m20),    
+            linalg::vec<T,3>(m01,m11,m21),
+            linalg::vec<T,3>(m02,m12,m22),
+            linalg::vec<T,3>(m03,m13,m23)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+        CHECK(m.w.z == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng;
+        const T m10=rng, m11=rng;
+        const T m20=rng, m21=rng;
+        const T m30=rng, m31=rng;
+        const linalg::mat<T,4,2> m(
+            linalg::vec<T,4>(m00,m10,m20,m30),    
+            linalg::vec<T,4>(m01,m11,m21,m31)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng;
+        const T m10=rng, m11=rng, m12=rng;
+        const T m20=rng, m21=rng, m22=rng;
+        const T m30=rng, m31=rng, m32=rng;
+        const linalg::mat<T,4,3> m(
+            linalg::vec<T,4>(m00,m10,m20,m30),    
+            linalg::vec<T,4>(m01,m11,m21,m31),
+            linalg::vec<T,4>(m02,m12,m22,m32)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m.z.w == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4>", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng, m01=rng, m02=rng, m03=rng;
+        const T m10=rng, m11=rng, m12=rng, m13=rng;
+        const T m20=rng, m21=rng, m22=rng, m23=rng;
+        const T m30=rng, m31=rng, m32=rng, m33=rng;
+        const linalg::mat<T,4,4> m(
+            linalg::vec<T,4>(m00,m10,m20,m30),    
+            linalg::vec<T,4>(m01,m11,m21,m31),
+            linalg::vec<T,4>(m02,m12,m22,m32),
+            linalg::vec<T,4>(m03,m13,m23,m33)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m.z.w == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
+        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+        CHECK(m.w.z == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
+        CHECK(m.w.w == m33); CHECK(m[3][3] == m33); CHECK(m.row(3)[3] == m33);
+    }
+}
+
+///////////////////////////////////////////////////
+// Test semantics of operator == and operator != //
+///////////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the same elements", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng;
+
+        CHECK(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a,b    ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a,b,c  ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a,b,c,d));
+
+        CHECK_FALSE(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a+1,b    ));
+        CHECK_FALSE(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a,b+1    ));
+        CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a+1,b,c  ));
+        CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a,b+1,c  ));
+        CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a,b,c+1  ));
+        CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+1,b,c,d));
+        CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a,b+1,c,d));
+        CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a,b,c+1,d));
+        CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a,b,c,d+1));
+    }
+}
+
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element differs between them", T, numeric_types)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng;
+
+        CHECK_FALSE(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a,b    ));
+        CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a,b,c  ));
+        CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a,b,c,d));
+
+        CHECK(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a+1,b    ));
+        CHECK(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a,b+1    ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a+1,b,c  ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a,b+1,c  ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a,b,c+1  ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+1,b,c,d));
+        CHECK(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a,b+1,c,d));
+        CHECK(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a,b,c+1,d));
+        CHECK(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a,b,c,d+1));
+    }
+}
+
+////////////////////////////////////////////
+// Test semantics of default constructors //
+////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, numeric_types) 
+{
+    const linalg::vec<T,2> v2; CHECK(v2 == linalg::vec<T,2>(0,0));
+    const linalg::vec<T,3> v3; CHECK(v3 == linalg::vec<T,3>(0,0,0));
+    const linalg::vec<T,4> v4; CHECK(v4 == linalg::vec<T,4>(0,0,0,0));
+}
+
+
+TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its columns", T, numeric_types) 
+{
+    const linalg::vec<T,2> z2(0,0); 
+    const linalg::vec<T,3> z3(0,0,0); 
+    const linalg::vec<T,4> z4(0,0,0,0); 
+
+    const linalg::mat<T,2,2> m2x2; CHECK(m2x2 == linalg::mat<T,2,2>(z2,z2));
+    const linalg::mat<T,2,3> m2x3; CHECK(m2x3 == linalg::mat<T,2,3>(z2,z2,z2));
+    const linalg::mat<T,2,4> m2x4; CHECK(m2x4 == linalg::mat<T,2,4>(z2,z2,z2,z2));
+
+    const linalg::mat<T,3,2> m3x2; CHECK(m3x2 == linalg::mat<T,3,2>(z3,z3));
+    const linalg::mat<T,3,3> m3x3; CHECK(m3x3 == linalg::mat<T,3,3>(z3,z3,z3));
+    const linalg::mat<T,3,4> m3x4; CHECK(m3x4 == linalg::mat<T,3,4>(z3,z3,z3,z3));
+
+    const linalg::mat<T,4,2> m4x2; CHECK(m4x2 == linalg::mat<T,4,2>(z4,z4));
+    const linalg::mat<T,4,3> m4x3; CHECK(m4x3 == linalg::mat<T,4,3>(z4,z4,z4));
+    const linalg::mat<T,4,4> m4x4; CHECK(m4x4 == linalg::mat<T,4,4>(z4,z4,z4,z4)); 
+}
+
+///////////////////////////////////////////
+// Test semantics of scalar constructors //
+///////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to the specified scalar", T, numeric_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T s = rng;
+        const linalg::vec<T,2> v2(s); CHECK(v2 == linalg::vec<T,2>(s,s));
+        const linalg::vec<T,3> v3(s); CHECK(v3 == linalg::vec<T,3>(s,s,s));
+        const linalg::vec<T,4> v4(s); CHECK(v4 == linalg::vec<T,4>(s,s,s,s));
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to the specified scalar", T, numeric_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T s = rng;
+        const linalg::vec<T,2> s2(s,s); 
+        const linalg::vec<T,3> s3(s,s,s); 
+        const linalg::vec<T,4> s4(s,s,s,s); 
+
+        const linalg::mat<T,2,2> m2x2(s); CHECK(m2x2 == linalg::mat<T,2,2>(s2,s2));
+        const linalg::mat<T,2,3> m2x3(s); CHECK(m2x3 == linalg::mat<T,2,3>(s2,s2,s2));
+        const linalg::mat<T,2,4> m2x4(s); CHECK(m2x4 == linalg::mat<T,2,4>(s2,s2,s2,s2));
+
+        const linalg::mat<T,3,2> m3x2(s); CHECK(m3x2 == linalg::mat<T,3,2>(s3,s3));
+        const linalg::mat<T,3,3> m3x3(s); CHECK(m3x3 == linalg::mat<T,3,3>(s3,s3,s3));
+        const linalg::mat<T,3,4> m3x4(s); CHECK(m3x4 == linalg::mat<T,3,4>(s3,s3,s3,s3));
+
+        const linalg::mat<T,4,2> m4x2(s); CHECK(m4x2 == linalg::mat<T,4,2>(s4,s4));
+        const linalg::mat<T,4,3> m4x3(s); CHECK(m4x3 == linalg::mat<T,4,3>(s4,s4,s4));
+        const linalg::mat<T,4,4> m4x4(s); CHECK(m4x4 == linalg::mat<T,4,4>(s4,s4,s4,s4));
+    }
+}
+
+////////////////////////////////////////////
+// Test semantics of pointer constructors //
+////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, numeric_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a[4] {rng, rng, rng, rng};
+        const T * const p = a;
+        CHECK(linalg::vec<T,2>(p) == linalg::vec<T,2>(a[0], a[1]));
+        CHECK(linalg::vec<T,3>(p) == linalg::vec<T,3>(a[0], a[1], a[2]));
+        CHECK(linalg::vec<T,4>(p) == linalg::vec<T,4>(a[0], a[1], a[2], a[3]));
+    }
+}
+
+TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, numeric_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a[16] {rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng};
+        const T * const p = a;
+
+        CHECK(linalg::mat<T,2,2>(p) == linalg::mat<T,2,2>({a[0],a[1]}, {a[2],a[3]}));
+        CHECK(linalg::mat<T,2,3>(p) == linalg::mat<T,2,3>({a[0],a[1]}, {a[2],a[3]}, {a[4],a[5]}));
+        CHECK(linalg::mat<T,2,4>(p) == linalg::mat<T,2,4>({a[0],a[1]}, {a[2],a[3]}, {a[4],a[5]}, {a[6],a[7]}));
+
+        CHECK(linalg::mat<T,3,2>(p) == linalg::mat<T,3,2>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}));
+        CHECK(linalg::mat<T,3,3>(p) == linalg::mat<T,3,3>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}, {a[6],a[7],a[8]}));
+        CHECK(linalg::mat<T,3,4>(p) == linalg::mat<T,3,4>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}, {a[6],a[7],a[8]}, {a[9],a[10],a[11]}));
+
+        CHECK(linalg::mat<T,4,2>(p) == linalg::mat<T,4,2>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}));
+        CHECK(linalg::mat<T,4,3>(p) == linalg::mat<T,4,3>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}, {a[8],a[9],a[10],a[11]}));
+        CHECK(linalg::mat<T,4,4>(p) == linalg::mat<T,4,4>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}, {a[8],a[9],a[10],a[11]}, {a[12],a[13],a[14],a[15]}));
+    }
+}
+
+/////////////////
+
+template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
+template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
+
 
 TEST_CASE( "vector and matrix can be constructed from pointer to const elements" )
 {
