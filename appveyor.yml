@@ -1,19 +1,41 @@
-# appveyor file
-# http://www.appveyor.com/docs/appveyor-yml
+version: 2.0.{build}
 
-environment:
-  matrix:
-  - os: Visual Studio 2013
-    DIR: msvc120
-  - os: Visual Studio 2015
-    DIR: msvc140
+configuration:
 
-platform: x64
-configuration: Debug
+- Debug
 
-build:
-  verbosity: minimal
-  project: samples/%DIR%/linalg-%DIR%.sln
-  
+platform:
+
+- x64
+
+image:
+
+- Visual Studio 2017
+- Visual Studio 2015
+- Visual Studio 2013
+
+# Disable build through solution file
+build: off
+
+# Build through commands in script below
 test_script:
-  - samples\%DIR%\bin\linalg-test-Debug-x64.exe
+
+- ps: >-
+
+    echo $env:APPVEYOR_BUILD_WORKER_IMAGE
+
+    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2017")
+    {
+        msbuild /t:Build samples\msvc150\linalg-test.vcxproj
+        samples\msvc150\bin\linalg-test-Debug-x64.exe
+    }
+    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2015")
+    {
+        msbuild /t:Build samples\msvc140\linalg-test.vcxproj
+        samples\msvc140\bin\linalg-test-Debug-x64.exe
+    }
+    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2013")
+    {
+        msbuild /t:Build samples\msvc120\linalg-test.vcxproj
+        samples\msvc120\bin\linalg-test-Debug-x64.exe
+    }
