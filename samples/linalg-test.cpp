@@ -7,6 +7,9 @@ using namespace linalg::aliases;
 #include <random>
 #include <algorithm>
 
+using arithmetic_types = doctest::Types<int, float, double>;
+using floating_point_types = doctest::Types<float, double>;
+
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int j=0; j<M; ++j) REQUIRE( v[j] == 0 ); }
 template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int i=0; i<N; ++i) require_zero(m[i]); }
@@ -330,11 +333,11 @@ TEST_CASE( "matrix inverse is correct for trivial cases" )
     REQUIRE( determinant(id4) == 1.0f );
 }
 
-TEST_CASE( "matrix inverse is correct for general case" )
+TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_point_types )
 {
-    const float4x4 mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
-    const float4x4 inv = inverse(mat);
-    const float4x4 id = mul(mat, inv);
+    const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
+    const linalg::mat<T,4,4> inv = inverse(mat);
+    const linalg::mat<T,4,4> id = mul(mat, inv);
     for(int j=0; j<4; ++j)
     {
         for(int i=0; i<4; ++i)
@@ -345,63 +348,43 @@ TEST_CASE( "matrix inverse is correct for general case" )
     }
 }
 
-TEST_CASE( "linalg::identity functions correctly" )
+TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
 {
-    const int2x2 ia {linalg::identity}, ib {{1,0},{0,1}}, ic {};
-    const float3x3 fa {linalg::identity}, fb {{1,0,0},{0,1,0},{0,0,1}}, fc {};
-    const double4x4 da {linalg::identity}, db {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}, dc {};
+    const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
+    const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
+    const linalg::mat<T,4,4> a4 {linalg::identity}, b4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}, c4 {};
 
-    REQUIRE(ia == ib);
-    REQUIRE(fa == fb);
-    REQUIRE(da == db);
-    REQUIRE(ia != ic);
-    REQUIRE(fa != fc);
-    REQUIRE(da != dc);
+    REQUIRE(a2 == b2);
+    REQUIRE(a3 == b3);
+    REQUIRE(a4 == b4);
+    REQUIRE(a2 != c2);
+    REQUIRE(a3 != c3);
+    REQUIRE(a4 != c4);
 }
 
-TEST_CASE( "rotation quaternions roundtrip with rotation matrices" )
+
+TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, floating_point_types )
 {
     std::mt19937 engine;
-    std::normal_distribution<float> f;
-    std::normal_distribution<double> d;
+    std::normal_distribution<T> dist;
 
     for(int i=0; i<1000; ++i)
     {
-        float4 q = normalize(float4(f(engine), f(engine), f(engine), f(engine)));
-        float4 q2 = rotation_quat(qmat(q));
+        linalg::vec<T,4> q = normalize(linalg::vec<T,4>(dist(engine), dist(engine), dist(engine), dist(engine)));
+        linalg::vec<T,4> q2 = rotation_quat(qmat(q));
         if(dot(q, q2) > 0) // q2 should either equal q or -q
         {
-            REQUIRE( std::abs(q.x - q2.x) < 0.0001f );
-            REQUIRE( std::abs(q.y - q2.y) < 0.0001f );
-            REQUIRE( std::abs(q.z - q2.z) < 0.0001f );
-            REQUIRE( std::abs(q.w - q2.w) < 0.0001f );
+            REQUIRE( std::abs(q.x - q2.x) < 0.0001 );
+            REQUIRE( std::abs(q.y - q2.y) < 0.0001 );
+            REQUIRE( std::abs(q.z - q2.z) < 0.0001 );
+            REQUIRE( std::abs(q.w - q2.w) < 0.0001 );
         }
         else
         {
-            REQUIRE( std::abs(q.x + q2.x) < 0.0001f );
-            REQUIRE( std::abs(q.y + q2.y) < 0.0001f );
-            REQUIRE( std::abs(q.z + q2.z) < 0.0001f );
-            REQUIRE( std::abs(q.w + q2.w) < 0.0001f );        
-        }
-    }
-
-    for(int i=0; i<1000; ++i)
-    {
-        double4 q = normalize(double4(d(engine), d(engine), d(engine), d(engine)));
-        double4 q2 = rotation_quat(qmat(q));
-        if(dot(q, q2) > 0) // q2 should either equal q or -q
-        {
-            REQUIRE( std::abs(q.x - q2.x) < 0.00000001 );
-            REQUIRE( std::abs(q.y - q2.y) < 0.00000001 );
-            REQUIRE( std::abs(q.z - q2.z) < 0.00000001 );
-            REQUIRE( std::abs(q.w - q2.w) < 0.00000001 );
-        }
-        else
-        {
-            REQUIRE( std::abs(q.x + q2.x) < 0.00000001 );
-            REQUIRE( std::abs(q.y + q2.y) < 0.00000001 );
-            REQUIRE( std::abs(q.z + q2.z) < 0.00000001 );
-            REQUIRE( std::abs(q.w + q2.w) < 0.00000001 );        
+            REQUIRE( std::abs(q.x + q2.x) < 0.0001 );
+            REQUIRE( std::abs(q.y + q2.y) < 0.0001 );
+            REQUIRE( std::abs(q.z + q2.z) < 0.0001 );
+            REQUIRE( std::abs(q.w + q2.w) < 0.0001 );        
         }
     }
 }
