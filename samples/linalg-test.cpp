@@ -8,8 +8,8 @@ using namespace linalg::aliases;
 #include <algorithm>
 
 using floating_point_types = doctest::Types<double, float>;
-using signed_types = doctest::Types<double, float, int, short>;
-using numeric_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
+using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
+using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
 
 // Facility for retrieving random numbers
 class random_number_generator
@@ -43,7 +43,7 @@ static const int reps = 3; // Tests which use random data will be repeated this 
 // Test semantics of vec<T,M> element-wise constructors //
 //////////////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, numeric_types) 
+TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -55,7 +55,7 @@ TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, n
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, numeric_types) 
+TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -68,7 +68,7 @@ TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, n
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, numeric_types)
+TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -86,7 +86,7 @@ TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, n
 // Test semantics of mat<T,M,N> column-wise constructors //
 ///////////////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -104,7 +104,7 @@ TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -125,7 +125,7 @@ TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -149,7 +149,7 @@ TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -170,7 +170,7 @@ TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -195,7 +195,7 @@ TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -224,7 +224,7 @@ TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -248,7 +248,7 @@ TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -277,7 +277,7 @@ TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4>", T, numeric_types)
+TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4>", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -315,7 +315,7 @@ TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4
 // Test semantics of operator == and operator != //
 ///////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the same elements", T, numeric_types)
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the same elements", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -338,7 +338,7 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the s
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element differs between them", T, numeric_types)
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element differs between them", T, arithmetic_types)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -365,7 +365,7 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element dif
 // Test semantics of default constructors //
 ////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, numeric_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, arithmetic_types) 
 {
     const linalg::vec<T,2> v2; CHECK(v2 == linalg::vec<T,2>(0,0));
     const linalg::vec<T,3> v3; CHECK(v3 == linalg::vec<T,3>(0,0,0));
@@ -373,7 +373,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements
 }
 
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its columns", T, numeric_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its columns", T, arithmetic_types) 
 {
     const linalg::vec<T,2> z2(0,0); 
     const linalg::vec<T,3> z3(0,0,0); 
@@ -396,7 +396,7 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its column
 // Test semantics of scalar constructors //
 ///////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to the specified scalar", T, numeric_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to the specified scalar", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -408,7 +408,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to th
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to the specified scalar", T, numeric_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to the specified scalar", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -436,7 +436,7 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to t
 // Test semantics of pointer constructors //
 ////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, numeric_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -449,7 +449,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in o
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, numeric_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, arithmetic_types) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -471,137 +471,123 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in
     }
 }
 
-/////////////////
+// TODO: Appending constructors
+
+//////////////////////////////////////////
+// Test semantics of operator overloads //
+//////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("arithmetic unary operator overloads on vec<T,M> are defined elementwise", T, arithmetic_types) 
+{
+    using U = decltype(+T());
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng;
+        
+        CHECK(+linalg::vec<T,2>(a,b    ) == linalg::vec<U,2>(+a, +b        ));
+        CHECK(+linalg::vec<T,3>(a,b,c  ) == linalg::vec<U,3>(+a, +b, +c    ));
+        CHECK(+linalg::vec<T,4>(a,b,c,d) == linalg::vec<U,4>(+a, +b, +c, +d));
+
+        // NOTE: Will likely generate a warning about operator- applied to unsigned type. This is probably desirable.
+        CHECK(-linalg::vec<T,2>(a,b    ) == linalg::vec<U,2>(-a, -b        ));
+        CHECK(-linalg::vec<T,3>(a,b,c  ) == linalg::vec<U,3>(-a, -b, -c    ));
+        CHECK(-linalg::vec<T,4>(a,b,c,d) == linalg::vec<U,4>(-a, -b, -c, -d));
+
+        CHECK(!linalg::vec<T,2>(a,b    ) == linalg::vec<bool,2>(!a, !b        ));
+        CHECK(!linalg::vec<T,3>(a,b,c  ) == linalg::vec<bool,3>(!a, !b, !c    ));
+        CHECK(!linalg::vec<T,4>(a,b,c,d) == linalg::vec<bool,4>(!a, !b, !c, !d));
+    }
+}
+
+TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined elementwise", T, arithmetic_types) 
+{
+    using U = decltype(T()+T());
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
+
+        CHECK(linalg::vec<T,2>(a,b    ) + linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a+e, b+f          ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) + linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a+e, b+f, c+g     ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) + linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a+e, b+f, c+g, d+h));
+
+        CHECK(linalg::vec<T,2>(a,b    ) - linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a-e, b-f          ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) - linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a-e, b-f, c-g     ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) - linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a-e, b-f, c-g, d-h));
+
+        CHECK(linalg::vec<T,2>(a,b    ) * linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a*e, b*f          ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) * linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a*e, b*f, c*g     ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) * linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a*e, b*f, c*g, d*h));
+
+        CHECK(linalg::vec<T,2>(a,b    ) / linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a/e, b/f          ));
+        CHECK(linalg::vec<T,3>(a,b,c  ) / linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a/e, b/f, c/g     ));
+        CHECK(linalg::vec<T,4>(a,b,c,d) / linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a/e, b/f, c/g, d/h));
+    }
+}
+
+TEST_CASE_TEMPLATE("integral unary operator overloads on vec<T,M> are defined elementwise", T, integral_types) 
+{
+    using U = decltype(+T());
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng;
+
+        CHECK(~linalg::vec<T,2>(a,b    ) == linalg::vec<U,2>(~a, ~b        ));
+        CHECK(~linalg::vec<T,3>(a,b,c  ) == linalg::vec<U,3>(~a, ~b, ~c    ));
+        CHECK(~linalg::vec<T,4>(a,b,c,d) == linalg::vec<U,4>(~a, ~b, ~c, ~d));
+    }
+}
+
+TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined elementwise", T, integral_types) 
+{
+    using U = decltype(T()+T());
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
+
+        CHECK( linalg::vec<T,2>(a,b    ) % linalg::vec<T,2>(e,f    )  == linalg::vec<U,2>(a%e, b%f          ));
+        CHECK( linalg::vec<T,3>(a,b,c  ) % linalg::vec<T,3>(e,f,g  )  == linalg::vec<U,3>(a%e, b%f, c%g     ));
+        CHECK( linalg::vec<T,4>(a,b,c,d) % linalg::vec<T,4>(e,f,g,h)  == linalg::vec<U,4>(a%e, b%f, c%g, d%h));
+
+        CHECK((linalg::vec<T,2>(a,b    ) | linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a|e, b|f          ));
+        CHECK((linalg::vec<T,3>(a,b,c  ) | linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a|e, b|f, c|g     ));
+        CHECK((linalg::vec<T,4>(a,b,c,d) | linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a|e, b|f, c|g, d|h));
+
+        CHECK((linalg::vec<T,2>(a,b    ) & linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a&e, b&f          ));
+        CHECK((linalg::vec<T,3>(a,b,c  ) & linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a&e, b&f, c&g     ));
+        CHECK((linalg::vec<T,4>(a,b,c,d) & linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a&e, b&f, c&g, d&h));
+
+        CHECK((linalg::vec<T,2>(a,b    ) ^ linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a^e, b^f          ));
+        CHECK((linalg::vec<T,3>(a,b,c  ) ^ linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a^e, b^f, c^g     ));
+        CHECK((linalg::vec<T,4>(a,b,c,d) ^ linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a^e, b^f, c^g, d^h));
+
+        CHECK((linalg::vec<T,2>(a,b    ) << linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a<<e, b<<f            ));
+        CHECK((linalg::vec<T,3>(a,b,c  ) << linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a<<e, b<<f, c<<g      ));
+        CHECK((linalg::vec<T,4>(a,b,c,d) << linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a<<e, b<<f, c<<g, d<<h));
+
+        CHECK((linalg::vec<T,2>(a,b    ) >> linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a>>e, b>>f            ));
+        CHECK((linalg::vec<T,3>(a,b,c  ) >> linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a>>e, b>>f, c>>g      ));
+        CHECK((linalg::vec<T,4>(a,b,c,d) >> linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a>>e, b>>f, c>>g, d>>h));
+    }
+}
+
+TEST_CASE_TEMPLATE("vec<T,M> does not have unintended argument dependent lookup on operator +=", T, arithmetic_types) 
+{
+    std::vector<linalg::vec<T,3>> a, b = {{0,1,2}, {0,2,3}, {0,3,4}};
+    CHECK(a.size() == 0);
+    CHECK(b.size() == 3);
+    a = std::move(b); // This line is known to cause problems if linalg::operator+= is allowed to match too broadly.
+    CHECK(a.size() == 3);
+    CHECK(b.size() == 0);
+}
+
+/////////////////////
 
 template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
 template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
-
-
-TEST_CASE( "vector and matrix can be constructed from pointer to const elements" )
-{
-    // Vectors load elements in order
-    const float f2[] = {1,2}, f3[] = {2,3,4}, f4[] = {5,6,7,8};
-    REQUIRE( float2(f2) == float2(1,2) );
-    REQUIRE( float3(f3) == float3(2,3,4) );
-    REQUIRE( float4(f4) == float4(5,6,7,8) );
-
-    // Matrices load elements in column major order
-    const float f2x2[] = {1,2,3,4}, f2x3[] = {2,3,4,5,6,7}, f2x4[] = {3,4,5,6,7,8,9,10};
-    REQUIRE( float2x2(f2x2) == float2x2({1,2},{3,4}) );
-    REQUIRE( float2x3(f2x3) == float2x3({2,3},{4,5},{6,7}) );
-    REQUIRE( float2x4(f2x4) == float2x4({3,4},{5,6},{7,8},{9,10}) );
-
-    // Should be possible to load the same data in multiple ways
-    REQUIRE( float3x2(f2x3) == float3x2({2,3,4},{5,6,7}) );
-    REQUIRE( float4x2(f2x4) == float4x2({3,4,5,6},{7,8,9,10}) );
-}
-
-TEST_CASE( "operator overloads produce correct results" )
-{
-    // All operators can be applied to vector types, and results are computed elementwise
-    REQUIRE( (float2(2,3) +  float2(4,12)) == float2(  6,  15) );
-    REQUIRE( (float2(2,3) -  float2(4,12)) == float2( -2,  -9) );
-    REQUIRE( (float2(2,3) *  float2(4,12)) == float2(  8,  36) );
-    REQUIRE( (float2(2,3) /  float2(4,12)) == float2(0.5,0.25) );
-    REQUIRE( (int2(27,31) %  int2(5,8))    == int2( 2,  7) );
-    REQUIRE( (int2(27,31) |  int2(5,8))    == int2(31, 31) );
-    REQUIRE( (int2(27,31) ^  int2(5,8))    == int2(30, 23) );
-    REQUIRE( (int2(27,31) &  int2(5,8))    == int2( 1,  8) );
-    REQUIRE( (int2(14,35) << int2(2,3))    == int2(56,280) );
-    REQUIRE( (int2(14,35) >> int2(2,3))    == int2( 3,  4) );
-}
-
-TEST_CASE( "integer promotion rules apply" )
-{
-    // uint8_t promotes to int
-    REQUIRE(+byte2()              == int2());
-    REQUIRE(-byte3()              == int3());
-    REQUIRE(~byte4()              == int4(~0));
-    REQUIRE(!byte2()              == bool2(true)); // operator! always returns a vector of bools
-    REQUIRE((byte2() +  byte2())  == int2());
-    REQUIRE((byte3() -  byte3())  == int3());
-    REQUIRE((byte4() *  byte4())  == int4());
-    REQUIRE((byte2() /  byte2(1)) == int2());
-    REQUIRE((byte3() %  byte3(1)) == int3());
-    REQUIRE((byte4() |  byte4())  == int4());
-    REQUIRE((byte2() ^  byte2())  == int2());
-    REQUIRE((byte3() &  byte3())  == int3());
-    REQUIRE((byte4() << byte4())  == int4());
-    REQUIRE((byte2() >> byte2())  == int2());
-
-    // int16_t promotes to int
-    REQUIRE(+short3()               == int3());
-    REQUIRE(-short4()               == int4());
-    REQUIRE(~short2()               == int2(~0));
-    REQUIRE(!short3()               == bool3(true)); // operator! always returns a vector of bools
-    REQUIRE((short3() +  short3())  == int3());
-    REQUIRE((short4() -  short4())  == int4());
-    REQUIRE((short2() *  short2())  == int2());
-    REQUIRE((short3() /  short3(1)) == int3());
-    REQUIRE((short4() %  short4(1)) == int4());
-    REQUIRE((short2() |  short2())  == int2());
-    REQUIRE((short3() ^  short3())  == int3());
-    REQUIRE((short4() &  short4())  == int4());
-    REQUIRE((short2() << short2())  == int2());
-    REQUIRE((short3() >> short3())  == int3());
-
-    // uint16_t promotes to int
-    REQUIRE(+ushort4()                == int4());
-    REQUIRE(-ushort2()                == int2());
-    REQUIRE(~ushort3()                == int3(~0));
-    REQUIRE(!ushort4()                == bool4(true)); // operator! always returns a vector of bools
-    REQUIRE((ushort4() +  ushort4())  == int4());
-    REQUIRE((ushort2() -  ushort2())  == int2());
-    REQUIRE((ushort3() *  ushort3())  == int3());
-    REQUIRE((ushort4() /  ushort4(1)) == int4());
-    REQUIRE((ushort2() %  ushort2(1)) == int2());
-    REQUIRE((ushort3() |  ushort3())  == int3());
-    REQUIRE((ushort4() ^  ushort4())  == int4());
-    REQUIRE((ushort2() &  ushort2())  == int2());
-    REQUIRE((ushort3() << ushort3())  == int3());
-    REQUIRE((ushort4() >> ushort4())  == int4());
-
-    // int is not promoted
-    REQUIRE(+int2()             == int2());
-    REQUIRE(-int3()             == int3());
-    REQUIRE(~int4()             == int4(~0));
-    REQUIRE(!int2()             == bool2(true)); // operator! always returns a vector of bools
-    REQUIRE((int2() +  int2())  == int2());
-    REQUIRE((int3() -  int3())  == int3());
-    REQUIRE((int4() *  int4())  == int4());
-    REQUIRE((int2() /  int2(1)) == int2());
-    REQUIRE((int3() %  int3(1)) == int3());
-    REQUIRE((int4() |  int4())  == int4());
-    REQUIRE((int2() ^  int2())  == int2());
-    REQUIRE((int3() &  int3())  == int3());
-    REQUIRE((int4() << int4())  == int4());
-    REQUIRE((int2() >> int2())  == int2());
-
-    // unsigned is not promoted
-    REQUIRE(+uint3()              == uint3());
-    REQUIRE(-uint4()              == uint4()); // NOTE: Will produce a warning about unary minus applied to unsigned type, this is probably desired behavior
-    REQUIRE(~uint2()              == uint2(~0));
-    REQUIRE(!uint3()              == bool3(true)); // operator! always returns a vector of bools
-    REQUIRE((uint3() +  uint3())  == uint3());
-    REQUIRE((uint4() -  uint4())  == uint4());
-    REQUIRE((uint2() *  uint2())  == uint2());
-    REQUIRE((uint3() /  uint3(1)) == uint3());
-    REQUIRE((uint4() %  uint4(1)) == uint4());
-    REQUIRE((uint2() |  uint2())  == uint2());
-    REQUIRE((uint3() ^  uint3())  == uint3());
-    REQUIRE((uint4() &  uint4())  == uint4());
-    REQUIRE((uint2() << uint2())  == uint2());
-    REQUIRE((uint3() >> uint3())  == uint3());
-
-    // float is not promoted
-    REQUIRE(+float4()              == float4());
-    REQUIRE(-float2()              == float2());
-    REQUIRE(!float4()              == bool4(true)); // operator! always returns a vector of bools
-    REQUIRE((float4() + float4())  == float4());
-    REQUIRE((float2() - float2())  == float2());
-    REQUIRE((float3() * float3(1)) == float3());
-    REQUIRE((float4() / float4(1)) == float4());
-}
 
 TEST_CASE( "elementwise comparison functions produce correct results" )
 {
@@ -784,7 +770,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_po
     }
 }
 
-TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, numeric_types )
+TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
 {
     const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
     const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
@@ -797,7 +783,6 @@ TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, numeric_types )
     REQUIRE(a3 != c3);
     REQUIRE(a4 != c4);
 }
-
 
 TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, floating_point_types )
 {
