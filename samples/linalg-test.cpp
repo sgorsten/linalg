@@ -1,14 +1,14 @@
 #include "../linalg.h"
 using namespace linalg::aliases;
 
-#define CATCH_CONFIG_MAIN
-#include "thirdparty/catch.hpp"
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "thirdparty/doctest.h"
 
 #include <random>
 #include <algorithm>
 
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int j=0; j<M; ++j) REQUIRE( v[j] == 0 ); }
-template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == Approx(b[j]) ); }
+template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int i=0; i<N; ++i) require_zero(m[i]); }
 template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
 
@@ -339,8 +339,8 @@ TEST_CASE( "matrix inverse is correct for general case" )
     {
         for(int i=0; i<4; ++i)
         {
-            if(i == j) REQUIRE( id[j][i] == Approx(1.0f) );
-            else REQUIRE( id[j][i] == Approx(0.0f) );
+            if(i == j) REQUIRE( id[j][i] == doctest::Approx(1.0f) );
+            else REQUIRE( id[j][i] == doctest::Approx(0.0f) );
         }
     }
 }
@@ -561,7 +561,7 @@ TEST_CASE( "Projection matrices behave as intended" )
 template<class T> void take(const T &) {}
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
 
-TEST_CASE( "templates instantiate correctly", "" ) 
+TEST_CASE( "templates instantiate correctly" ) 
 {
     // Declare some variables to test functions requiring an lvalue
     const float2 cf2; const float3 cf3; const float4 cf4;

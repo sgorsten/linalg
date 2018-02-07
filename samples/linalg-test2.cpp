@@ -1,7 +1,7 @@
 #include "../linalg.h"
 using namespace linalg::aliases;
 
-#include "thirdparty/catch.hpp"
+#include "thirdparty/doctest.h"
 
 // linalg::identity is a constant of type linalg::identity_t declared within a header file
 // For C++11 compliance, we've declared it `static`, meaning that each translation unit technically has its own copy of linalg::identity.
