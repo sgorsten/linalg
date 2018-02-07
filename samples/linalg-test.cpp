@@ -7,38 +7,272 @@ using namespace linalg::aliases;
 #include <random>
 #include <algorithm>
 
-using arithmetic_types = doctest::Types<int, float, double>;
-using floating_point_types = doctest::Types<float, double>;
+using floating_point_types = doctest::Types<double, float>;
+using signed_types = doctest::Types<double, float, int, short>;
+using numeric_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
+
+// Facility for retrieving random numbers
+class random_number_generator
+{
+    std::mt19937 rng;
+    std::normal_distribution<double> dist_double;
+    std::normal_distribution<float> dist_float;
+    std::uniform_int_distribution<int> dist_int;
+    std::uniform_int_distribution<short> dist_short;
+    std::uniform_int_distribution<unsigned> dist_uint;
+    std::uniform_int_distribution<unsigned short> dist_ushort;
+public:
+    random_number_generator() : dist_int(-1000, 1000), dist_short(-100, 100), dist_uint(0, 1000), dist_ushort(0, 100) {}
+
+    operator double () { return dist_double(rng); }
+    operator float () { return dist_float(rng); }
+    operator int () { return dist_int(rng); }
+    operator short () { return dist_short(rng); }
+    operator unsigned int () { return dist_uint(rng); }
+    operator unsigned short () { return dist_ushort(rng); }
+    template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
+    template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
+    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, *this); }
+    template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
+    template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
+    template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
+};
+static const int reps = 3; // Tests which use random data will be repeated this many times
 
 template<class T, int M> void require_zero(const linalg::vec<T,M> & v) { for(int j=0; j<M; ++j) REQUIRE( v[j] == 0 ); }
 template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
 template<class T, int M, int N> void require_zero(const linalg::mat<T,M,N> & m) { for(int i=0; i<N; ++i) require_zero(m[i]); }
 template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
 
-TEST_CASE( "linalg types default construct to zero" ) 
+TEST_CASE_TEMPLATE( "linalg types default construct to zero", T, numeric_types ) 
 {
-    require_zero( uint2() );
-    require_zero( int3x4() );
-    require_zero( ushort4() );
-    require_zero( float4x2() );
-    require_zero( double2x3() );
+    require_zero( linalg::vec<T,2>() );
+    require_zero( linalg::vec<T,3>() );
+    require_zero( linalg::vec<T,4>() );
+    require_zero( linalg::mat<T,2,2>() );
+    require_zero( linalg::mat<T,2,3>() );
+    require_zero( linalg::mat<T,2,4>() );
+    require_zero( linalg::mat<T,3,2>() );
+    require_zero( linalg::mat<T,3,3>() );
+    require_zero( linalg::mat<T,3,4>() );
+    require_zero( linalg::mat<T,4,2>() );
+    require_zero( linalg::mat<T,4,3>() );
+    require_zero( linalg::mat<T,4,4>() );
 }
 
-TEST_CASE( "equality and inequality operators" )
+TEST_CASE_TEMPLATE( "linalg types can be constructed from explicit values", T, numeric_types ) 
 {
-    // Two vectors compare equal if all elements are equal
-    REQUIRE(   float4(1,2,3,4) == float4(1,2,3,4)  );
-    REQUIRE( !(float4(1,2,3,4) == float4(5,2,3,4)) );
-    REQUIRE( !(float4(1,2,3,4) == float4(1,5,3,4)) );
-    REQUIRE( !(float4(1,2,3,4) == float4(1,2,5,4)) );
-    REQUIRE( !(float4(1,2,3,4) == float4(1,2,3,5)) );
+    random_number_generator rng;
+    for(int ii=0; ii<reps; ++ii)
+    {
+        T a=rng, b=rng, c=rng, d=rng;
+        T e=rng, f=rng, g=rng, h=rng;
+        T i=rng, j=rng, k=rng, l=rng;
+        T m=rng, n=rng, o=rng, p=rng;
 
-    // Two vectors compare inequal if at least one element is inequal
-    REQUIRE( !(float4(1,2,3,4) != float4(1,2,3,4)) );
-    REQUIRE(   float4(1,2,3,4) != float4(5,2,3,4)  );
-    REQUIRE(   float4(1,2,3,4) != float4(1,5,3,4)  );
-    REQUIRE(   float4(1,2,3,4) != float4(1,2,5,4)  );
-    REQUIRE(   float4(1,2,3,4) != float4(1,2,3,5)  );
+        // vec<T,2> stores 2 distinct elements of type T
+        const auto v2 = linalg::vec<T,2>(a,b);
+        CHECK(v2.x == a); CHECK(v2[0] == a);
+        CHECK(v2.y == b); CHECK(v2[1] == b);
+
+        // vec<T,3> stores 3 distinct elements of type T
+        const auto v3 = linalg::vec<T,3>(a,b,c);
+        CHECK(v3.x == a); CHECK(v3[0] == a);
+        CHECK(v3.y == b); CHECK(v3[1] == b);
+        CHECK(v3.z == c); CHECK(v3[2] == c);
+
+        // vec<T,4> stores 4 distinct elements of type T
+        const auto v4 = linalg::vec<T,4>(a,b,c,d);
+        CHECK(v4.x == a); CHECK(v4[0] == a);
+        CHECK(v4.y == b); CHECK(v4[1] == b);
+        CHECK(v4.z == c); CHECK(v4[2] == c);
+        CHECK(v4.w == d); CHECK(v4[3] == d);
+
+        // mat<T,2,2> stores a 2x2 matrix, represented as 2 column vectors of size 2
+        const auto m2x2 = linalg::mat<T,2,2>(
+            linalg::vec<T,2>(a,b),    
+            linalg::vec<T,2>(e,f)
+        );
+        CHECK(m2x2.x.x == a); CHECK(m2x2[0][0] == a); CHECK(m2x2.row(0)[0] == a);
+        CHECK(m2x2.x.y == b); CHECK(m2x2[0][1] == b); CHECK(m2x2.row(1)[0] == b);
+        CHECK(m2x2.y.x == e); CHECK(m2x2[1][0] == e); CHECK(m2x2.row(0)[1] == e);
+        CHECK(m2x2.y.y == f); CHECK(m2x2[1][1] == f); CHECK(m2x2.row(1)[1] == f);
+
+        // mat<T,2,3> stores a 2x3 matrix, represented as 3 column vectors of size 2
+        const auto m2x3 = linalg::mat<T,2,3>(
+            linalg::vec<T,2>(a,b),    
+            linalg::vec<T,2>(e,f),
+            linalg::vec<T,2>(i,j)
+        );
+        CHECK(m2x3.x.x == a); CHECK(m2x3[0][0] == a); CHECK(m2x3.row(0)[0] == a);
+        CHECK(m2x3.x.y == b); CHECK(m2x3[0][1] == b); CHECK(m2x3.row(1)[0] == b);
+        CHECK(m2x3.y.x == e); CHECK(m2x3[1][0] == e); CHECK(m2x3.row(0)[1] == e);
+        CHECK(m2x3.y.y == f); CHECK(m2x3[1][1] == f); CHECK(m2x3.row(1)[1] == f);
+        CHECK(m2x3.z.x == i); CHECK(m2x3[2][0] == i); CHECK(m2x3.row(0)[2] == i);
+        CHECK(m2x3.z.y == j); CHECK(m2x3[2][1] == j); CHECK(m2x3.row(1)[2] == j);
+
+        // mat<T,2,4> stores a 2x4 matrix, represented as 4 column vectors of size 2
+        const auto m2x4 = linalg::mat<T,2,4>(
+            linalg::vec<T,2>(a,b),    
+            linalg::vec<T,2>(e,f),
+            linalg::vec<T,2>(i,j),
+            linalg::vec<T,2>(m,n)
+        );
+        CHECK(m2x4.x.x == a); CHECK(m2x4[0][0] == a); CHECK(m2x4.row(0)[0] == a);
+        CHECK(m2x4.x.y == b); CHECK(m2x4[0][1] == b); CHECK(m2x4.row(1)[0] == b);
+        CHECK(m2x4.y.x == e); CHECK(m2x4[1][0] == e); CHECK(m2x4.row(0)[1] == e);
+        CHECK(m2x4.y.y == f); CHECK(m2x4[1][1] == f); CHECK(m2x4.row(1)[1] == f);
+        CHECK(m2x4.z.x == i); CHECK(m2x4[2][0] == i); CHECK(m2x4.row(0)[2] == i);
+        CHECK(m2x4.z.y == j); CHECK(m2x4[2][1] == j); CHECK(m2x4.row(1)[2] == j);
+        CHECK(m2x4.w.x == m); CHECK(m2x4[3][0] == m); CHECK(m2x4.row(0)[3] == m);
+        CHECK(m2x4.w.y == n); CHECK(m2x4[3][1] == n); CHECK(m2x4.row(1)[3] == n);       
+
+        // mat<T,3,2> stores a 3x2 matrix, represented as 2 column vectors of size 3
+        const auto m3x2 = linalg::mat<T,3,2>(
+            linalg::vec<T,3>(a,b,c),    
+            linalg::vec<T,3>(e,f,g)
+        );
+        CHECK(m3x2.x.x == a); CHECK(m3x2[0][0] == a); CHECK(m3x2.row(0)[0] == a);
+        CHECK(m3x2.x.y == b); CHECK(m3x2[0][1] == b); CHECK(m3x2.row(1)[0] == b);
+        CHECK(m3x2.x.z == c); CHECK(m3x2[0][2] == c); CHECK(m3x2.row(2)[0] == c);
+        CHECK(m3x2.y.x == e); CHECK(m3x2[1][0] == e); CHECK(m3x2.row(0)[1] == e);
+        CHECK(m3x2.y.y == f); CHECK(m3x2[1][1] == f); CHECK(m3x2.row(1)[1] == f);
+        CHECK(m3x2.y.z == g); CHECK(m3x2[1][2] == g); CHECK(m3x2.row(2)[1] == g);
+
+        // mat<T,3,3> stores a 3x3 matrix, represented as 3 column vectors of size 3
+        const auto m3x3 = linalg::mat<T,3,3>(
+            linalg::vec<T,3>(a,b,c),    
+            linalg::vec<T,3>(e,f,g),
+            linalg::vec<T,3>(i,j,k)
+        );
+        CHECK(m3x3.x.x == a); CHECK(m3x3[0][0] == a); CHECK(m3x3.row(0)[0] == a);
+        CHECK(m3x3.x.y == b); CHECK(m3x3[0][1] == b); CHECK(m3x3.row(1)[0] == b);
+        CHECK(m3x3.x.z == c); CHECK(m3x3[0][2] == c); CHECK(m3x3.row(2)[0] == c);
+        CHECK(m3x3.y.x == e); CHECK(m3x3[1][0] == e); CHECK(m3x3.row(0)[1] == e);
+        CHECK(m3x3.y.y == f); CHECK(m3x3[1][1] == f); CHECK(m3x3.row(1)[1] == f);
+        CHECK(m3x3.y.z == g); CHECK(m3x3[1][2] == g); CHECK(m3x3.row(2)[1] == g);
+        CHECK(m3x3.z.x == i); CHECK(m3x3[2][0] == i); CHECK(m3x3.row(0)[2] == i);
+        CHECK(m3x3.z.y == j); CHECK(m3x3[2][1] == j); CHECK(m3x3.row(1)[2] == j);
+        CHECK(m3x3.z.z == k); CHECK(m3x3[2][2] == k); CHECK(m3x3.row(2)[2] == k);
+
+        // mat<T,3,4> stores a 3x4 matrix, represented as 4 column vectors of size 3
+        const auto m3x4 = linalg::mat<T,3,4>(
+            linalg::vec<T,3>(a,b,c),    
+            linalg::vec<T,3>(e,f,g),
+            linalg::vec<T,3>(i,j,k),
+            linalg::vec<T,3>(m,n,o)
+        );
+        CHECK(m3x4.x.x == a); CHECK(m3x4[0][0] == a); CHECK(m3x4.row(0)[0] == a);
+        CHECK(m3x4.x.y == b); CHECK(m3x4[0][1] == b); CHECK(m3x4.row(1)[0] == b);
+        CHECK(m3x4.x.z == c); CHECK(m3x4[0][2] == c); CHECK(m3x4.row(2)[0] == c);
+        CHECK(m3x4.y.x == e); CHECK(m3x4[1][0] == e); CHECK(m3x4.row(0)[1] == e);
+        CHECK(m3x4.y.y == f); CHECK(m3x4[1][1] == f); CHECK(m3x4.row(1)[1] == f);
+        CHECK(m3x4.y.z == g); CHECK(m3x4[1][2] == g); CHECK(m3x4.row(2)[1] == g);
+        CHECK(m3x4.z.x == i); CHECK(m3x4[2][0] == i); CHECK(m3x4.row(0)[2] == i);
+        CHECK(m3x4.z.y == j); CHECK(m3x4[2][1] == j); CHECK(m3x4.row(1)[2] == j);
+        CHECK(m3x4.z.z == k); CHECK(m3x4[2][2] == k); CHECK(m3x4.row(2)[2] == k);
+        CHECK(m3x4.w.x == m); CHECK(m3x4[3][0] == m); CHECK(m3x4.row(0)[3] == m);
+        CHECK(m3x4.w.y == n); CHECK(m3x4[3][1] == n); CHECK(m3x4.row(1)[3] == n);
+        CHECK(m3x4.w.z == o); CHECK(m3x4[3][2] == o); CHECK(m3x4.row(2)[3] == o);
+
+        // mat<T,4,2> stores a 4x2 matrix, represented as 2 column vectors of size 4
+        const auto m4x2 = linalg::mat<T,4,2>(
+            linalg::vec<T,4>(a,b,c,d),    
+            linalg::vec<T,4>(e,f,g,h)
+        );
+        CHECK(m4x2.x.x == a); CHECK(m4x2[0][0] == a); CHECK(m4x2.row(0)[0] == a);
+        CHECK(m4x2.x.y == b); CHECK(m4x2[0][1] == b); CHECK(m4x2.row(1)[0] == b);
+        CHECK(m4x2.x.z == c); CHECK(m4x2[0][2] == c); CHECK(m4x2.row(2)[0] == c);
+        CHECK(m4x2.x.w == d); CHECK(m4x2[0][3] == d); CHECK(m4x2.row(3)[0] == d);
+        CHECK(m4x2.y.x == e); CHECK(m4x2[1][0] == e); CHECK(m4x2.row(0)[1] == e);
+        CHECK(m4x2.y.y == f); CHECK(m4x2[1][1] == f); CHECK(m4x2.row(1)[1] == f);
+        CHECK(m4x2.y.z == g); CHECK(m4x2[1][2] == g); CHECK(m4x2.row(2)[1] == g);
+        CHECK(m4x2.y.w == h); CHECK(m4x2[1][3] == h); CHECK(m4x2.row(3)[1] == h);
+
+        // mat<T,4,3> stores a 4x3 matrix, represented as 3 column vectors of size 4
+        const auto m4x3 = linalg::mat<T,4,3>(
+            linalg::vec<T,4>(a,b,c,d),    
+            linalg::vec<T,4>(e,f,g,h),
+            linalg::vec<T,4>(i,j,k,l)
+        );
+        CHECK(m4x3.x.x == a); CHECK(m4x3[0][0] == a); CHECK(m4x3.row(0)[0] == a);
+        CHECK(m4x3.x.y == b); CHECK(m4x3[0][1] == b); CHECK(m4x3.row(1)[0] == b);
+        CHECK(m4x3.x.z == c); CHECK(m4x3[0][2] == c); CHECK(m4x3.row(2)[0] == c);
+        CHECK(m4x3.x.w == d); CHECK(m4x3[0][3] == d); CHECK(m4x3.row(3)[0] == d);
+        CHECK(m4x3.y.x == e); CHECK(m4x3[1][0] == e); CHECK(m4x3.row(0)[1] == e);
+        CHECK(m4x3.y.y == f); CHECK(m4x3[1][1] == f); CHECK(m4x3.row(1)[1] == f);
+        CHECK(m4x3.y.z == g); CHECK(m4x3[1][2] == g); CHECK(m4x3.row(2)[1] == g);
+        CHECK(m4x3.y.w == h); CHECK(m4x3[1][3] == h); CHECK(m4x3.row(3)[1] == h);
+        CHECK(m4x3.z.x == i); CHECK(m4x3[2][0] == i); CHECK(m4x3.row(0)[2] == i);
+        CHECK(m4x3.z.y == j); CHECK(m4x3[2][1] == j); CHECK(m4x3.row(1)[2] == j);
+        CHECK(m4x3.z.z == k); CHECK(m4x3[2][2] == k); CHECK(m4x3.row(2)[2] == k);
+        CHECK(m4x3.z.w == l); CHECK(m4x3[2][3] == l); CHECK(m4x3.row(3)[2] == l);
+
+        // mat<T,4,4> stores a 4x4 matrix, represented as 4 column vectors of size 4
+        const auto m4x4 = linalg::mat<T,4,4>(
+            linalg::vec<T,4>(a,b,c,d),    
+            linalg::vec<T,4>(e,f,g,h),
+            linalg::vec<T,4>(i,j,k,l),
+            linalg::vec<T,4>(m,n,o,p)
+        );
+        CHECK(m4x4.x.x == a); CHECK(m4x4[0][0] == a); CHECK(m4x4.row(0)[0] == a);
+        CHECK(m4x4.x.y == b); CHECK(m4x4[0][1] == b); CHECK(m4x4.row(1)[0] == b);
+        CHECK(m4x4.x.z == c); CHECK(m4x4[0][2] == c); CHECK(m4x4.row(2)[0] == c);
+        CHECK(m4x4.x.w == d); CHECK(m4x4[0][3] == d); CHECK(m4x4.row(3)[0] == d);
+        CHECK(m4x4.y.x == e); CHECK(m4x4[1][0] == e); CHECK(m4x4.row(0)[1] == e);
+        CHECK(m4x4.y.y == f); CHECK(m4x4[1][1] == f); CHECK(m4x4.row(1)[1] == f);
+        CHECK(m4x4.y.z == g); CHECK(m4x4[1][2] == g); CHECK(m4x4.row(2)[1] == g);
+        CHECK(m4x4.y.w == h); CHECK(m4x4[1][3] == h); CHECK(m4x4.row(3)[1] == h);
+        CHECK(m4x4.z.x == i); CHECK(m4x4[2][0] == i); CHECK(m4x4.row(0)[2] == i);
+        CHECK(m4x4.z.y == j); CHECK(m4x4[2][1] == j); CHECK(m4x4.row(1)[2] == j);
+        CHECK(m4x4.z.z == k); CHECK(m4x4[2][2] == k); CHECK(m4x4.row(2)[2] == k);
+        CHECK(m4x4.z.w == l); CHECK(m4x4[2][3] == l); CHECK(m4x4.row(3)[2] == l);
+        CHECK(m4x4.w.x == m); CHECK(m4x4[3][0] == m); CHECK(m4x4.row(0)[3] == m);
+        CHECK(m4x4.w.y == n); CHECK(m4x4[3][1] == n); CHECK(m4x4.row(1)[3] == n);
+        CHECK(m4x4.w.z == o); CHECK(m4x4[3][2] == o); CHECK(m4x4.row(2)[3] == o);
+        CHECK(m4x4.w.w == p); CHECK(m4x4[3][3] == p); CHECK(m4x4.row(3)[3] == p);
+    }
+}
+
+TEST_CASE_TEMPLATE( "equality and inequality operators", T, numeric_types )
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        T a=rng, b=rng, c=rng, d=rng;
+
+        // Two vectors compare equal if all elements are equal
+        REQUIRE(   linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+0,b+0)  );
+        REQUIRE( !(linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+1,b+0)) );
+        REQUIRE( !(linalg::vec<T,2>(a,b) == linalg::vec<T,2>(a+0,b+1)) );
+
+        REQUIRE(   linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+0,c+0)  );
+        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+1,b+0,c+0)) );
+        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+1,c+0)) );
+        REQUIRE( !(linalg::vec<T,3>(a,b,c) == linalg::vec<T,3>(a+0,b+0,c+1)) );
+
+        REQUIRE(   linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+0,d+0)  );
+        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+1,b+0,c+0,d+0)) );
+        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+1,c+0,d+0)) );
+        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+1,d+0)) );
+        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a+0,b+0,c+0,d+1)) );
+
+        // Two vectors compare inequal if at least one element is inequal
+        REQUIRE( !(linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+0,b+0)) );
+        REQUIRE(   linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+1,b+0)  );
+        REQUIRE(   linalg::vec<T,2>(a,b) != linalg::vec<T,2>(a+0,b+1)  );
+
+        REQUIRE( !(linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+0,c+0)) );
+        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+1,b+0,c+0)  );
+        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+1,c+0)  );
+        REQUIRE(   linalg::vec<T,3>(a,b,c) != linalg::vec<T,3>(a+0,b+0,c+1)  );
+
+        REQUIRE( !(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+0,d+0)) );
+        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+1,b+0,c+0,d+0)  );
+        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+1,c+0,d+0)  );
+        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+1,d+0)  );
+        REQUIRE(   linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a+0,b+0,c+0,d+1)  );
+    }
 }
 
 TEST_CASE( "vector and matrix can be constructed from pointer to const elements" )
@@ -348,7 +582,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_po
     }
 }
 
-TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
+TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, numeric_types )
 {
     const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
     const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
