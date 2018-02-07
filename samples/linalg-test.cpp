@@ -6,6 +6,7 @@ using namespace linalg::aliases;
 
 #include <random>
 #include <algorithm>
+#include <typeinfo>
 
 using floating_point_types = doctest::Types<double, float>;
 using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
