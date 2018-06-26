@@ -67,7 +67,7 @@ namespace linalg
         T                           x,y;
         constexpr                   vec()                               : x(), y() {}
         constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-		constexpr                   vec(const std::array<T,2> & a)		: x(a[0]), y(a[1]) {}
+        constexpr                   vec(const std::array<T,2> & a)		: x(a[0]), y(a[1]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
@@ -83,7 +83,7 @@ namespace linalg
                                         const T & z_)                   : x(x_), y(y_), z(z_) {}
         constexpr                   vec(const vec<T,2> & xy,
                                         const T & z_)                   : vec(xy.x, xy.y, z_) {}
-		constexpr                   vec(const std::array<T,3> & a)		: x(a[0]), y(a[1]), z(a[2]) {}
+        constexpr                   vec(const std::array<T,3> & a)		: x(a[0]), y(a[1]), z(a[2]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
@@ -103,7 +103,7 @@ namespace linalg
                                         const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
         constexpr                   vec(const vec<T,3> & xyz,
                                         const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-		constexpr                   vec(const std::array<T,4> & a)		: x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
+        constexpr                   vec(const std::array<T,4> & a)		: x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
