@@ -320,6 +320,8 @@ namespace linalg
 
     // Support for vector algebra
     template<class T> constexpr T                 cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }
+    template<class T> constexpr vec<T,2>          cross    (T a, const vec<T,2> & b)                     { return {-a*b.y, a*b.x}; }
+    template<class T> constexpr vec<T,2>          cross    (const vec<T,2> & a, T b)                     { return {a.y*b, -a.x*b}; }
     template<class T> constexpr vec<T,3>          cross    (const vec<T,3> & a, const vec<T,3> & b)      { return {a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x}; }
     template<class T, int M> constexpr T          dot      (const vec<T,M> & a, const vec<T,M> & b)      { return sum(a*b); }
     template<class T, int M> constexpr T          length2  (const vec<T,M> & a)                          { return dot(a,a); }
@@ -329,6 +331,7 @@ namespace linalg
     template<class T, int M> T                    distance (const vec<T,M> & a, const vec<T,M> & b)      { return length(b-a); }
     template<class T, int M> T                    uangle   (const vec<T,M> & a, const vec<T,M> & b)      { T d=dot(a,b); return d > 1 ? 0 : std::acos(d < -1 ? -1 : d); }
     template<class T, int M> T                    angle    (const vec<T,M> & a, const vec<T,M> & b)      { return uangle(normalize(a), normalize(b)); }
+    template<class T> vec<T,2>                    rot      (T a, const vec<T,2> & v)                     { const T s = std::sin(a), c = std::cos(a); return {v.x*c - v.y*s, v.x*s + v.y*c}; }
     template<class T, int M> constexpr vec<T,M>   lerp     (const vec<T,M> & a, const vec<T,M> & b, T t) { return a*(1-t) + b*t; }
     template<class T, int M> vec<T,M>             nlerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { return normalize(lerp(a,b,t)); }
     template<class T, int M> vec<T,M>             slerp    (const vec<T,M> & a, const vec<T,M> & b, T t) { T th=uangle(a,b); return th == 0 ? a : a*(std::sin(th*(1-t))/std::sin(th)) + b*(std::sin(th*t)/std::sin(th)); }
