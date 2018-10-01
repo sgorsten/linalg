@@ -1,6 +1,6 @@
 # linalg.h
 
-[![Release is 2.0](http://img.shields.io/badge/release-2.0-blue.svg?style=flat)](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h)
+[![Release is 2.1](http://img.shields.io/badge/release-2.1-blue.svg?style=flat)](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h)
 [![License is Unlicense](http://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 
 Platform | Build Status |
