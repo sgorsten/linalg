@@ -1,12 +1,14 @@
 # linalg.h
 
-[![Release is 2.1](http://img.shields.io/badge/release-2.1-blue.svg?style=flat)](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h)
+NOTE: This is the development branch for `linalg.h v3.0`. It should be considered **unstable** and breaking changes **will occur** until the `v3.0` tag is published. Furthermore, the documentation should be assumed to be out of date until this notice is removed. 
+
+[![Release is 3.0-alpha](http://img.shields.io/badge/version-3.0--alpha-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
 [![License is Unlicense](http://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 
 Platform | Build Status |
 -------- | ------------ |
 Visual Studio 2013, 2015, and 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
-GCC 4.9 and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=master)](https://travis-ci.org/sgorsten/linalg) |
+GCC 4.9 and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=v3)](https://travis-ci.org/sgorsten/linalg) |
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
 
