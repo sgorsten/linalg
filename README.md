@@ -14,6 +14,14 @@ GCC 4.9 and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status](http
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
+# Changes from Version 2
+
+###### Matrix operator overloads
+
+In `v2.*`, `operator *` (as well as all other arithmetic and bitwise operators) was defined for both vectors and matrices in terms of elementwise multiplication.
+
+In `v3.0`, vectors retain the ability to apply all operators in an elementwise fashion, but the behavior of operators on matrices has changed to match their definition in linear algebra. This means that only `matrix+matrix`, `matrix-matrix`, `matrix*scalar`, `scalar*matrix`, `matrix/scalar` are supported with their original meaning, while `matrix*matrix` has been changed to refer to the matrix product. All other arithmetic and bitwise operator overloads on matrices have been deleted, but if needed this functionality can be implemented manually using the `zip(...)` function.
+
 # FAQ
 
 ###### Why another linear algebra library?
@@ -23,14 +31,6 @@ Existing linear algebra libraries are good but most are rather large, slowing do
 ###### Why C++11?
 
 Mostly due to broad availability of mostly compliant C++11 compilers. Earlier versions of C++ lack the features (lambdas, decltype, braced initializer lists, etc.) needed to implement `linalg.h` as generically and tersely as it has been. Later versions of C++ do provide useful features which could be used to make `linalg.h` even smaller and cleaner (generic lambdas and auto return types in particular), but do not appreciably improve the functionality of the library in its current form.
-
-###### Why doesn't `operator *` perform matrix multiplication?
-
-Most operator overloads and many function definitions in `linalg.h` use only a single line of code to define vector/vector, vector/scalar, scalar/vector, matrix/matrix, matrix/scalar, and scalar/matrix variations, for all possible element types and all dimensions of vector and matrix, and provide the behavior of applying the given operation to corresponding pairs of elements to produce a vector or matrix valued result. I chose to implement `operator *` in terms of elementwise multiplication for consistency with the rest of the library, and defined the `mul` function to provide matrix multiplication, alongside `dot`, `cross`, and `qmul`.
-
-###### In that case, why do `operator ==`, `operator <` return a `bool` instead of a vector or matrix?
-
-I wanted all instances of `linalg.h` types to model value semantics, and satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library. This means that code like `if(a == b) ...` behaves as it typically would, and data structures like `std::set` and `std::map` and functions like `std::find` and `std::sort` can be used with `linalg.h` types without modification.
 
 # Documentation
 
@@ -96,7 +96,7 @@ The general pattern for vectors and matrices of other types are shown in the fol
 
 ## Relational Operators
 
-The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library, and are suitable for use as the key type in `std::set`, `std::map`, etc.
+The equivalence and relational operators on `vec<T,M>` are defined as though it were a `std::array<T,M>`. The equivalence and relational operators on `mat<T,M,N>` are defined as though it were a `std::array<T,M*N>`, with the elements laid out in column-major order. Therefore, both types satisfy the [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable) concepts from the C++ standard library, and are suitable for use as the key type in data structures like `std::set`, `std::map` or functions like `std::find` or `std::sort`.
 
 Additionally, specializations are provided for `std::hash<T>` for both `vec<T,M>` and `mat<T,M,N>`, making them suitable for use as the key type in `std::unordered_set` and `std::unordered_map`.
 
@@ -139,9 +139,6 @@ type of `a`  | type of `b`  | `f(a,b)` yields |
 `vec<T,M>`   | `vec<T,M>`   | `vec<T,M> { f(a[0], b[0]), f(a[1], b[1]), ... }` |
 `vec<T,M>`   | `T`          | `vec<T,M> { f(a[0], b), f(a[1], b), ... }` |
 `T`          | `vec<T,M>`   | `vec<T,M> { f(a, b[0]), f(a, b[1]), ... }` |
-`mat<T,M,N>` | `mat<T,M,N>` | `mat<T,M,N> { {f(a[0][0], b[0][0]), f(a[0][1], b[0][1]), ...}, ... }` |
-`mat<T,M,N>` | `T`          | `mat<T,M,N> { {f(a[0][0], b), f(a[0][1], b), ...}, ... }` |
-`T`          | `mat<T,M,N>` | `mat<T,M,N> { {f(a, b[0][0]), f(a, b[0][1]), ...}, ... }` |
 
 The following operations are available:
 
@@ -226,9 +223,9 @@ Additionally, there are several functions which assume that a quaternion `q` rep
 
 ## Matrix Algebra
 
-These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `vec<T,M>` represents an `M`x`1` matrix. Note that matrix multiplication is explicitly denoted via the function `mul`, as `operator *` already refers to elementwise multiplication of two matrices.
+These functions assume that a `mat<T,M,N>` represents an `M`x`N` matrix, and a `vec<T,M>` represents an `M`x`1` matrix.
 
-* `mul(a,b)` computes the product `ab` of matrices `a` and `b`
+* `a*b` computes the product `ab` of matrices `a` and `b`
 * `diagonal(a)` returns the diagonal of square matrix `a` as a vector
 * `transpose(a)` computes the transpose of matrix `a`
 * `inverse(a)` computes the inverse of matrix `a`
