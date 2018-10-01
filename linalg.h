@@ -43,6 +43,10 @@
 
 
 
+// Option: Define LINALG_LEGACY_MATRIX_PRODUCT to define the matrix product as mul(a,b) instead of a*b.
+// Note that either way, the old element-wise definition of a*b has been removed. This can be used to audit
+// codebases transitioning from previous versions of linalg.
+
 #pragma once
 #ifndef LINALG_H
 #define LINALG_H
@@ -168,9 +172,9 @@ namespace linalg
     template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; typedef std::array<T,M> compare_as; };
     template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
     template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; typedef std::array<T,M*N> compare_as; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef std::array<T,M*N> compare_as; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
     template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
     template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
     template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
@@ -288,7 +292,36 @@ namespace linalg
     template<class A, class B> constexpr arith_result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, op::binary_and<scalar_t<A,B>>{}); }
     template<class A, class B> constexpr arith_result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, op::lshift<scalar_t<A,B>>{}); }
     template<class A, class B> constexpr arith_result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, op::rshift<scalar_t<A,B>>{}); }
-    
+
+    // Operator overloads for matrices are restricted to only those operations with a well defined meaning in linear algebra
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::add<T>{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::sub<T>{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return zip(a, b, op::mul<T>{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return zip(a, b, op::mul<T>{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return zip(a, b, op::div<T>{}); }    
+
+    #ifdef LINALG_LEGACY_MATRIX_PRODUCT
+    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
+    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,3> & a, const vec<T,3> & b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,4> & a, const vec<T,4> & b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+    template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
+    template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
+    template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
+    #if _MSC_VER >= 1910
+    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
+    #else
+    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
+    #endif
+    #else
+    // Operator * with matrix arguments represents as the matrix product
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,3> & a, const vec<T,3> & b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,4> & a, const vec<T,4> & b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+    template<class T, int M, int N> constexpr mat<T,M,2> operator * (const mat<T,M,N> & a, const mat<T,N,2> & b) { return {a*b.x, a*b.y}; }
+    template<class T, int M, int N> constexpr mat<T,M,3> operator * (const mat<T,M,N> & a, const mat<T,N,3> & b) { return {a*b.x, a*b.y, a*b.z}; }
+    template<class T, int M, int N> constexpr mat<T,M,4> operator * (const mat<T,M,N> & a, const mat<T,N,4> & b) { return {a*b.x, a*b.y, a*b.z, a*b.w}; }
+    #endif   
+
     // Overloads for assignment operators are implemented trivially
     template<class A, class B> result_t<A,A> & operator +=  (A & a, const B & b) { return a = a + b; }
     template<class A, class B> result_t<A,A> & operator -=  (A & a, const B & b) { return a = a - b; }
@@ -360,17 +393,6 @@ namespace linalg
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
     // Support for matrix algebra
-    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
-    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,3> & a, const vec<T,3> & b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
-    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,4> & a, const vec<T,4> & b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
-    template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
-    template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
-    template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
-    #if _MSC_VER >= 1910
-    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
-    #else
-    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
-    #endif    
     template<class T> constexpr vec<T,2> diagonal(const mat<T,2,2> & a) { return {a.x.x, a.y.y}; }
     template<class T> constexpr vec<T,3> diagonal(const mat<T,3,3> & a) { return {a.x.x, a.y.y, a.z.z}; }
     template<class T> constexpr vec<T,4> diagonal(const mat<T,4,4> & a) { return {a.x.x, a.y.y, a.z.z, a.w.w}; }

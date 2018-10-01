@@ -684,43 +684,43 @@ TEST_CASE( "relational operators model LessThanComparable" )
 
 TEST_CASE( "matrix multiplication produces correct result dimensions" )
 {
-    REQUIRE( mul(float2x2(), float2()) == float2() );
-    REQUIRE( mul(float2x3(), float3()) == float2() );
-    REQUIRE( mul(float2x4(), float4()) == float2() );
-    REQUIRE( mul(float3x2(), float2()) == float3() );
-    REQUIRE( mul(float3x3(), float3()) == float3() );
-    REQUIRE( mul(float3x4(), float4()) == float3() );
-    REQUIRE( mul(float4x2(), float2()) == float4() );
-    REQUIRE( mul(float4x3(), float3()) == float4() );
-    REQUIRE( mul(float4x4(), float4()) == float4() );
+    REQUIRE( float2x2() * float2() == float2() );
+    REQUIRE( float2x3() * float3() == float2() );
+    REQUIRE( float2x4() * float4() == float2() );
+    REQUIRE( float3x2() * float2() == float3() );
+    REQUIRE( float3x3() * float3() == float3() );
+    REQUIRE( float3x4() * float4() == float3() );
+    REQUIRE( float4x2() * float2() == float4() );
+    REQUIRE( float4x3() * float3() == float4() );
+    REQUIRE( float4x4() * float4() == float4() );
 
-    REQUIRE( mul(float2x2(), float2x2()) == float2x2() );
-    REQUIRE( mul(float2x3(), float3x2()) == float2x2() );
-    REQUIRE( mul(float2x4(), float4x2()) == float2x2() );
-    REQUIRE( mul(float2x2(), float2x3()) == float2x3() );
-    REQUIRE( mul(float2x3(), float3x3()) == float2x3() );
-    REQUIRE( mul(float2x4(), float4x3()) == float2x3() );
-    REQUIRE( mul(float2x2(), float2x4()) == float2x4() );
-    REQUIRE( mul(float2x3(), float3x4()) == float2x4() );
-    REQUIRE( mul(float2x4(), float4x4()) == float2x4() );
-    REQUIRE( mul(float3x2(), float2x2()) == float3x2() );
-    REQUIRE( mul(float3x3(), float3x2()) == float3x2() );
-    REQUIRE( mul(float3x4(), float4x2()) == float3x2() );
-    REQUIRE( mul(float3x2(), float2x3()) == float3x3() );
-    REQUIRE( mul(float3x3(), float3x3()) == float3x3() );
-    REQUIRE( mul(float3x4(), float4x3()) == float3x3() );
-    REQUIRE( mul(float3x2(), float2x4()) == float3x4() );
-    REQUIRE( mul(float3x3(), float3x4()) == float3x4() );
-    REQUIRE( mul(float3x4(), float4x4()) == float3x4() );
-    REQUIRE( mul(float4x2(), float2x2()) == float4x2() );
-    REQUIRE( mul(float4x3(), float3x2()) == float4x2() );
-    REQUIRE( mul(float4x4(), float4x2()) == float4x2() );
-    REQUIRE( mul(float4x2(), float2x3()) == float4x3() );
-    REQUIRE( mul(float4x3(), float3x3()) == float4x3() );
-    REQUIRE( mul(float4x4(), float4x3()) == float4x3() );
-    REQUIRE( mul(float4x2(), float2x4()) == float4x4() );
-    REQUIRE( mul(float4x3(), float3x4()) == float4x4() );
-    REQUIRE( mul(float4x4(), float4x4()) == float4x4() );
+    REQUIRE( float2x2() * float2x2() == float2x2() );
+    REQUIRE( float2x3() * float3x2() == float2x2() );
+    REQUIRE( float2x4() * float4x2() == float2x2() );
+    REQUIRE( float2x2() * float2x3() == float2x3() );
+    REQUIRE( float2x3() * float3x3() == float2x3() );
+    REQUIRE( float2x4() * float4x3() == float2x3() );
+    REQUIRE( float2x2() * float2x4() == float2x4() );
+    REQUIRE( float2x3() * float3x4() == float2x4() );
+    REQUIRE( float2x4() * float4x4() == float2x4() );
+    REQUIRE( float3x2() * float2x2() == float3x2() );
+    REQUIRE( float3x3() * float3x2() == float3x2() );
+    REQUIRE( float3x4() * float4x2() == float3x2() );
+    REQUIRE( float3x2() * float2x3() == float3x3() );
+    REQUIRE( float3x3() * float3x3() == float3x3() );
+    REQUIRE( float3x4() * float4x3() == float3x3() );
+    REQUIRE( float3x2() * float2x4() == float3x4() );
+    REQUIRE( float3x3() * float3x4() == float3x4() );
+    REQUIRE( float3x4() * float4x4() == float3x4() );
+    REQUIRE( float4x2() * float2x2() == float4x2() );
+    REQUIRE( float4x3() * float3x2() == float4x2() );
+    REQUIRE( float4x4() * float4x2() == float4x2() );
+    REQUIRE( float4x2() * float2x3() == float4x3() );
+    REQUIRE( float4x3() * float3x3() == float4x3() );
+    REQUIRE( float4x4() * float4x3() == float4x3() );
+    REQUIRE( float4x2() * float2x4() == float4x4() );
+    REQUIRE( float4x3() * float3x4() == float4x4() );
+    REQUIRE( float4x4() * float4x4() == float4x4() );
 
     // Outer product of vec<T,M> and vec<T,N> is equivalent to product of Mx1 and 1xN matrices
     REQUIRE( outerprod(float2(), float2()) == float2x2() );
@@ -760,7 +760,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_po
 {
     const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
     const linalg::mat<T,4,4> inv = inverse(mat);
-    const linalg::mat<T,4,4> id = mul(mat, inv);
+    const linalg::mat<T,4,4> id = mat * inv;
     for(int j=0; j<4; ++j)
     {
         for(int i=0; i<4; ++i)
@@ -902,7 +902,7 @@ TEST_CASE( "special quaternion functions behave as expected" )
     require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
-float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = mul(m,float4(p,1)); return r.xyz()/r.w; }
+float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = m*float4(p,1); return r.xyz()/r.w; }
 
 TEST_CASE( "Projection matrices behave as intended" )
 {
