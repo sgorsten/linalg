@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="..\linalg-test.cpp" />
     <ClCompile Include="..\linalg-test2.cpp" />
+    <ClCompile Include="..\linalg-expression-validity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
