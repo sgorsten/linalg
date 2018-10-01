@@ -215,51 +215,51 @@ namespace linalg
     // Lambdas are not permitted inside constexpr functions, so we provide explicit function objects instead
     namespace op
     {
-        template<class T> struct pos { constexpr auto operator() (T r) const -> decltype(+r) { return +r; } };
-        template<class T> struct neg { constexpr auto operator() (T r) const -> decltype(-r) { return -r; } };
-        template<class T> struct add { constexpr auto operator() (T l, T r) const -> decltype(l + r) { return l + r; } };
-        template<class T> struct sub { constexpr auto operator() (T l, T r) const -> decltype(l - r) { return l - r; } };
-        template<class T> struct mul { constexpr auto operator() (T l, T r) const -> decltype(l * r) { return l * r; } };
-        template<class T> struct div { constexpr auto operator() (T l, T r) const -> decltype(l / r) { return l / r; } };
-        template<class T> struct mod { constexpr auto operator() (T l, T r) const -> decltype(l % r) { return l % r; } };
-        template<class T> struct lshift { constexpr auto operator() (T l, T r) const -> decltype(l << r) { return l << r; } };
-        template<class T> struct rshift { constexpr auto operator() (T l, T r) const -> decltype(l >> r) { return l >> r; } };        
+        struct pos { template<class T> constexpr auto operator() (T r) const -> decltype(+r) { return +r; } };
+        struct neg { template<class T> constexpr auto operator() (T r) const -> decltype(-r) { return -r; } };
+        struct add { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l + r) { return l + r; } };
+        struct sub { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l - r) { return l - r; } };
+        struct mul { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l * r) { return l * r; } };
+        struct div { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l / r) { return l / r; } };
+        struct mod { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l % r) { return l % r; } };
+        struct lshift { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l << r) { return l << r; } };
+        struct rshift { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l >> r) { return l >> r; } };        
 
-        template<class T> struct binary_not { constexpr auto operator() (T r) const -> decltype(+r) { return ~r; } };
-        template<class T> struct binary_or  { constexpr auto operator() (T l, T r) const -> decltype(l | r) { return l | r; } };
-        template<class T> struct binary_xor { constexpr auto operator() (T l, T r) const -> decltype(l ^ r) { return l ^ r; } };
-        template<class T> struct binary_and { constexpr auto operator() (T l, T r) const -> decltype(l & r) { return l & r; } };
+        struct binary_not { template<class T> constexpr auto operator() (T r) const -> decltype(+r) { return ~r; } };
+        struct binary_or  { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l | r) { return l | r; } };
+        struct binary_xor { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l ^ r) { return l ^ r; } };
+        struct binary_and { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l & r) { return l & r; } };
 
-        template<class T> struct logical_not { constexpr bool operator() (T r) const { return !r; } };
-        template<class T> struct logical_or  { constexpr bool operator() (T l, T r) const { return l || r; } };
-        template<class T> struct logical_and { constexpr bool operator() (T l, T r) const { return l && r; } };        
+        struct logical_not { template<class T> constexpr bool operator() (T r) const { return !r; } };
+        struct logical_or  { template<class T> constexpr bool operator() (T l, T r) const { return l || r; } };
+        struct logical_and { template<class T> constexpr bool operator() (T l, T r) const { return l && r; } };        
 
-        template<class T> struct equal   { constexpr bool operator() (T l, T r) const { return l == r; } };
-        template<class T> struct nequal  { constexpr bool operator() (T l, T r) const { return l != r; } };
-        template<class T> struct less    { constexpr bool operator() (T l, T r) const { return l <  r; } };
-        template<class T> struct greater { constexpr bool operator() (T l, T r) const { return l >  r; } };
-        template<class T> struct lequal  { constexpr bool operator() (T l, T r) const { return l <= r; } };
-        template<class T> struct gequal  { constexpr bool operator() (T l, T r) const { return l >= r; } };
+        struct equal   { template<class T> constexpr bool operator() (T l, T r) const { return l == r; } };
+        struct nequal  { template<class T> constexpr bool operator() (T l, T r) const { return l != r; } };
+        struct less    { template<class T> constexpr bool operator() (T l, T r) const { return l <  r; } };
+        struct greater { template<class T> constexpr bool operator() (T l, T r) const { return l >  r; } };
+        struct lequal  { template<class T> constexpr bool operator() (T l, T r) const { return l <= r; } };
+        struct gequal  { template<class T> constexpr bool operator() (T l, T r) const { return l >= r; } };
 
-        template<class T> struct min { constexpr T operator() (T l, T r) const { return l < r ? l : r; } };
-        template<class T> struct max { constexpr T operator() (T l, T r) const { return l > r ? l : r; } };
+        struct min { template<class T> constexpr T operator() (T l, T r) const { return l < r ? l : r; } };
+        struct max { template<class T> constexpr T operator() (T l, T r) const { return l > r ? l : r; } };
     }
 
     // Functions for coalescing scalar values
-    template<class A> constexpr scalar_t<A> any    (const A & a) { return fold(a, op::logical_or<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> all    (const A & a) { return fold(a, op::logical_and<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(a, op::add<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(a, op::mul<scalar_t<A>>{}); }
+    template<class A> constexpr scalar_t<A> any    (const A & a) { return fold(a, op::logical_or{}); }
+    template<class A> constexpr scalar_t<A> all    (const A & a) { return fold(a, op::logical_and{}); }
+    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(a, op::add{}); }
+    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(a, op::mul{}); }
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
     template<class T, int M> T minelem(const vec<T,M> & a) { return a[argmin(a)]; }
     template<class T, int M> T maxelem(const vec<T,M> & a) { return a[argmax(a)]; }
 
     // Overloads for unary operators on vectors are implemented in terms of elementwise application of the operator
-    template<class A> constexpr arith_result_t<A> operator + (const A & a) { return map(a, op::pos<scalar_t<A>>{}); }
-    template<class A> constexpr arith_result_t<A> operator - (const A & a) { return map(a, op::neg<scalar_t<A>>{}); }
-    template<class A> constexpr arith_result_t<A> operator ~ (const A & a) { return map(a, op::binary_not<scalar_t<A>>{}); }
-    template<class A> constexpr bool_result_t<A> operator ! (const A & a) { return map(a, op::logical_not<scalar_t<A>>{}); }
+    template<class A> constexpr arith_result_t<A> operator + (const A & a) { return map(a, op::pos{}); }
+    template<class A> constexpr arith_result_t<A> operator - (const A & a) { return map(a, op::neg{}); }
+    template<class A> constexpr arith_result_t<A> operator ~ (const A & a) { return map(a, op::binary_not{}); }
+    template<class A> constexpr bool_result_t<A> operator ! (const A & a) { return map(a, op::logical_not{}); }
 
     // Mirror the set of unary scalar math functions to apply elementwise to vectors
     template<class A> result_t<A> abs  (const A & a) { return map(a, [](scalar_t<A> l) { return std::abs  (l); }); }
@@ -282,23 +282,23 @@ namespace linalg
     template<class A> result_t<A> fract(const A & a) { return map(a, [](scalar_t<A> l) { return l - std::floor(l); }); }
 
     // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
-    template<class A, class B> constexpr arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, op::add<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, op::sub<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, op::mul<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, op::div<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, op::mod<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, op::binary_or<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, op::binary_xor<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, op::binary_and<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, op::lshift<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr arith_result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, op::rshift<scalar_t<A,B>>{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, op::add{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator -  (const A & a, const B & b) { return zip(a, b, op::sub{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator *  (const A & a, const B & b) { return zip(a, b, op::mul{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator /  (const A & a, const B & b) { return zip(a, b, op::div{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator %  (const A & a, const B & b) { return zip(a, b, op::mod{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator |  (const A & a, const B & b) { return zip(a, b, op::binary_or{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator ^  (const A & a, const B & b) { return zip(a, b, op::binary_xor{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator &  (const A & a, const B & b) { return zip(a, b, op::binary_and{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator << (const A & a, const B & b) { return zip(a, b, op::lshift{}); }
+    template<class A, class B> constexpr arith_result_t<A,B> operator >> (const A & a, const B & b) { return zip(a, b, op::rshift{}); }
 
     // Operator overloads for matrices are restricted to only those operations with a well defined meaning in linear algebra
-    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::add<T>{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::sub<T>{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return zip(a, b, op::mul<T>{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return zip(a, b, op::mul<T>{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return zip(a, b, op::div<T>{}); }    
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::add{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, op::sub{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return zip(a, b, op::mul{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return zip(a, b, op::mul{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return zip(a, b, op::div{}); }    
 
     #ifdef LINALG_LEGACY_MATRIX_PRODUCT
     template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
@@ -335,8 +335,8 @@ namespace linalg
     template<class A, class B> result_t<A,A> & operator >>= (A & a, const B & b) { return a = a >> b; }
 
     // Mirror the set of binary scalar math functions to apply elementwise to vectors
-    template<class A, class B> constexpr result_t<A,B> min  (const A & a, const B & b) { return zip(a, b, op::min<scalar_t<A,B>>{}); }
-    template<class A, class B> constexpr result_t<A,B> max  (const A & a, const B & b) { return zip(a, b, op::max<scalar_t<A,B>>{}); }
+    template<class A, class B> constexpr result_t<A,B> min  (const A & a, const B & b) { return zip(a, b, op::min{}); }
+    template<class A, class B> constexpr result_t<A,B> max  (const A & a, const B & b) { return zip(a, b, op::max{}); }
     template<class A, class B> constexpr result_t<A,B> clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
     template<class A, class B> result_t<A,B> fmod    (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::fmod    (l, r); }); }
     template<class A, class B> result_t<A,B> pow     (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::pow     (l, r); }); }
@@ -344,12 +344,12 @@ namespace linalg
     template<class A, class B> result_t<A,B> copysign(const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::copysign(l, r); }); }
 
     // Functions for componentwise application of equivalence and relational operators
-    template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, op::equal  <scalar_t<A,B>>{}); }
-    template<class A, class B> bool_result_t<A,B> nequal (const A & a, const B & b) { return zip(a, b, op::nequal <scalar_t<A,B>>{}); }
-    template<class A, class B> bool_result_t<A,B> less   (const A & a, const B & b) { return zip(a, b, op::less   <scalar_t<A,B>>{}); }
-    template<class A, class B> bool_result_t<A,B> greater(const A & a, const B & b) { return zip(a, b, op::greater<scalar_t<A,B>>{}); }
-    template<class A, class B> bool_result_t<A,B> lequal (const A & a, const B & b) { return zip(a, b, op::lequal <scalar_t<A,B>>{}); }
-    template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zip(a, b, op::gequal <scalar_t<A,B>>{}); }
+    template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, op::equal  {}); }
+    template<class A, class B> bool_result_t<A,B> nequal (const A & a, const B & b) { return zip(a, b, op::nequal {}); }
+    template<class A, class B> bool_result_t<A,B> less   (const A & a, const B & b) { return zip(a, b, op::less   {}); }
+    template<class A, class B> bool_result_t<A,B> greater(const A & a, const B & b) { return zip(a, b, op::greater{}); }
+    template<class A, class B> bool_result_t<A,B> lequal (const A & a, const B & b) { return zip(a, b, op::lequal {}); }
+    template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zip(a, b, op::gequal {}); }
 
     // Support for vector algebra
     template<class T> constexpr T                 cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }
