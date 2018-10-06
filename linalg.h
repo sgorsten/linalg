@@ -164,13 +164,12 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
     template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
     template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
     template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
@@ -199,19 +198,24 @@ namespace linalg
     template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) -> vec<decltype(f(T())),M  > { return zip(a, a, [f](T l, T) { return f(l); }); }
     template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) -> mat<decltype(f(T())),M,N> { return zip(a, a, [f](T l, T) { return f(l); }); }
 
-    // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
-    template<class T, int M> constexpr bool operator == (const vec<T,M> & a, const vec<T,M> & b) { for(int i=0; i<M; ++i) { if(!(a[i] == b[i])) return false; } return true; }
-    template<class T, int M> constexpr bool operator != (const vec<T,M> & a, const vec<T,M> & b) { return !(a == b); }
-    template<class T, int M> constexpr bool operator <  (const vec<T,M> & a, const vec<T,M> & b) { for(int i=0; i<M; ++i) { if(a[i] < b[i]) return true; if(b[i] < a[i]) return false; } return false; }
-    template<class T, int M> constexpr bool operator >  (const vec<T,M> & a, const vec<T,M> & b) { return b < a; }
-    template<class T, int M> constexpr bool operator <= (const vec<T,M> & a, const vec<T,M> & b) { return !(b < a); }
-    template<class T, int M> constexpr bool operator >= (const vec<T,M> & a, const vec<T,M> & b) { return !(a < b); }
-    template<class T, int M, int N> constexpr bool operator == (const mat<T,M,N> & a, const mat<T,M,N> & b) { for(int i=0; i<N; ++i) { if(!(a[i] == b[i])) return false; } return true; }
-    template<class T, int M, int N> constexpr bool operator != (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(a == b); }
-    template<class T, int M, int N> constexpr bool operator <  (const mat<T,M,N> & a, const mat<T,M,N> & b) { for(int i=0; i<N; ++i) { if(a[i] < b[i]) return true; if(b[i] < a[i]) return false; } return false; }
-    template<class T, int M, int N> constexpr bool operator >  (const mat<T,M,N> & a, const mat<T,M,N> & b) { return b < a; }
-    template<class T, int M, int N> constexpr bool operator <= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(b < a); }
-    template<class T, int M, int N> constexpr bool operator >= (const mat<T,M,N> & a, const mat<T,M,N> & b) { return !(a < b); }
+    // Helper object for three-way comparison
+    template<class T> struct ord { T a,b; };
+    template<class T> constexpr bool operator == (const ord<T> & o, nullptr_t) { return o.a == o.b; }
+    template<class T> constexpr bool operator != (const ord<T> & o, nullptr_t) { return !(o.a == o.b); }
+    template<class T> constexpr bool operator <  (const ord<T> & o, nullptr_t) { return o.a < o.b; }
+    template<class T> constexpr bool operator >  (const ord<T> & o, nullptr_t) { return o.b < o.a; }
+    template<class T> constexpr bool operator <= (const ord<T> & o, nullptr_t) { return !(o.b < o.a); }
+    template<class T> constexpr bool operator >= (const ord<T> & o, nullptr_t) { return !(o.a < o.b); }
+
+    // Comparison operators
+    template<class T, int M> constexpr ord<T> compare(const vec<T,M> & a, const vec<T,M> & b) { for(int i=0; i<M-1; ++i) if(!(a[i] == b[i])) return {a[i],b[i]}; return {a[M-1],b[M-1]}; }
+    template<class T, int M, int N> constexpr ord<T> compare(const mat<T,M,N> & a, const mat<T,M,N> & b) { for(int j=0; j<N-1; ++j) for(int i=0; i<M; ++i) if(!(a[j][i] == b[j][i])) return {a[j][i],b[j][i]}; return compare(a[N-1],b[N-1]); }
+    template<class A> constexpr auto operator == (const A & a, const A & b) -> decltype(compare(a,b) == 0) { return compare(a,b) == 0; }
+    template<class A> constexpr auto operator != (const A & a, const A & b) -> decltype(compare(a,b) != 0) { return compare(a,b) != 0; }
+    template<class A> constexpr auto operator <  (const A & a, const A & b) -> decltype(compare(a,b) <  0) { return compare(a,b) <  0; }
+    template<class A> constexpr auto operator >  (const A & a, const A & b) -> decltype(compare(a,b) >  0) { return compare(a,b) >  0; }
+    template<class A> constexpr auto operator <= (const A & a, const A & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
+    template<class A> constexpr auto operator >= (const A & a, const A & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
 
     // Lambdas are not permitted inside constexpr functions, so we provide explicit function objects instead
     namespace op
@@ -247,10 +251,10 @@ namespace linalg
     }
 
     // Functions for coalescing scalar values
-    template<class A> constexpr scalar_t<A> any    (const A & a) { return fold(a, op::logical_or{}); }
-    template<class A> constexpr scalar_t<A> all    (const A & a) { return fold(a, op::logical_and{}); }
-    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(a, op::add{}); }
-    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(a, op::mul{}); }
+    template<class A> constexpr auto any    (const A & a) { return fold(a, op::logical_or{}); }
+    template<class A> constexpr auto all    (const A & a) { return fold(a, op::logical_and{}); }
+    template<class A> constexpr auto sum    (const A & a) { return fold(a, op::add{}); }
+    template<class A> constexpr auto product(const A & a) { return fold(a, op::mul{}); }
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
     template<class T, int M> T minelem(const vec<T,M> & a) { return a[argmin(a)]; }
@@ -335,10 +339,10 @@ namespace linalg
     template<class A, class B> constexpr result_t<A,B> min  (const A & a, const B & b) { return zip(a, b, op::min{}); }
     template<class A, class B> constexpr result_t<A,B> max  (const A & a, const B & b) { return zip(a, b, op::max{}); }
     template<class A, class B> constexpr result_t<A,B> clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
-    template<class A, class B> result_t<A,B> fmod    (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::fmod    (l, r); }); }
-    template<class A, class B> result_t<A,B> pow     (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::pow     (l, r); }); }
-    template<class A, class B> result_t<A,B> atan2   (const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::atan2   (l, r); }); }
-    template<class A, class B> result_t<A,B> copysign(const A & a, const B & b) { return zip(a, b, [](scalar_t<A,B> l, scalar_t<A,B> r) { return std::copysign(l, r); }); }
+    template<class A, class B> result_t<A,B> fmod    (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::fmod    (l, r); }); }
+    template<class A, class B> result_t<A,B> pow     (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::pow     (l, r); }); }
+    template<class A, class B> result_t<A,B> atan2   (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::atan2   (l, r); }); }
+    template<class A, class B> result_t<A,B> copysign(const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::copysign(l, r); }); }
 
     // Functions for componentwise application of equivalence and relational operators
     template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, op::equal  {}); }
