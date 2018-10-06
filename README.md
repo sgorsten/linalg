@@ -14,23 +14,18 @@ GCC 5, GCC 6, and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 600 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
-# Changes from Version 2
+# Breaking changes in `v3.0`
 
-###### Build requirements
-
-`v3.0` requires a compliant C++14 compiler, where previous versions targeted C++11.
-
-###### Matrix operator overloads
-
-In `v2.*`, `operator *` (as well as all other arithmetic and bitwise operators) was defined for both vectors and matrices in terms of elementwise multiplication.
-
-In `v3.0`, vectors retain the ability to apply all operators in an elementwise fashion, but the behavior of operators on matrices has changed to match their definition in linear algebra. This means that only `matrix+matrix`, `matrix-matrix`, `matrix*scalar`, `scalar*matrix`, `matrix/scalar` are supported with their original meaning, while `matrix*matrix` has been changed to refer to the matrix product. All other arithmetic and bitwise operator overloads on matrices have been deleted, but if needed this functionality can be implemented manually using the `zip(...)` function.
-
-# FAQ
-
-###### Why another linear algebra library?
-
-Existing linear algebra libraries are good but most are rather large, slowing down compile times and complicating inclusion into projects. `linalg.h` is a single file designed to be dropped directly into your source tree, and imposes no restrictions on your software from a technical, architectural, or legal standpoint.
+* `linalg.h` now requires a C++14 compiler, and is known to work on GCC 5+, Clang 3.7+ and Visual Studio 2015+.
+* The set of operator overloads on matrices have been reduced to those with an obvious arithmetic meaning.
+  * `mat+mat`, `mat-mat`, `mat*scalar`, `scalar*mat`, and `mat/scalar` are implemented as elementwise operations
+  * `mat*mat` computes the matrix product
+  * All other binary matrix overloads have been deleted
+  * Elementwise operations can still be invoked manually with the `zip(...)` function
+* `vec::xy()` and `vec::xyz()` can no longer be used as lvalues
+  * The original behavior relied on `reinterpret_cast` operations which were undefined behavior in standard C++
+  * `a.xyz() = {1,2,3}` can be rewritten as `a = {1,2,3,a.w};`
+  * `a.xyz()` is still usable as an rvalue, in expressions such as `a.xyz()/a.w`
 
 # Documentation
 

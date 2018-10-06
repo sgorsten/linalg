@@ -957,7 +957,7 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float3, float3(int3(3,4,5)) );
     MATCH(const float&, cf3[1] );
     MATCH(float&, f3[1] );
-    MATCH(float2 &, f3.xy() );
+    MATCH(float2, f3.xy() );
 
     // Exercise vec<T,4>
     MATCH(float4, float4() );
@@ -968,7 +968,7 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float4, float4(int4(3,4,5,6)) );
     MATCH(const float&, cf4[1] );
     MATCH(float&, f4[1] );
-    MATCH(float3 &, f4.xyz() );
+    MATCH(float3, f4.xyz() );
 
     // TODO: Exercise mat<T,M,N> for N=2,3,4
 

@@ -89,8 +89,7 @@ namespace linalg
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
         constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; } }
         constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; } }
-        constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
-        vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }
+        constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
     template<class T> struct vec<T,4>
     {
@@ -109,10 +108,8 @@ namespace linalg
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
         constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
         constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
-        constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
-        constexpr const vec<T,3> &  xyz() const                         { return *reinterpret_cast<const vec<T,3> *>(this); }
-        vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }                
-        vec<T,3> &                  xyz()                               { return *reinterpret_cast<vec<T,3> *>(this); }
+        constexpr vec<T,2>          xy() const                          { return {x,y}; }
+        constexpr vec<T,3>          xyz() const                         { return {x,y,z}; }
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
