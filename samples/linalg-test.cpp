@@ -568,7 +568,7 @@ TEST_CASE( "elementwise comparison functions produce correct results" )
 
 TEST_CASE( "no unintended ADL on operator +=" )
 {
-    std::vector<int3> tris_a = {{0,1,2}, {0,2,3}, {0,3,4}}, tris_b;
+    std::vector<int3> tris_a = {{0,1,2}, {0,2,3}, {0,3,4}}, tris_b; // This line is known to cause problems if linalg::operator!= is allowed to match too broadly
     tris_b = std::move(tris_a); // This line is known to cause problems if linalg::operator+= is allowed to match too broadly.
     REQUIRE( tris_b.size() == 3 );
     REQUIRE( tris_a.size() == 0 );
