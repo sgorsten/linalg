@@ -1,27 +1,4 @@
-#include "../linalg.h"
-using namespace linalg::aliases;
-
-#include "thirdparty/doctest.h"
-
-namespace detail
-{
-    // These function overloads exist if specific the expression T{} op U{} is valid, and return true_type
-    template<class T, class U> static decltype(std::declval<T>() + std::declval<U>(), std::true_type{}) has_op_add(int);
-    template<class T, class U> static decltype(std::declval<T>() - std::declval<U>(), std::true_type{}) has_op_sub(int);  
-    template<class T, class U> static decltype(std::declval<T>() * std::declval<U>(), std::true_type{}) has_op_mul(int);
-    template<class T, class U> static decltype(std::declval<T>() / std::declval<U>(), std::true_type{}) has_op_div(int);
-    
-    // These function overloads always exist, but have lowest selection priority, and return false_type
-    template<class T, class U> static std::false_type has_op_add(...);
-    template<class T, class U> static std::false_type has_op_sub(...);  
-    template<class T, class U> static std::false_type has_op_mul(...);
-    template<class T, class U> static std::false_type has_op_div(...);
-}
-
-template<class T, class U> static constexpr bool has_op_add = decltype(detail::has_op_add<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_sub = decltype(detail::has_op_sub<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_mul = decltype(detail::has_op_mul<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_div = decltype(detail::has_op_div<T,U>(0))::value;
+#include "linalg-test.h"
 
 TEST_CASE("Sums between matrices of the same dimension are well formed")
 {

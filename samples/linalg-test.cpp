@@ -1,43 +1,9 @@
-#include "../linalg.h"
-using namespace linalg::aliases;
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "thirdparty/doctest.h"
+#include "linalg-test.h"
 
-#include <random>
 #include <algorithm>
 #include <typeinfo>
 
-using floating_point_types = doctest::Types<double, float>;
-using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
-using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
-
-// Facility for retrieving random numbers
-class random_number_generator
-{
-    std::mt19937 rng;
-    std::normal_distribution<double> dist_double;
-    std::normal_distribution<float> dist_float;
-    std::uniform_int_distribution<int> dist_int;
-    std::uniform_int_distribution<short> dist_short;
-    std::uniform_int_distribution<unsigned> dist_uint;
-    std::uniform_int_distribution<unsigned short> dist_ushort;
-public:
-    random_number_generator() : dist_int(-1000, 1000), dist_short(-100, 100), dist_uint(0, 1000), dist_ushort(0, 100) {}
-
-    operator double () { return dist_double(rng); }
-    operator float () { return dist_float(rng); }
-    operator int () { return dist_int(rng); }
-    operator short () { return dist_short(rng); }
-    operator unsigned int () { return dist_uint(rng); }
-    operator unsigned short () { return dist_ushort(rng); }
-    template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, *this); }
-    template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-};
 static const int reps = 3; // Tests which use random data will be repeated this many times
 
 //////////////////////////////////////////////////////////

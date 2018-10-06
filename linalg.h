@@ -57,11 +57,6 @@
 #include <array>        // For std::array, used in the relational operator overloads
 #include <limits>       // For std::numeric_limits/epsilon
 
-// Visual Studio versions prior to 2015 lack constexpr support
-#if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(constexpr)
-#define constexpr
-#endif
-
 namespace linalg
 {
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
@@ -76,8 +71,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; } }
+        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; } }
     };
     template<class T> struct vec<T,3>
     {
@@ -92,8 +87,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; } }
+        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; } }
         constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }
     };
@@ -112,8 +107,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
+        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
         constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
         constexpr const vec<T,3> &  xyz() const                         { return *reinterpret_cast<const vec<T,3> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }                
@@ -133,7 +128,7 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        const V &                   operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
     };
     template<class T, int M> struct mat<T,M,3>
@@ -148,7 +143,7 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        const V &                   operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
     };
     template<class T, int M> struct mat<T,M,4>
@@ -163,7 +158,7 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
+        const V &                   operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
     };
 
@@ -215,20 +210,20 @@ namespace linalg
     // Lambdas are not permitted inside constexpr functions, so we provide explicit function objects instead
     namespace op
     {
-        struct pos { template<class T> constexpr auto operator() (T r) const -> decltype(+r) { return +r; } };
-        struct neg { template<class T> constexpr auto operator() (T r) const -> decltype(-r) { return -r; } };
-        struct add { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l + r) { return l + r; } };
-        struct sub { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l - r) { return l - r; } };
-        struct mul { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l * r) { return l * r; } };
-        struct div { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l / r) { return l / r; } };
-        struct mod { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l % r) { return l % r; } };
-        struct lshift { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l << r) { return l << r; } };
-        struct rshift { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l >> r) { return l >> r; } };        
+        struct pos { template<class T> constexpr auto operator() (T r) const { return +r; } };
+        struct neg { template<class T> constexpr auto operator() (T r) const { return -r; } };
+        struct add { template<class T> constexpr auto operator() (T l, T r) const { return l + r; } };
+        struct sub { template<class T> constexpr auto operator() (T l, T r) const { return l - r; } };
+        struct mul { template<class T> constexpr auto operator() (T l, T r) const { return l * r; } };
+        struct div { template<class T> constexpr auto operator() (T l, T r) const { return l / r; } };
+        struct mod { template<class T> constexpr auto operator() (T l, T r) const { return l % r; } };
+        struct lshift { template<class T> constexpr auto operator() (T l, T r) const { return l << r; } };
+        struct rshift { template<class T> constexpr auto operator() (T l, T r) const { return l >> r; } };        
 
-        struct binary_not { template<class T> constexpr auto operator() (T r) const -> decltype(+r) { return ~r; } };
-        struct binary_or  { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l | r) { return l | r; } };
-        struct binary_xor { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l ^ r) { return l ^ r; } };
-        struct binary_and { template<class T> constexpr auto operator() (T l, T r) const -> decltype(l & r) { return l & r; } };
+        struct binary_not { template<class T> constexpr auto operator() (T r) const { return ~r; } };
+        struct binary_or  { template<class T> constexpr auto operator() (T l, T r) const { return l | r; } };
+        struct binary_xor { template<class T> constexpr auto operator() (T l, T r) const { return l ^ r; } };
+        struct binary_and { template<class T> constexpr auto operator() (T l, T r) const { return l & r; } };
 
         struct logical_not { template<class T> constexpr bool operator() (T r) const { return !r; } };
         struct logical_or  { template<class T> constexpr bool operator() (T l, T r) const { return l || r; } };
@@ -256,30 +251,30 @@ namespace linalg
     template<class T, int M> T maxelem(const vec<T,M> & a) { return a[argmax(a)]; }
 
     // Overloads for unary operators on vectors are implemented in terms of elementwise application of the operator
-    template<class A> constexpr arith_result_t<A> operator + (const A & a) { return map(a, op::pos{}); }
-    template<class A> constexpr arith_result_t<A> operator - (const A & a) { return map(a, op::neg{}); }
-    template<class A> constexpr arith_result_t<A> operator ~ (const A & a) { return map(a, op::binary_not{}); }
-    template<class A> constexpr bool_result_t<A> operator ! (const A & a) { return map(a, op::logical_not{}); }
+    template<class A> constexpr auto operator + (const A & a) { return map(a, op::pos{}); }
+    template<class A> constexpr auto operator - (const A & a) { return map(a, op::neg{}); }
+    template<class A> constexpr auto operator ~ (const A & a) { return map(a, op::binary_not{}); }
+    template<class A> constexpr auto operator ! (const A & a) { return map(a, op::logical_not{}); }
 
     // Mirror the set of unary scalar math functions to apply elementwise to vectors
-    template<class A> result_t<A> abs  (const A & a) { return map(a, [](scalar_t<A> l) { return std::abs  (l); }); }
-    template<class A> result_t<A> floor(const A & a) { return map(a, [](scalar_t<A> l) { return std::floor(l); }); }
-    template<class A> result_t<A> ceil (const A & a) { return map(a, [](scalar_t<A> l) { return std::ceil (l); }); }
-    template<class A> result_t<A> exp  (const A & a) { return map(a, [](scalar_t<A> l) { return std::exp  (l); }); }
-    template<class A> result_t<A> log  (const A & a) { return map(a, [](scalar_t<A> l) { return std::log  (l); }); }
-    template<class A> result_t<A> log10(const A & a) { return map(a, [](scalar_t<A> l) { return std::log10(l); }); }
-    template<class A> result_t<A> sqrt (const A & a) { return map(a, [](scalar_t<A> l) { return std::sqrt (l); }); }
-    template<class A> result_t<A> sin  (const A & a) { return map(a, [](scalar_t<A> l) { return std::sin  (l); }); }
-    template<class A> result_t<A> cos  (const A & a) { return map(a, [](scalar_t<A> l) { return std::cos  (l); }); }
-    template<class A> result_t<A> tan  (const A & a) { return map(a, [](scalar_t<A> l) { return std::tan  (l); }); }
-    template<class A> result_t<A> asin (const A & a) { return map(a, [](scalar_t<A> l) { return std::asin (l); }); }
-    template<class A> result_t<A> acos (const A & a) { return map(a, [](scalar_t<A> l) { return std::acos (l); }); }
-    template<class A> result_t<A> atan (const A & a) { return map(a, [](scalar_t<A> l) { return std::atan (l); }); }
-    template<class A> result_t<A> sinh (const A & a) { return map(a, [](scalar_t<A> l) { return std::sinh (l); }); }
-    template<class A> result_t<A> cosh (const A & a) { return map(a, [](scalar_t<A> l) { return std::cosh (l); }); }
-    template<class A> result_t<A> tanh (const A & a) { return map(a, [](scalar_t<A> l) { return std::tanh (l); }); }
-    template<class A> result_t<A> round(const A & a) { return map(a, [](scalar_t<A> l) { return std::round(l); }); }
-    template<class A> result_t<A> fract(const A & a) { return map(a, [](scalar_t<A> l) { return l - std::floor(l); }); }
+    template<class A> auto abs  (const A & a) { return map(a, [](auto l) { return std::abs  (l); }); }
+    template<class A> auto floor(const A & a) { return map(a, [](auto l) { return std::floor(l); }); }
+    template<class A> auto ceil (const A & a) { return map(a, [](auto l) { return std::ceil (l); }); }
+    template<class A> auto exp  (const A & a) { return map(a, [](auto l) { return std::exp  (l); }); }
+    template<class A> auto log  (const A & a) { return map(a, [](auto l) { return std::log  (l); }); }
+    template<class A> auto log10(const A & a) { return map(a, [](auto l) { return std::log10(l); }); }
+    template<class A> auto sqrt (const A & a) { return map(a, [](auto l) { return std::sqrt (l); }); }
+    template<class A> auto sin  (const A & a) { return map(a, [](auto l) { return std::sin  (l); }); }
+    template<class A> auto cos  (const A & a) { return map(a, [](auto l) { return std::cos  (l); }); }
+    template<class A> auto tan  (const A & a) { return map(a, [](auto l) { return std::tan  (l); }); }
+    template<class A> auto asin (const A & a) { return map(a, [](auto l) { return std::asin (l); }); }
+    template<class A> auto acos (const A & a) { return map(a, [](auto l) { return std::acos (l); }); }
+    template<class A> auto atan (const A & a) { return map(a, [](auto l) { return std::atan (l); }); }
+    template<class A> auto sinh (const A & a) { return map(a, [](auto l) { return std::sinh (l); }); }
+    template<class A> auto cosh (const A & a) { return map(a, [](auto l) { return std::cosh (l); }); }
+    template<class A> auto tanh (const A & a) { return map(a, [](auto l) { return std::tanh (l); }); }
+    template<class A> auto round(const A & a) { return map(a, [](auto l) { return std::round(l); }); }
+    template<class A> auto fract(const A & a) { return map(a, [](auto l) { return l - std::floor(l); }); }
 
     // Overloads for vector op vector are implemented in terms of elementwise application of the operator, followed by casting back to the original type (integer promotion is suppressed)
     template<class A, class B> constexpr arith_result_t<A,B> operator +  (const A & a, const B & b) { return zip(a, b, op::add{}); }
@@ -307,11 +302,7 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
     template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
     template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
-    #if _MSC_VER >= 1910
     template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
-    #else
-    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
-    #endif
     #else
     // Operator * with matrix arguments represents as the matrix product
     template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }

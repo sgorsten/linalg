@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\linalg-constant-expressions.cpp" />
     <ClCompile Include="..\linalg-expression-validity.cpp" />
     <ClCompile Include="..\linalg-test.cpp" />
     <ClCompile Include="..\linalg-test2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
+    <ClInclude Include="..\linalg-test.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
