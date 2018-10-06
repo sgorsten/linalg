@@ -7,14 +7,18 @@ NOTE: This is the development branch for `linalg.h v3.0`. It should be considere
 
 Platform | Build Status |
 -------- | ------------ |
-Visual Studio 2013, 2015, and 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
+Visual Studio 2015, and 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
 GCC 4.9 and Clang 3.7 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=v3)](https://travis-ci.org/sgorsten/linalg) |
 
-[linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
+[linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++14](http://en.cppreference.com/w/). 
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 600 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
 # Changes from Version 2
+
+###### Build requirements
+
+`v3.0` requires a compliant C++14 compiler, where previous versions targeted C++11.
 
 ###### Matrix operator overloads
 
@@ -27,10 +31,6 @@ In `v3.0`, vectors retain the ability to apply all operators in an elementwise f
 ###### Why another linear algebra library?
 
 Existing linear algebra libraries are good but most are rather large, slowing down compile times and complicating inclusion into projects. `linalg.h` is a single file designed to be dropped directly into your source tree, and imposes no restrictions on your software from a technical, architectural, or legal standpoint.
-
-###### Why C++11?
-
-Mostly due to broad availability of mostly compliant C++11 compilers. Earlier versions of C++ lack the features (lambdas, decltype, braced initializer lists, etc.) needed to implement `linalg.h` as generically and tersely as it has been. Later versions of C++ do provide useful features which could be used to make `linalg.h` even smaller and cleaner (generic lambdas and auto return types in particular), but do not appreciably improve the functionality of the library in its current form.
 
 # Documentation
 
