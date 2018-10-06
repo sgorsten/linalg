@@ -128,8 +128,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
-        const V &                   operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; } }
+        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; } }
     };
     template<class T, int M> struct mat<T,M,3>
     {
@@ -143,8 +143,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
-        const V &                   operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; } }
+        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; } }
     };
     template<class T, int M> struct mat<T,M,4>
     {
@@ -158,8 +158,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
-        const V &                   operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; case 3: return w; } }
+        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; case 3: return w; } }
     };
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
