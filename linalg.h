@@ -53,6 +53,7 @@
 
 #include <cmath>        // For various unary math functions, such as std::sqrt
 #include <cstdlib>      // To resolve std::abs ambiguity on clang
+#include <cstddef>      // For std::nullptr_t
 #include <cstdint>      // For implementing namespace linalg::aliases
 #include <array>        // For std::array
 #include <limits>       // For std::numeric_limits/epsilon
@@ -197,12 +198,12 @@ namespace linalg
 
     // Helper object for three-way comparison
     template<class T> struct ord { T a,b; };
-    template<class T> constexpr bool operator == (const ord<T> & o, nullptr_t) { return o.a == o.b; }
-    template<class T> constexpr bool operator != (const ord<T> & o, nullptr_t) { return !(o.a == o.b); }
-    template<class T> constexpr bool operator <  (const ord<T> & o, nullptr_t) { return o.a < o.b; }
-    template<class T> constexpr bool operator >  (const ord<T> & o, nullptr_t) { return o.b < o.a; }
-    template<class T> constexpr bool operator <= (const ord<T> & o, nullptr_t) { return !(o.b < o.a); }
-    template<class T> constexpr bool operator >= (const ord<T> & o, nullptr_t) { return !(o.a < o.b); }
+    template<class T> constexpr bool operator == (const ord<T> & o, std::nullptr_t) { return o.a == o.b; }
+    template<class T> constexpr bool operator != (const ord<T> & o, std::nullptr_t) { return !(o.a == o.b); }
+    template<class T> constexpr bool operator <  (const ord<T> & o, std::nullptr_t) { return o.a < o.b; }
+    template<class T> constexpr bool operator >  (const ord<T> & o, std::nullptr_t) { return o.b < o.a; }
+    template<class T> constexpr bool operator <= (const ord<T> & o, std::nullptr_t) { return !(o.b < o.a); }
+    template<class T> constexpr bool operator >= (const ord<T> & o, std::nullptr_t) { return !(o.a < o.b); }
 
     // Comparison operators
     template<class T, int M> constexpr ord<T> compare(const vec<T,M> & a, const vec<T,M> & b) { for(int i=0; i<M-1; ++i) if(!(a[i] == b[i])) return {a[i],b[i]}; return {a[M-1],b[M-1]}; }
