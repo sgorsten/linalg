@@ -7,27 +7,28 @@ using namespace linalg::aliases;
 // Type lists to use in templated test cases
 using floating_point_types = doctest::Types<double, float>;
 using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
+using signed_types = doctest::Types<double, float, int, short>;
 using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
 
 // SFINAE based expression validity helpers
 namespace detail
 {
     // These function overloads exist if specific the expression T{} op U{} is valid, and return true_type
-    template<class T, class U> static decltype(std::declval<T>() + std::declval<U>(), std::true_type{}) has_op_add(int);
-    template<class T, class U> static decltype(std::declval<T>() - std::declval<U>(), std::true_type{}) has_op_sub(int);  
-    template<class T, class U> static decltype(std::declval<T>() * std::declval<U>(), std::true_type{}) has_op_mul(int);
-    template<class T, class U> static decltype(std::declval<T>() / std::declval<U>(), std::true_type{}) has_op_div(int);
+    template<class T, class U> inline decltype(std::declval<T>() + std::declval<U>(), std::true_type{}) has_op_add(int) { return {}; }
+    template<class T, class U> inline decltype(std::declval<T>() - std::declval<U>(), std::true_type{}) has_op_sub(int) { return {}; }  
+    template<class T, class U> inline decltype(std::declval<T>() * std::declval<U>(), std::true_type{}) has_op_mul(int) { return {}; }
+    template<class T, class U> inline decltype(std::declval<T>() / std::declval<U>(), std::true_type{}) has_op_div(int) { return {}; }
     
     // These function overloads always exist, but have lowest selection priority, and return false_type
-    template<class T, class U> static std::false_type has_op_add(...);
-    template<class T, class U> static std::false_type has_op_sub(...);  
-    template<class T, class U> static std::false_type has_op_mul(...);
-    template<class T, class U> static std::false_type has_op_div(...);
+    template<class T, class U> inline std::false_type has_op_add(...) { return {}; }
+    template<class T, class U> inline std::false_type has_op_sub(...) { return {}; } 
+    template<class T, class U> inline std::false_type has_op_mul(...) { return {}; }
+    template<class T, class U> inline std::false_type has_op_div(...) { return {}; }
 }
-template<class T, class U> static constexpr bool has_op_add = decltype(detail::has_op_add<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_sub = decltype(detail::has_op_sub<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_mul = decltype(detail::has_op_mul<T,U>(0))::value;
-template<class T, class U> static constexpr bool has_op_div = decltype(detail::has_op_div<T,U>(0))::value;
+template<class T, class U> constexpr bool has_op_add = decltype(detail::has_op_add<T,U>(0))::value;
+template<class T, class U> constexpr bool has_op_sub = decltype(detail::has_op_sub<T,U>(0))::value;
+template<class T, class U> constexpr bool has_op_mul = decltype(detail::has_op_mul<T,U>(0))::value;
+template<class T, class U> constexpr bool has_op_div = decltype(detail::has_op_div<T,U>(0))::value;
 
 // Facility for retrieving random numbers
 class random_number_generator

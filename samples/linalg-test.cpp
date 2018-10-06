@@ -446,24 +446,31 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in
 
 TEST_CASE_TEMPLATE("arithmetic unary operator overloads on vec<T,M> are defined elementwise", T, arithmetic_types) 
 {
-    using U = decltype(+T());
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
         const T a=rng, b=rng, c=rng, d=rng;
         
-        CHECK(+linalg::vec<T,2>(a,b    ) == linalg::vec<U,2>(+a, +b        ));
-        CHECK(+linalg::vec<T,3>(a,b,c  ) == linalg::vec<U,3>(+a, +b, +c    ));
-        CHECK(+linalg::vec<T,4>(a,b,c,d) == linalg::vec<U,4>(+a, +b, +c, +d));
-
-        // NOTE: Will likely generate a warning about operator- applied to unsigned type. This is probably desirable.
-        CHECK(-linalg::vec<T,2>(a,b    ) == linalg::vec<U,2>(-a, -b        ));
-        CHECK(-linalg::vec<T,3>(a,b,c  ) == linalg::vec<U,3>(-a, -b, -c    ));
-        CHECK(-linalg::vec<T,4>(a,b,c,d) == linalg::vec<U,4>(-a, -b, -c, -d));
+        CHECK(+linalg::vec<T,2>(a,b    ) == linalg::vec<decltype(+T()),2>(+a, +b        ));
+        CHECK(+linalg::vec<T,3>(a,b,c  ) == linalg::vec<decltype(+T()),3>(+a, +b, +c    ));
+        CHECK(+linalg::vec<T,4>(a,b,c,d) == linalg::vec<decltype(+T()),4>(+a, +b, +c, +d));
 
         CHECK(!linalg::vec<T,2>(a,b    ) == linalg::vec<bool,2>(!a, !b        ));
         CHECK(!linalg::vec<T,3>(a,b,c  ) == linalg::vec<bool,3>(!a, !b, !c    ));
         CHECK(!linalg::vec<T,4>(a,b,c,d) == linalg::vec<bool,4>(!a, !b, !c, !d));
+    }
+}
+
+TEST_CASE_TEMPLATE("arithmetic unary operator - on vec<T,M> is defined elementwise", T, signed_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng;
+
+        CHECK(-linalg::vec<T,2>(a,b    ) == linalg::vec<decltype(-T()),2>(-a, -b        ));
+        CHECK(-linalg::vec<T,3>(a,b,c  ) == linalg::vec<decltype(-T()),3>(-a, -b, -c    ));
+        CHECK(-linalg::vec<T,4>(a,b,c,d) == linalg::vec<decltype(-T()),4>(-a, -b, -c, -d));
     }
 }
 
