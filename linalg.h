@@ -58,6 +58,12 @@
 #include <array>        // For std::array
 #include <limits>       // For std::numeric_limits/epsilon
 
+#if _MSC_VER <= 1900
+#define CONSTEXPR14
+#else
+#define CONSTEXPR14 constexpr
+#endif
+
 namespace linalg
 {
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
@@ -72,8 +78,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; } }
-        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; } }
+        constexpr const T &         operator[] (int i) const            { return i==0 ? x : y; }
+		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : y; }
     };
     template<class T> struct vec<T,3>
     {
@@ -88,8 +94,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; } }
-        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; } }
+        constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : z; }
+		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : i==1 ? y : z; }
         constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
     template<class T> struct vec<T,4>
@@ -107,8 +113,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr const T &         operator[] (int i) const            { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
-        constexpr T &               operator[] (int i)                  { switch(i) { default: return (&x)[i]; case 1: return y; case 2: return z; case 3: return w; } }
+        constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
+		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
         constexpr vec<T,2>          xy() const                          { return {x,y}; }
         constexpr vec<T,3>          xyz() const                         { return {x,y,z}; }
     };
@@ -126,8 +132,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
-        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; } }
-        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; } }
+        constexpr const V &         operator[] (int j) const            { return j==0 ? x : y; }
+		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : y; }
     };
     template<class T, int M> struct mat<T,M,3>
     {
@@ -141,8 +147,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
-        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; } }
-        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; } }
+        constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : z; }
+		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : j==1 ? y : z; }
     };
     template<class T, int M> struct mat<T,M,4>
     {
@@ -156,8 +162,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
-        constexpr const V &         operator[] (int j) const            { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; case 3: return w; } }
-        constexpr V &               operator[] (int j)                  { switch(j) { default: return (&x)[j]; case 1: return y; case 2: return z; case 3: return w; } }
+        constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
+		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
     };
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
@@ -206,14 +212,18 @@ namespace linalg
     template<class T> constexpr bool operator >= (const ord<T> & o, std::nullptr_t) { return !(o.a < o.b); }
 
     // Comparison operators
-    template<class T, int M> constexpr ord<T> compare(const vec<T,M> & a, const vec<T,M> & b) { for(int i=0; i<M-1; ++i) if(!(a[i] == b[i])) return {a[i],b[i]}; return {a[M-1],b[M-1]}; }
-    template<class T, int M, int N> constexpr ord<T> compare(const mat<T,M,N> & a, const mat<T,M,N> & b) { for(int j=0; j<N-1; ++j) for(int i=0; i<M; ++i) if(!(a[j][i] == b[j][i])) return {a[j][i],b[j][i]}; return compare(a[N-1],b[N-1]); }
     template<class A> constexpr auto operator == (const A & a, const A & b) -> decltype(compare(a,b) == 0) { return compare(a,b) == 0; }
     template<class A> constexpr auto operator != (const A & a, const A & b) -> decltype(compare(a,b) != 0) { return compare(a,b) != 0; }
     template<class A> constexpr auto operator <  (const A & a, const A & b) -> decltype(compare(a,b) <  0) { return compare(a,b) <  0; }
     template<class A> constexpr auto operator >  (const A & a, const A & b) -> decltype(compare(a,b) >  0) { return compare(a,b) >  0; }
     template<class A> constexpr auto operator <= (const A & a, const A & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
     template<class A> constexpr auto operator >= (const A & a, const A & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
+    template<class T> constexpr ord<T> compare(const vec<T,2> & a, const vec<T,2> & b) { return !(a.x==b.x) ? ord<T>{a.x,b.x} : ord<T>{a.y,b.y}; }
+    template<class T> constexpr ord<T> compare(const vec<T,3> & a, const vec<T,3> & b) { return !(a.x==b.x) ? ord<T>{a.x,b.x} : !(a.y==b.y) ? ord<T>{a.y,b.y} : ord<T>{a.z,b.z}; }
+    template<class T> constexpr ord<T> compare(const vec<T,4> & a, const vec<T,4> & b) { return !(a.x==b.x) ? ord<T>{a.x,b.x} : !(a.y==b.y) ? ord<T>{a.y,b.y} : !(a.z==b.z) ? ord<T>{a.z,b.z} : ord<T>{a.w,b.w}; }
+    template<class T, int M> constexpr ord<T> compare(const mat<T,M,2> & a, const mat<T,M,2> & b) { return a.x!=b.x ? compare(a.x,b.x) : compare(a.y,b.y); }
+    template<class T, int M> constexpr ord<T> compare(const mat<T,M,3> & a, const mat<T,M,3> & b) { return a.x!=b.x ? compare(a.x,b.x) : a.y!=b.y ? compare(a.y,b.y) : compare(a.z,b.z); }
+    template<class T, int M> constexpr ord<T> compare(const mat<T,M,4> & a, const mat<T,M,4> & b) { return a.x!=b.x ? compare(a.x,b.x) : a.y!=b.y ? compare(a.y,b.y) : a.z!=b.z ? compare(a.z,b.z) : compare(a.w,b.w); }
 
     // Lambdas are not permitted inside constexpr functions, so we provide explicit function objects instead
     namespace op
