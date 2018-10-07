@@ -1,4 +1,4 @@
-version: 2.0.{build}
+version: 3.0.{build}
 
 configuration:
 
@@ -12,7 +12,6 @@ image:
 
 - Visual Studio 2017
 - Visual Studio 2015
-- Visual Studio 2013
 
 # Disable build through solution file
 build: off
@@ -33,9 +32,4 @@ test_script:
     {
         msbuild /t:Build samples\msvc140\linalg-test.vcxproj
         samples\msvc140\bin\linalg-test-Debug-x64.exe
-    }
-    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2013")
-    {
-        msbuild /t:Build samples\msvc120\linalg-test.vcxproj
-        samples\msvc120\bin\linalg-test-Debug-x64.exe
     }
