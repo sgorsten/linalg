@@ -10,8 +10,6 @@ matrix:
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
     - env: COMPILER=g++-8
       addons: { apt: { packages: ["g++-8"], sources: ["ubuntu-toolchain-r-test"] } }
-    - env: COMPILER=clang++-3.4
-      addons: { apt: { packages: ["clang-3.4"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.4"] } }      
     - env: COMPILER=clang++-3.5
       addons: { apt: { packages: ["clang-3.5"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.5"] } }      
     - env: COMPILER=clang++-3.6
@@ -21,15 +19,15 @@ matrix:
     - env: COMPILER=clang++-3.8
       addons: { apt: { packages: ["clang-3.8"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.8"] } }
     - env: COMPILER=clang++-3.9
-      addons: { apt: { packages: ["clang-3.9"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.9"] } }
+      addons: { apt: { packages: ["clang-3.9"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-3.9"] } }
     - env: COMPILER=clang++-4.0
-      addons: { apt: { packages: ["clang-4.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-4.0"] } }
+      addons: { apt: { packages: ["clang-4.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-4.0"] } }
     - env: COMPILER=clang++-5.0
-      addons: { apt: { packages: ["clang-5.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-5.0"] } }
+      addons: { apt: { packages: ["clang-5.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-5.0"] } }
     - env: COMPILER=clang++-6.0
-      addons: { apt: { packages: ["clang-6.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-6.0"] } }
+      addons: { apt: { packages: ["clang-6.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
     - env: COMPILER=clang++-7.0
-      addons: { apt: { packages: ["clang-7.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-7.0"] } }      
+      addons: { apt: { packages: ["clang-7.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-7.0"] } }      
       
 install:
   - export CXX=${COMPILER}
