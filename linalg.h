@@ -77,7 +77,7 @@ namespace linalg
         T                           x,y;
         constexpr                   vec()                               : x(), y() {}
         constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-        constexpr                   vec(const std::array<T,2> & a)      : x(a[0]), y(a[1]) {}
+        constexpr                   vec(const std::array<T,2> & a)      : vec(a[0], a[1]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
@@ -93,7 +93,7 @@ namespace linalg
                                         const T & z_)                   : x(x_), y(y_), z(z_) {}
         constexpr                   vec(const vec<T,2> & xy,
                                         const T & z_)                   : vec(xy.x, xy.y, z_) {}
-        constexpr                   vec(const std::array<T,3> & a)      : x(a[0]), y(a[1]), z(a[2]) {}
+        constexpr                   vec(const std::array<T,3> & a)      : vec(a[0], a[1], a[2]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
@@ -112,7 +112,7 @@ namespace linalg
                                         const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
         constexpr                   vec(const vec<T,3> & xyz,
                                         const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-        constexpr                   vec(const std::array<T,4> & a)      : x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
+        constexpr                   vec(const std::array<T,4> & a)      : vec(a[0], a[1], a[2], a[3]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
@@ -191,16 +191,16 @@ namespace linalg
     template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a.x,f),fold(a.y,f)),fold(a.z,f)),fold(a.w,f)); }
 
     // Produce a vector/matrix by applying f(T,T) to corresponding pairs of elements from vectors/matrix a and b
-    template<class T,               class F> constexpr auto zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) -> vec<decltype(f(T(),T())),2  > { return {f(a.x,b.x), f(a.y,b.y)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) -> vec<decltype(f(T(),T())),3  > { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) -> vec<decltype(f(T(),T())),4  > { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class T, int M,        class F> constexpr auto zip(const vec<T,M  > & a,                  T b, F f) -> vec<decltype(f(T(),T())),M  > { return zip(a, vec<T,M>(b), f); }
-    template<class T, int M,        class F> constexpr auto zip(                 T a, const vec<T,M  > & b, F f) -> vec<decltype(f(T(),T())),M  > { return zip(vec<T,M>(a), b, f); }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) -> mat<decltype(f(T(),T())),M,2> { return {zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) -> mat<decltype(f(T(),T())),M,3> { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) -> mat<decltype(f(T(),T())),M,4> { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
-    template<class T, int M, int N, class F> constexpr auto zip(const mat<T,M,N> & a,                  T b, F f) -> mat<decltype(f(T(),T())),M,N> { return zip(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> constexpr auto zip(                 T a, const mat<T,M,N> & b, F f) -> mat<decltype(f(T(),T())),M,N> { return zip(mat<T,M,N>(a), b, f); }
+    template<class T,               class F> constexpr auto zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) { return vec<decltype(f(T(),T())),2>{f(a.x,b.x), f(a.y,b.y)}; }
+    template<class T,               class F> constexpr auto zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) { return vec<decltype(f(T(),T())),3>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
+    template<class T,               class F> constexpr auto zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) { return vec<decltype(f(T(),T())),4>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
+    template<class T, int M,        class F> constexpr auto zip(const vec<T,M  > & a,                  T b, F f) { return zip(a, vec<T,M>(b), f); }
+    template<class T, int M,        class F> constexpr auto zip(                 T a, const vec<T,M  > & b, F f) { return zip(vec<T,M>(a), b, f); }
+    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return mat<decltype(f(T(),T())),M,2>{zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
+    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return mat<decltype(f(T(),T())),M,3>{zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
+    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return mat<decltype(f(T(),T())),M,4>{zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
+    template<class T, int M, int N, class F> constexpr auto zip(const mat<T,M,N> & a,                  T b, F f) { return zip(a, mat<T,M,N>(b), f); }
+    template<class T, int M, int N, class F> constexpr auto zip(                 T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
 
     // Produce a vector/matrix by applying f(T) to elements from vector/matrix a
     template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
