@@ -58,10 +58,11 @@
 #include <array>        // For std::array
 #include <limits>       // For std::numeric_limits/epsilon
 
+// In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
 #if _MSC_VER <= 1900
-#define CONSTEXPR14
+#define LINALG_CONSTEXPR14
 #else
-#define CONSTEXPR14 constexpr
+#define LINALG_CONSTEXPR14 constexpr
 #endif
 
 namespace linalg
@@ -73,13 +74,13 @@ namespace linalg
         T                           x,y;
         constexpr                   vec()                               : x(), y() {}
         constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-        constexpr                   vec(const std::array<T,2> & a)		: x(a[0]), y(a[1]) {}
+        constexpr                   vec(const std::array<T,2> & a)      : x(a[0]), y(a[1]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
         constexpr const T &         operator[] (int i) const            { return i==0 ? x : y; }
-		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : y; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : y; }
     };
     template<class T> struct vec<T,3>
     {
@@ -89,13 +90,13 @@ namespace linalg
                                         const T & z_)                   : x(x_), y(y_), z(z_) {}
         constexpr                   vec(const vec<T,2> & xy,
                                         const T & z_)                   : vec(xy.x, xy.y, z_) {}
-        constexpr                   vec(const std::array<T,3> & a)		: x(a[0]), y(a[1]), z(a[2]) {}
+        constexpr                   vec(const std::array<T,3> & a)      : x(a[0]), y(a[1]), z(a[2]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
         constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : z; }
-		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : i==1 ? y : z; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : i==1 ? y : z; }
         constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
     template<class T> struct vec<T,4>
@@ -108,15 +109,15 @@ namespace linalg
                                         const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
         constexpr                   vec(const vec<T,3> & xyz,
                                         const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-        constexpr                   vec(const std::array<T,4> & a)		: x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
+        constexpr                   vec(const std::array<T,4> & a)      : x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
         constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
-		CONSTEXPR14 T &             operator[] (int i)                  { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
-        constexpr vec<T,2>          xy() const                          { return {x,y}; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
         constexpr vec<T,3>          xyz() const                         { return {x,y,z}; }
+        constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
@@ -131,9 +132,9 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
-        constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
         constexpr const V &         operator[] (int j) const            { return j==0 ? x : y; }
-		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : y; }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : y; }
+        constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
     };
     template<class T, int M> struct mat<T,M,3>
     {
@@ -146,9 +147,9 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
-        constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
         constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : z; }
-		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : j==1 ? y : z; }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : j==1 ? y : z; }
+        constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
     };
     template<class T, int M> struct mat<T,M,4>
     {
@@ -161,9 +162,9 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2), w(p+M*3) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
-        constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
         constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
-		CONSTEXPR14 V &             operator[] (int j)                  { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
+        constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
     };
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
@@ -199,8 +200,8 @@ namespace linalg
     template<class T, int M, int N, class F> constexpr auto zip(                 T a, const mat<T,M,N> & b, F f) -> mat<decltype(f(T(),T())),M,N> { return zip(mat<T,M,N>(a), b, f); }
 
     // Produce a vector/matrix by applying f(T) to elements from vector/matrix a
-    template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) -> vec<decltype(f(T())),M  > { return zip(a, a, [f](T l, T) { return f(l); }); }
-    template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) -> mat<decltype(f(T())),M,N> { return zip(a, a, [f](T l, T) { return f(l); }); }
+    template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
+    template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
 
     // Helper object for three-way comparison
     template<class T> struct ord { T a,b; };
