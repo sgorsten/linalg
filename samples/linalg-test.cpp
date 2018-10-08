@@ -64,10 +64,10 @@ TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2
             linalg::vec<T,2>(m00,m10),    
             linalg::vec<T,2>(m01,m11)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
     }
 }
 
@@ -83,12 +83,12 @@ TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2
             linalg::vec<T,2>(m01,m11),
             linalg::vec<T,2>(m02,m12)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
     }
 }
 
@@ -105,14 +105,14 @@ TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2
             linalg::vec<T,2>(m02,m12),
             linalg::vec<T,2>(m03,m13)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
-        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
-        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[3][0] == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m[3][1] == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
     }
 }
 
@@ -128,12 +128,12 @@ TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3
             linalg::vec<T,3>(m00,m10,m20),    
             linalg::vec<T,3>(m01,m11,m21)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
     }
 }
 
@@ -150,15 +150,15 @@ TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3
             linalg::vec<T,3>(m01,m11,m21),
             linalg::vec<T,3>(m02,m12,m22)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
-        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[2][2] == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
     }
 }
 
@@ -176,18 +176,18 @@ TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3
             linalg::vec<T,3>(m02,m12,m22),
             linalg::vec<T,3>(m03,m13,m23)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
-        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
-        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
-        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
-        CHECK(m.w.z == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[2][2] == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m[3][0] == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m[3][1] == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+        CHECK(m[3][2] == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
     }
 }
 
@@ -204,14 +204,14 @@ TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4
             linalg::vec<T,4>(m00,m10,m20,m30),    
             linalg::vec<T,4>(m01,m11,m21,m31)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
-        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[0][3] == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[1][3] == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
     }
 }
 
@@ -229,18 +229,18 @@ TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4
             linalg::vec<T,4>(m01,m11,m21,m31),
             linalg::vec<T,4>(m02,m12,m22,m32)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
-        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
-        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
-        CHECK(m.z.w == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[0][3] == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[1][3] == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[2][2] == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m[2][3] == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
     }
 }
 
@@ -259,22 +259,22 @@ TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4
             linalg::vec<T,4>(m02,m12,m22,m32),
             linalg::vec<T,4>(m03,m13,m23,m33)
         );
-        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
-        CHECK(m.x.y == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
-        CHECK(m.x.z == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
-        CHECK(m.x.w == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
-        CHECK(m.y.x == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
-        CHECK(m.y.y == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
-        CHECK(m.y.z == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
-        CHECK(m.y.w == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
-        CHECK(m.z.x == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
-        CHECK(m.z.y == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
-        CHECK(m.z.z == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
-        CHECK(m.z.w == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
-        CHECK(m.w.x == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
-        CHECK(m.w.y == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
-        CHECK(m.w.z == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
-        CHECK(m.w.w == m33); CHECK(m[3][3] == m33); CHECK(m.row(3)[3] == m33);
+        CHECK(m[0][0] == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+        CHECK(m[0][1] == m10); CHECK(m[0][1] == m10); CHECK(m.row(1)[0] == m10);
+        CHECK(m[0][2] == m20); CHECK(m[0][2] == m20); CHECK(m.row(2)[0] == m20);
+        CHECK(m[0][3] == m30); CHECK(m[0][3] == m30); CHECK(m.row(3)[0] == m30);
+        CHECK(m[1][0] == m01); CHECK(m[1][0] == m01); CHECK(m.row(0)[1] == m01);
+        CHECK(m[1][1] == m11); CHECK(m[1][1] == m11); CHECK(m.row(1)[1] == m11);
+        CHECK(m[1][2] == m21); CHECK(m[1][2] == m21); CHECK(m.row(2)[1] == m21);
+        CHECK(m[1][3] == m31); CHECK(m[1][3] == m31); CHECK(m.row(3)[1] == m31);
+        CHECK(m[2][0] == m02); CHECK(m[2][0] == m02); CHECK(m.row(0)[2] == m02);
+        CHECK(m[2][1] == m12); CHECK(m[2][1] == m12); CHECK(m.row(1)[2] == m12);
+        CHECK(m[2][2] == m22); CHECK(m[2][2] == m22); CHECK(m.row(2)[2] == m22);
+        CHECK(m[2][3] == m32); CHECK(m[2][3] == m32); CHECK(m.row(3)[2] == m32);
+        CHECK(m[3][0] == m03); CHECK(m[3][0] == m03); CHECK(m.row(0)[3] == m03);
+        CHECK(m[3][1] == m13); CHECK(m[3][1] == m13); CHECK(m.row(1)[3] == m13);
+        CHECK(m[3][2] == m23); CHECK(m[3][2] == m23); CHECK(m.row(2)[3] == m23);
+        CHECK(m[3][3] == m33); CHECK(m[3][3] == m33); CHECK(m.row(3)[3] == m33);
     }
 }
 
