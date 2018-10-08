@@ -67,6 +67,9 @@
 
 namespace linalg
 {
+    // A simple wrapper around a C array, allowing it to be initialized and indexed in-line in single-expression constexpr functions
+    namespace detail { template<class T, int N> struct arr { T e[N]; }; }
+
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
     template<class T, int M> struct vec;
     template<class T> struct vec<T,2>
@@ -79,8 +82,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const            { return i==0 ? x : y; }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : y; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.e[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.e[i]); }
     };
     template<class T> struct vec<T,3>
     {
@@ -95,8 +98,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : z; }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : i==1 ? y : z; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.e[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.e[i]); }
         constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
     template<class T> struct vec<T,4>
@@ -114,8 +117,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr const T &         operator[] (int i) const            { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return i==0 ? x : i==1 ? y : i==2 ? z : w; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.e[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.e[i]); }
         constexpr vec<T,3>          xyz() const                         { return {x,y,z}; }
         constexpr vec<T,2>          xy() const                          { return {x,y}; }
     };
@@ -132,8 +135,8 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
-        constexpr const V &         operator[] (int j) const            { return j==0 ? x : y; }
-        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : y; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,2>{&mat::x, &mat::y}.e[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,2>{&mat::x, &mat::y}.e[j]); }
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
     };
     template<class T, int M> struct mat<T,M,3>
@@ -147,8 +150,8 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
-        constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : z; }
-        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : j==1 ? y : z; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,3>{&mat::x, &mat::y, &mat::z}.e[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,3>{&mat::x, &mat::y, &mat::z}.e[j]); }
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
     };
     template<class T, int M> struct mat<T,M,4>
@@ -162,8 +165,8 @@ namespace linalg
         constexpr explicit          mat(const T * p)                    : x(p+M*0), y(p+M*1), z(p+M*2), w(p+M*3) {}
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
-        constexpr const V &         operator[] (int j) const            { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
-        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return j==0 ? x : j==1 ? y : j==2 ? z : w; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,4>{&mat::x, &mat::y, &mat::z, &mat::w}.e[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,4>{&mat::x, &mat::y, &mat::z, &mat::w}.e[j]); }
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
     };
 
@@ -384,7 +387,7 @@ namespace linalg
 
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
     template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q)                     { return {-q.x,-q.y,-q.z,q.w}; }
-    template<class T> vec<T,4>           qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
+    template<class T> constexpr vec<T,4> qinv (const vec<T,4> & q)                     { return qconj(q)/length2(q); }
     template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
     template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
     template<class T> vec<T,4>           qpow (const vec<T,4> & q, const T & p)        { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
