@@ -654,21 +654,21 @@ TEST_CASE( "unary functions behave as intended" )
 
     // Unary functions should retain element type and vector/matrix size
     REQUIRE( abs(int4(-5)) == int4(5) );
-    REQUIRE( floor(float2(7.7f)) == float2(std::floor(7.7f)) );
-    REQUIRE( ceil (float3(7.7f)) == float3(std::ceil (7.7f)) );
-    REQUIRE( exp  (float4(7.7f)) == float4(std::exp  (7.7f)) );
-    REQUIRE( log  (double2(7.7)) == double2(std::log  (7.7)) );
-    REQUIRE( log10(double3(7.7)) == double3(std::log10(7.7)) );
-    REQUIRE( sqrt (double4(7.7)) == double4(std::sqrt (7.7)) );
-    REQUIRE( sin  (float2(7.7f)) == float2(std::sin (7.7f)) );
-    REQUIRE( cos  (float3(7.7f)) == float3(std::cos (7.7f)) );
-    REQUIRE( tan  (float4(7.7f)) == float4(std::tan (7.7f)) );
-    REQUIRE( asin (double2(0.5f)) == double2(std::asin(0.5f)) );
-    REQUIRE( acos (double3(0.5f)) == double3(std::acos(0.5f)) );
-    REQUIRE( atan (double4(7.7f)) == double4(std::atan(7.7f)) );
-    REQUIRE( sinh (float2(7.7f)) == float2(std::sinh(7.7f)) );
-    REQUIRE( cosh (float3(7.7f)) == float3(std::cosh(7.7f)) );
-    REQUIRE( tanh (float4(7.7f)) == float4(std::tanh(7.7f)) );
+    REQUIRE( floor(float2 (7.7f)) == float2 (std::floor(7.7f)) );
+    REQUIRE( ceil (float3 (7.7f)) == float3 (std::ceil (7.7f)) );
+    REQUIRE( exp  (float4 (7.7f)) == float4 (std::exp  (7.7f)) );
+    REQUIRE( log  (double2(7.7 )) == double2(std::log  (7.7 )) );
+    REQUIRE( log10(double3(7.7 )) == double3(std::log10(7.7 )) );
+    REQUIRE( sqrt (double4(7.7 )) == double4(std::sqrt (7.7 )) );
+    REQUIRE( sin  (float2 (7.7f)) == float2 (std::sin  (7.7f)) );
+    REQUIRE( cos  (float3 (7.7f)) == float3 (std::cos  (7.7f)) );
+    REQUIRE( tan  (float4 (7.7f)) == float4 (std::tan  (7.7f)) );
+    REQUIRE( asin (double2(0.5 )) == double2(std::asin (0.5 )) );
+    REQUIRE( acos (double3(0.5 )) == double3(std::acos (0.5 )) );
+    REQUIRE( atan (double4(7.7 )) == double4(std::atan (7.7 )) );
+    REQUIRE( sinh (float2 (7.7f)) == float2 (std::sinh (7.7f)) );
+    REQUIRE( cosh (float3 (7.7f)) == float3 (std::cosh (7.7f)) );
+    REQUIRE( tanh (float4 (7.7f)) == float4 (std::tanh (7.7f)) );
 }
 
 TEST_CASE( "relational operators model LessThanComparable" )
