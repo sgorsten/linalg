@@ -110,6 +110,13 @@ namespace linalg
         template<class T, int M, class F> struct vec_result<T, vec<T,M>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
         template<class A, class B, class F> using vec_result_t = typename vec_result<A,B,F>::type;
 
+        // SFINAE helper which determines type of zip(a,b,f) where at least one of a and b is a vec or mat
+        template<class A, class B, class F> struct zip_result : vec_result<A,B,F> {};
+        template<class T, int M, int N, class F> struct zip_result<mat<T,M,N>, mat<T,M,N>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
+        template<class T, int M, int N, class F> struct zip_result<mat<T,M,N>, T, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
+        template<class T, int M, int N, class F> struct zip_result<T, mat<T,M,N>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
+        template<class A, class B, class F> using zip_result_t = typename zip_result<A,B,F>::type;
+
         // Lambdas are not constexpr in C++14, so we provide explicit function objects instead
         struct pos { template<class T> constexpr auto operator() (T r) const { return +r; } };
         struct neg { template<class T> constexpr auto operator() (T r) const { return -r; } };
@@ -401,12 +408,12 @@ namespace linalg
     template<class A, class B> auto copysign(const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::copysign(l, r); }); }
 
     // Component-wise relational functions
-    template<class A, class B> constexpr auto equal  (const A & a, const B & b) { return zip(a, b, detail::equal  {}); }
-    template<class A, class B> constexpr auto nequal (const A & a, const B & b) { return zip(a, b, detail::nequal {}); }
-    template<class A, class B> constexpr auto less   (const A & a, const B & b) { return zip(a, b, detail::less   {}); }
-    template<class A, class B> constexpr auto greater(const A & a, const B & b) { return zip(a, b, detail::greater{}); }
-    template<class A, class B> constexpr auto lequal (const A & a, const B & b) { return zip(a, b, detail::lequal {}); }
-    template<class A, class B> constexpr auto gequal (const A & a, const B & b) { return zip(a, b, detail::gequal {}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::equal  > equal  (const A & a, const B & b) { return zip(a, b, detail::equal  {}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::nequal > nequal (const A & a, const B & b) { return zip(a, b, detail::nequal {}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::less   > less   (const A & a, const B & b) { return zip(a, b, detail::less   {}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::greater> greater(const A & a, const B & b) { return zip(a, b, detail::greater{}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::lequal > lequal (const A & a, const B & b) { return zip(a, b, detail::lequal {}); }
+    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::gequal > gequal (const A & a, const B & b) { return zip(a, b, detail::gequal {}); }
 
     // Component-wise min, max, and clamp to a range
     template<class A, class B> constexpr auto min  (const A & a, const B & b) { return zip(a, b, detail::min{}); }
