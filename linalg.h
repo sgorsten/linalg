@@ -442,8 +442,8 @@ namespace linalg
     //////////////////////////////////////////
 
     // Unary operators
-    template<class T> constexpr auto operator + (const quat<T> & a) { return {+a.x, +a.y, +a.z, +a.w}; }
-    template<class T> constexpr auto operator - (const quat<T> & a) { return {-a.x, -a.y, -a.z, -a.w}; }
+    template<class T> constexpr quat<T> operator + (const quat<T> & a) { return {+a.x, +a.y, +a.z, +a.w}; }
+    template<class T> constexpr quat<T> operator - (const quat<T> & a) { return {-a.x, -a.y, -a.z, -a.w}; }
 
     // Binary operators
     template<class T> constexpr quat<T> operator + (const quat<T> & a, const quat<T> & b) { return {a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w}; }
