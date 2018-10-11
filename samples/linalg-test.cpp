@@ -620,15 +620,9 @@ TEST_CASE( "fold functions behave as intended" )
     REQUIRE( any(bool3(true,false,false)) == true );
     REQUIRE( any(bool3(false,true,false)) == true );
     REQUIRE( any(bool3(false,false,true)) == true );
-    REQUIRE( all(bool2x2(bool2(true,true),bool2(true,true))) == true );
-    REQUIRE( all(bool2x2(bool2(false,true),bool2(true,true))) == false );
-    REQUIRE( all(bool2x2(bool2(true,false),bool2(true,true))) == false );
-    REQUIRE( all(bool2x2(bool2(true,true),bool2(false,true))) == false );
-    REQUIRE( all(bool2x2(bool2(true,true),bool2(true,false))) == false );
     REQUIRE( sum(int2(2,3)) == 5 );
     REQUIRE( sum(float3(2,3,4.1f)) == 9.1f );
     REQUIRE( sum(double4(2,3,4.1,5.2)) == 14.3 );
-    REQUIRE( sum(double4x4(double4(1,2,3,4),double4(5,6,7,8),double4(9,10,11,12),double4(13,14,15,16))) == 136 );
 }
 
 TEST_CASE( "unary functions behave as intended" )

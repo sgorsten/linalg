@@ -477,12 +477,12 @@ namespace linalg
     ///////////////////////
 
     // Reduction functions
-    template<class A> constexpr auto any    (const A & a) { return fold(a, detail::bool_or{}); }
-    template<class A> constexpr auto all    (const A & a) { return fold(a, detail::bool_and{}); }
-    template<class A> constexpr auto sum    (const A & a) { return fold(a, detail::add{}); }
-    template<class A> constexpr auto product(const A & a) { return fold(a, detail::mul{}); }
-    template<class A> constexpr auto minelem(const A & a) { return fold(a, detail::min{}); }
-    template<class A> constexpr auto maxelem(const A & a) { return fold(a, detail::max{}); }
+    template<class T, int M> constexpr bool any (const vec<T,M> & a) { return fold(a, detail::bool_or{}); }
+    template<class T, int M> constexpr bool all (const vec<T,M> & a) { return fold(a, detail::bool_and{}); }
+    template<class T, int M> constexpr T sum    (const vec<T,M> & a) { return fold(a, detail::add{}); }
+    template<class T, int M> constexpr T product(const vec<T,M> & a) { return fold(a, detail::mul{}); }
+    template<class T, int M> constexpr T minelem(const vec<T,M> & a) { return fold(a, detail::min{}); }
+    template<class T, int M> constexpr T maxelem(const vec<T,M> & a) { return fold(a, detail::max{}); }
 
     // Component-wise standard library math functions
     template<class A> auto abs  (const A & a) { return map(a, [](auto l) { return std::abs  (l); }); }

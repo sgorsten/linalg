@@ -6,7 +6,7 @@
 // definition issues occur when we include linalg.h from multiple translation units.
 TEST_CASE( "declared constants can be used from multiple translation units" )
 {
-    REQUIRE( sum(int2x2(linalg::identity)) == 2 );
-    REQUIRE( sum(float3x3(linalg::identity)) == 3.0f );
-    REQUIRE( sum(double4x4(linalg::identity)) == 4.0 );
+    REQUIRE( int2x2(linalg::identity) == int2x2{{1,0},{0,1}} );
+    REQUIRE( float3x3(linalg::identity) == float3x3{{1,0,0},{0,1,0},{0,0,1}} );
+    REQUIRE( double4x4(linalg::identity) == double4x4{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}} );
 }
