@@ -172,14 +172,13 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef vec<T,M  > result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef vec<T,M  > result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef vec<T,M  > result; typedef vec<decltype(+T()),M  > arith_result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef mat<T,M,N> result; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef mat<T,M,N> result; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef mat<T,M,N> result; };
     template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
-    template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
     template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
 
     // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
@@ -357,12 +356,12 @@ namespace linalg
     template<class A, class B> result_t<A,B> copysign(const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::copysign(l, r); }); }
 
     // Functions for componentwise application of equivalence and relational operators
-    template<class A, class B> bool_result_t<A,B> equal  (const A & a, const B & b) { return zip(a, b, op::equal  {}); }
-    template<class A, class B> bool_result_t<A,B> nequal (const A & a, const B & b) { return zip(a, b, op::nequal {}); }
-    template<class A, class B> bool_result_t<A,B> less   (const A & a, const B & b) { return zip(a, b, op::less   {}); }
-    template<class A, class B> bool_result_t<A,B> greater(const A & a, const B & b) { return zip(a, b, op::greater{}); }
-    template<class A, class B> bool_result_t<A,B> lequal (const A & a, const B & b) { return zip(a, b, op::lequal {}); }
-    template<class A, class B> bool_result_t<A,B> gequal (const A & a, const B & b) { return zip(a, b, op::gequal {}); }
+    template<class A, class B> auto equal  (const A & a, const B & b) { return zip(a, b, op::equal  {}); }
+    template<class A, class B> auto nequal (const A & a, const B & b) { return zip(a, b, op::nequal {}); }
+    template<class A, class B> auto less   (const A & a, const B & b) { return zip(a, b, op::less   {}); }
+    template<class A, class B> auto greater(const A & a, const B & b) { return zip(a, b, op::greater{}); }
+    template<class A, class B> auto lequal (const A & a, const B & b) { return zip(a, b, op::lequal {}); }
+    template<class A, class B> auto gequal (const A & a, const B & b) { return zip(a, b, op::gequal {}); }
 
     // Support for vector algebra
     template<class T> constexpr T                 cross    (const vec<T,2> & a, const vec<T,2> & b)      { return a.x*b.y-a.y*b.x; }

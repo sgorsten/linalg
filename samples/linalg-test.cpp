@@ -548,6 +548,39 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
     }
 }
 
+TEST_CASE_TEMPLATE("elementwise comparison functions on vec<T,M> are defined elementwise", T, arithmetic_types) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
+
+        CHECK(equal  (linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a==e, b==f            ));
+        CHECK(equal  (linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) == linalg::vec<bool,3>(a==e, b==f, c==g      ));
+        CHECK(equal  (linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) == linalg::vec<bool,4>(a==e, b==f, c==g, d==h));
+
+        CHECK(nequal (linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a!=e, b!=f            ));
+        CHECK(nequal (linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) == linalg::vec<bool,3>(a!=e, b!=f, c!=g      ));
+        CHECK(nequal (linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) == linalg::vec<bool,4>(a!=e, b!=f, c!=g, d!=h));
+
+        CHECK(less   (linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a<e, b<f          ));
+        CHECK(less   (linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) == linalg::vec<bool,3>(a<e, b<f, c<g     ));
+        CHECK(less   (linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) == linalg::vec<bool,4>(a<e, b<f, c<g, d<h));
+
+        CHECK(greater(linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a>e, b>f          ));
+        CHECK(greater(linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) == linalg::vec<bool,3>(a>e, b>f, c>g     ));
+        CHECK(greater(linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) == linalg::vec<bool,4>(a>e, b>f, c>g, d>h));
+
+        CHECK(lequal (linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a<=e, b<=f            ));
+        CHECK(lequal (linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) <= linalg::vec<bool,3>(a<=e, b<=f, c<=g      ));
+        CHECK(lequal (linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) <= linalg::vec<bool,4>(a<=e, b<=f, c<=g, d<=h));
+
+        CHECK(gequal (linalg::vec<T,2>(a,b    ), linalg::vec<T,2>(e,f    )) == linalg::vec<bool,2>(a>=e, b>=f            ));
+        CHECK(gequal (linalg::vec<T,3>(a,b,c  ), linalg::vec<T,3>(e,f,g  )) == linalg::vec<bool,3>(a>=e, b>=f, c>=g      ));
+        CHECK(gequal (linalg::vec<T,4>(a,b,c,d), linalg::vec<T,4>(e,f,g,h)) == linalg::vec<bool,4>(a>=e, b>=f, c>=g, d>=h));
+    }
+}
+
 TEST_CASE_TEMPLATE("vec<T,M> does not have unintended argument dependent lookup on operator +=", T, arithmetic_types) 
 {
     std::vector<linalg::vec<T,3>> a, b = {{0,1,2}, {0,2,3}, {0,3,4}};
