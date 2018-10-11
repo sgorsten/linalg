@@ -399,18 +399,18 @@ namespace linalg
     //////////////////////////////////////
 
     // Unary operators
-    template<class T, int M, int N> constexpr auto operator + (const mat<T,M,N> & a) { return map(a, detail::pos{}); }
-    template<class T, int M, int N> constexpr auto operator - (const mat<T,M,N> & a) { return map(a, detail::neg{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a) { return map(a, detail::pos{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a) { return map(a, detail::neg{}); }
 
     // Binary operators
-    template<class T, int M, int N> constexpr auto operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::add{}); }
-    template<class T, int M, int N> constexpr auto operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::sub{}); }
-    template<class T, int M, int N> constexpr auto operator * (const mat<T,M,N> & a, const mat<T,N,2> & b) { return mat<T,M,2>{a*b[0], a*b[1]}; }
-    template<class T, int M, int N> constexpr auto operator * (const mat<T,M,N> & a, const mat<T,N,3> & b) { return mat<T,M,3>{a*b[0], a*b[1], a*b[2]}; }
-    template<class T, int M, int N> constexpr auto operator * (const mat<T,M,N> & a, const mat<T,N,4> & b) { return mat<T,M,4>{a*b[0], a*b[1], a*b[2], a*b[3]}; }
-    template<class T, int M, int N> constexpr auto operator * (const mat<T,M,N> & a, T b) { return zip(a, b, detail::mul{}); }
-    template<class T, int M, int N> constexpr auto operator * (T a, const mat<T,M,N> & b) { return zip(a, b, detail::mul{}); }
-    template<class T, int M, int N> constexpr auto operator / (const mat<T,M,N> & a, T b) { return zip(a, b, detail::div{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::add{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::sub{}); }
+    template<class T, int M, int N> constexpr mat<T,M,2> operator * (const mat<T,M,N> & a, const mat<T,N,2> & b) { return {a*b[0], a*b[1]}; }
+    template<class T, int M, int N> constexpr mat<T,M,3> operator * (const mat<T,M,N> & a, const mat<T,N,3> & b) { return {a*b[0], a*b[1], a*b[2]}; }
+    template<class T, int M, int N> constexpr mat<T,M,4> operator * (const mat<T,M,N> & a, const mat<T,N,4> & b) { return {a*b[0], a*b[1], a*b[2], a*b[3]}; }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return zip(a, b, detail::mul{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return zip(a, b, detail::mul{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return zip(a, b, detail::div{}); }
 
     // Binary assignment operators
     template<class T, int M, int N> constexpr mat<T,M,N> & operator += (mat<T,M,N> & a, const mat<T,M,N> & b) { return a = a + b; }
