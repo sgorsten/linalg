@@ -20,11 +20,11 @@ matrix:
     #  addons: { apt: { packages: ["clang-3.8"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.8"] } }
     #- env: COMPILER=clang++-3.9
     #  addons: { apt: { packages: ["clang-3.9"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-3.9"] } }
-    - env: COMPILER=clang++-4.0
+    - env: COMPILER=clang++-4.0 CXXLIBRARY=-stdlib=libc++
       addons: { apt: { packages: ["clang-4.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-4.0"] } }
-    - env: COMPILER=clang++-5.0
+    - env: COMPILER=clang++-5.0 CXXLIBRARY=-stdlib=libc++
       addons: { apt: { packages: ["clang-5.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-5.0"] } }
-    - env: COMPILER=clang++-6.0
+    - env: COMPILER=clang++-6.0 CXXLIBRARY=-stdlib=libc++
       addons: { apt: { packages: ["clang-6.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
     #- env: COMPILER=clang++-7.0
     #  addons: { apt: { packages: ["clang-7.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-7.0"] } }      
@@ -33,6 +33,8 @@ install:
   - export CXX=${COMPILER}
   - ${CXX} --version
   - ${CXX} -v
+  - export CXXLIBRARY=${CXXLIBRARY}
+  - echo ${CXXLIBRARY}
 
 script: 
   cd samples;
