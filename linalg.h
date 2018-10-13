@@ -107,50 +107,79 @@ namespace linalg
         // Value type wrapper around a C array, for use in single-expression constexpr functions
         template<class T, int N> struct arr { T e[N]; };
 
-        // SFINAE helper which determines type of zip(a,b,f) where at least one of a and b is a vec
-        template<class A, class B, class F> struct vec_result {};
-        template<class T, int M, class F> struct vec_result<vec<T,M>, vec<T,M>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class T, int M, class F> struct vec_result<vec<T,M>, T, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class T, int M, class F> struct vec_result<T, vec<T,M>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class A, class B, class F> using vec_result_t = typename vec_result<A,B,F>::type;
+        // SFINAE helpers to determine result of function application
+        template<class F, class... T> using scalar_result_t = decltype(std::declval<F>()(std::declval<T>()...));
 
-        // SFINAE helper which determines type of zip(a,b,f) where at least one of a and b is a vec or mat
-        template<class A, class B, class F> struct zip_result : vec_result<A,B,F> {};
-        template<class T, int M, int N, class F> struct zip_result<mat<T,M,N>, mat<T,M,N>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class T, int M, int N, class F> struct zip_result<mat<T,M,N>, T, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class T, int M, int N, class F> struct zip_result<T, mat<T,M,N>, F> { using type = vec<decltype(std::declval<F>()(std::declval<T>(), std::declval<T>())), M>; };
-        template<class A, class B, class F> using zip_result_t = typename zip_result<A,B,F>::type;
+        // Template type alias for the return type of calling apply(f,...) with vectors, can be used with SFINAE to indicate function applies only to vectors
+        template<class F, class... T> struct vec_result {};
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>> { using type = vec<scalar_result_t<F,T>,M>; };
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; };
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>, T> { using type = vec<scalar_result_t<F,T,T>,M>; };
+        template<class F, class T, int M> struct vec_result<F, T, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; };
+        template<class F, class... T> using vec_result_t = typename vec_result<F,T...>::type;
 
-        // Lambdas are not constexpr in C++14, so we provide explicit function objects instead
-        struct pos { template<class T> constexpr auto operator() (T r) const { return +r; } };
-        struct neg { template<class T> constexpr auto operator() (T r) const { return -r; } };
-        struct add { template<class T> constexpr auto operator() (T l, T r) const { return l + r; } };
-        struct sub { template<class T> constexpr auto operator() (T l, T r) const { return l - r; } };
-        struct mul { template<class T> constexpr auto operator() (T l, T r) const { return l * r; } };
-        struct div { template<class T> constexpr auto operator() (T l, T r) const { return l / r; } };
-        struct mod { template<class T> constexpr auto operator() (T l, T r) const { return l % r; } };
-        struct lshift { template<class T> constexpr auto operator() (T l, T r) const { return l << r; } };
-        struct rshift { template<class T> constexpr auto operator() (T l, T r) const { return l >> r; } };
+        // Template type alias for the return type of calling apply(f,...) with matrices, can be used with SFINAE to indicate function applies only to vectors
+        template<class F, class... T> struct mat_result {};
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>> { using type = mat<scalar_result_t<F,T>,M,N>; };
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, T> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
+        template<class F, class T, int M, int N> struct mat_result<F, T, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
+        template<class F, class... T> using mat_result_t = typename mat_result<F,T...>::type;
 
-        struct bit_not { template<class T> constexpr auto operator() (T r) const { return ~r; } };
-        struct bit_or { template<class T> constexpr auto operator() (T l, T r) const { return l | r; } };
-        struct bit_xor { template<class T> constexpr auto operator() (T l, T r) const { return l ^ r; } };
-        struct bit_and { template<class T> constexpr auto operator() (T l, T r) const { return l & r; } };
+        // Template type alias for the return type of calling apply(f,...) with vectors or matrices, can be used with SFINAE to indicate function applies to linalg types
+        template<class F, class... T> struct vec_mat_result : vec_result<F,T...>, mat_result<F,T...> {};
+        template<class F, class... T> using vec_mat_result_t = typename vec_mat_result<F,T...>::type;
 
-        struct bool_not { template<class T> constexpr bool operator() (T r) const { return !r; } };
-        struct bool_or { template<class T> constexpr bool operator() (T l, T r) const { return l || r; } };
-        struct bool_and { template<class T> constexpr bool operator() (T l, T r) const { return l && r; } };
-
-        // TODO: Decide if we should implement these only in terms of == and <, or keep them passing through to the underlying operator
-        struct equal { template<class T> constexpr bool operator() (T l, T r) const { return l == r; } };
-        struct nequal { template<class T> constexpr bool operator() (T l, T r) const { return l != r; } };
-        struct less { template<class T> constexpr bool operator() (T l, T r) const { return l < r; } };
-        struct greater { template<class T> constexpr bool operator() (T l, T r) const { return l > r; } };
-        struct lequal { template<class T> constexpr bool operator() (T l, T r) const { return l <= r; } };
-        struct gequal { template<class T> constexpr bool operator() (T l, T r) const { return l >= r; } };
-
+        // Function objects for selecting min/max of two values
         struct min { template<class T> constexpr T operator() (T l, T r) const { return l < r ? l : r; } };
         struct max { template<class T> constexpr T operator() (T l, T r) const { return l < r ? r : l; } };
+
+        // Function objects for applying operators
+        struct op_pos { template<class T> constexpr auto operator() (T a) const { return +a; } };
+        struct op_neg { template<class T> constexpr auto operator() (T a) const { return -a; } };
+        struct op_not { template<class T> constexpr auto operator() (T a) const { return !a; } };
+        struct op_cmp { template<class T> constexpr auto operator() (T a) const { return ~a; } };
+        struct op_mul { template<class T> constexpr auto operator() (T a, T b) const { return a * b; } };
+        struct op_div { template<class T> constexpr auto operator() (T a, T b) const { return a / b; } };
+        struct op_mod { template<class T> constexpr auto operator() (T a, T b) const { return a % b; } };
+        struct op_add { template<class T> constexpr auto operator() (T a, T b) const { return a + b; } };
+        struct op_sub { template<class T> constexpr auto operator() (T a, T b) const { return a - b; } };
+        struct op_lsh { template<class T> constexpr auto operator() (T a, T b) const { return a << b; } };
+        struct op_rsh { template<class T> constexpr auto operator() (T a, T b) const { return a >> b; } };
+        struct op_lt  { template<class T> constexpr auto operator() (T a, T b) const { return a < b; } };
+        struct op_gt  { template<class T> constexpr auto operator() (T a, T b) const { return a > b; } };
+        struct op_le  { template<class T> constexpr auto operator() (T a, T b) const { return a <= b; } };
+        struct op_ge  { template<class T> constexpr auto operator() (T a, T b) const { return a >= b; } };
+        struct op_eq  { template<class T> constexpr auto operator() (T a, T b) const { return a == b; } };
+        struct op_ne  { template<class T> constexpr auto operator() (T a, T b) const { return a != b; } };
+        struct op_int { template<class T> constexpr auto operator() (T a, T b) const { return a & b; } };        
+        struct op_xor { template<class T> constexpr auto operator() (T a, T b) const { return a ^ b; } };
+        struct op_un  { template<class T> constexpr auto operator() (T a, T b) const { return a | b; } };
+        struct op_and { template<class T> constexpr auto operator() (T a, T b) const { return a && b; } };
+        struct op_or  { template<class T> constexpr auto operator() (T a, T b) const { return a || b; } };
+
+        // Function objects for applying standard library math functions
+        struct std_abs      { template<class T> auto operator() (T a) const { return std::abs  (a); } };
+        struct std_floor    { template<class T> auto operator() (T a) const { return std::floor(a); } };
+        struct std_ceil     { template<class T> auto operator() (T a) const { return std::ceil (a); } };
+        struct std_exp      { template<class T> auto operator() (T a) const { return std::exp  (a); } };
+        struct std_log      { template<class T> auto operator() (T a) const { return std::log  (a); } };
+        struct std_log10    { template<class T> auto operator() (T a) const { return std::log10(a); } };
+        struct std_sqrt     { template<class T> auto operator() (T a) const { return std::sqrt (a); } };
+        struct std_sin      { template<class T> auto operator() (T a) const { return std::sin  (a); } };
+        struct std_cos      { template<class T> auto operator() (T a) const { return std::cos  (a); } };
+        struct std_tan      { template<class T> auto operator() (T a) const { return std::tan  (a); } };
+        struct std_asin     { template<class T> auto operator() (T a) const { return std::asin (a); } };
+        struct std_acos     { template<class T> auto operator() (T a) const { return std::acos (a); } };
+        struct std_atan     { template<class T> auto operator() (T a) const { return std::atan (a); } };
+        struct std_sinh     { template<class T> auto operator() (T a) const { return std::sinh (a); } };
+        struct std_cosh     { template<class T> auto operator() (T a) const { return std::cosh (a); } };
+        struct std_tanh     { template<class T> auto operator() (T a) const { return std::tanh (a); } };
+        struct std_round    { template<class T> auto operator() (T a) const { return std::round(a); } };
+        struct std_fmod     { template<class T> auto operator() (T a, T b) const { return std::fmod    (a, b); } };
+        struct std_pow      { template<class T> auto operator() (T a, T b) const { return std::pow     (a, b); } };
+        struct std_atan2    { template<class T> auto operator() (T a, T b) const { return std::atan2   (a, b); } };
+        struct std_copysign { template<class T> auto operator() (T a, T b) const { return std::copysign(a, b); } };
     }
 
     //////////////////////////////////////////////////////////////
@@ -215,7 +244,7 @@ namespace linalg
     
     template<class T, int M> struct mat<T,M,2>
     {
-        typedef vec<T,M>            V;
+        using V=vec<T,M>;
         V                           cols[2];
         constexpr                   mat()                               : cols{} {}
         constexpr                   mat(const V & x_, const V & y_)     : cols{x_, y_} {}
@@ -229,7 +258,7 @@ namespace linalg
     };
     template<class T, int M> struct mat<T,M,3>
     {
-        typedef vec<T,M>            V;
+        using V=vec<T,M>;
         V                           cols[3];
         constexpr                   mat()                               : cols{} {}
         constexpr                   mat(const V & x_, const V & y_, 
@@ -244,7 +273,7 @@ namespace linalg
     };
     template<class T, int M> struct mat<T,M,4>
     {
-        typedef vec<T,M>            V;
+        using V=vec<T,M>;
         V                           cols[4];
         constexpr                   mat()                               : cols{} {}
         constexpr                   mat(const V & x_, const V & y_,
@@ -319,44 +348,45 @@ namespace linalg
     template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)); }
     template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)),fold(a[3],f)); }
 
-    // Produce a vector/matrix/quaternion by applying f(T,T) to corresponding pairs of elements from vectors/matrices/quaternions a and b
-    template<class T,               class F> constexpr auto zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) { return vec<decltype(f(T(),T())),2>{f(a.x,b.x), f(a.y,b.y)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) { return vec<decltype(f(T(),T())),3>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) { return vec<decltype(f(T(),T())),4>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class T, int M,        class F> constexpr auto zip(const vec<T,M  > & a,                  T b, F f) { return zip(a, vec<T,M>(b), f); }
-    template<class T, int M,        class F> constexpr auto zip(                 T a, const vec<T,M  > & b, F f) { return zip(vec<T,M>(a), b, f); }
+    // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
+    template<class F, class T> constexpr auto apply(F f, const vec<T,2> & a, const vec<T,2> & b) { return vec<decltype(f(T(),T())),2>{f(a.x,b.x), f(a.y,b.y)}; }
+    template<class F, class T> constexpr auto apply(F f, const vec<T,3> & a, const vec<T,3> & b) { return vec<decltype(f(T(),T())),3>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
+    template<class F, class T> constexpr auto apply(F f, const vec<T,4> & a, const vec<T,4> & b) { return vec<decltype(f(T(),T())),4>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
+    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, T b) { return apply(f, a, vec<T,M>(b)); }
+    template<class F, class T, int M> constexpr auto apply(F f, T a, const vec<T,M> & b) { return apply(f, vec<T,M>(a), b); }
+    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a) { return apply([f](T l, T) { return f(l); }, a, a); }
+    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,2> & a, const mat<T,M,2> & b) { return mat<decltype(f(T(),T())),M,2>{apply(f,a[0],b[0]), apply(f,a[1],b[1])}; }
+    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,3> & a, const mat<T,M,3> & b) { return mat<decltype(f(T(),T())),M,3>{apply(f,a[0],b[0]), apply(f,a[1],b[1]), apply(f,a[2],b[2])}; }
+    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,4> & a, const mat<T,M,4> & b) { return mat<decltype(f(T(),T())),M,4>{apply(f,a[0],b[0]), apply(f,a[1],b[1]), apply(f,a[2],b[2]), apply(f,a[3],b[3])}; }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, T b) { return apply(f, a, mat<T,M,N>(b)); }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, T a, const mat<T,M,N> & b) { return apply(f, mat<T,M,N>(a), b); }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a) { return apply([f](T l, T) { return f(l); }, a, a); }
 
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) { return mat<decltype(f(T(),T())),M,2>{zip(a[0],b[0],f), zip(a[1],b[1],f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) { return mat<decltype(f(T(),T())),M,3>{zip(a[0],b[0],f), zip(a[1],b[1],f), zip(a[2],b[2],f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) { return mat<decltype(f(T(),T())),M,4>{zip(a[0],b[0],f), zip(a[1],b[1],f), zip(a[2],b[2],f), zip(a[3],b[3],f)}; }
-    template<class T, int M, int N, class F> constexpr auto zip(const mat<T,M,N> & a,                  T b, F f) { return zip(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> constexpr auto zip(                 T a, const mat<T,M,N> & b, F f) { return zip(mat<T,M,N>(a), b, f); }
-
-    // Produce a vector/matrix/quaternion by applying f(T) to elements from vector/matrix/quaternion a
-    template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
-    template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) { return zip(a, a, [f](T l, T) { return f(l); }); }
+    // Legacy functions zip(a,b,f) and map(a,f) have been subsumed by apply(f,...)
+    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F f) { return apply(f,a,b); }
+    template<class A, class F> constexpr auto map(const A & a, F f) { return apply(f,a); }
 
     //////////////////////////////////////
     // Vector-valued operator overloads //
     //////////////////////////////////////
 
     // Component-wise unary operators: $vector
-    template<class T, int M> constexpr auto operator + (const vec<T,M> & a) { return map(a, detail::pos{}); }
-    template<class T, int M> constexpr auto operator - (const vec<T,M> & a) { return map(a, detail::neg{}); }
-    template<class T, int M> constexpr auto operator ~ (const vec<T,M> & a) { return map(a, detail::bit_not{}); }
-    template<class T, int M> constexpr auto operator ! (const vec<T,M> & a) { return map(a, detail::bool_not{}); }
+    template<class T, int M> constexpr auto operator + (const vec<T,M> & a) { return apply(detail::op_pos{}, a); }
+    template<class T, int M> constexpr auto operator - (const vec<T,M> & a) { return apply(detail::op_neg{}, a); }
+    template<class T, int M> constexpr auto operator ~ (const vec<T,M> & a) { return apply(detail::op_cmp{}, a); }
+    template<class T, int M> constexpr auto operator ! (const vec<T,M> & a) { return apply(detail::op_not{}, a); }
 
     // Component-wise binary operators: vector $ vector; vector $ scalar; scalar $ vector
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::add>     operator +  (const A & a, const B & b) { return zip(a, b, detail::add{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::sub>     operator -  (const A & a, const B & b) { return zip(a, b, detail::sub{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::mul>     operator *  (const A & a, const B & b) { return zip(a, b, detail::mul{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::div>     operator /  (const A & a, const B & b) { return zip(a, b, detail::div{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::mod>     operator %  (const A & a, const B & b) { return zip(a, b, detail::mod{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::bit_or>  operator |  (const A & a, const B & b) { return zip(a, b, detail::bit_or{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::bit_xor> operator ^  (const A & a, const B & b) { return zip(a, b, detail::bit_xor{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::bit_and> operator &  (const A & a, const B & b) { return zip(a, b, detail::bit_and{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::lshift>  operator << (const A & a, const B & b) { return zip(a, b, detail::lshift{}); }
-    template<class A, class B> constexpr detail::vec_result_t<A,B,detail::rshift>  operator >> (const A & a, const B & b) { return zip(a, b, detail::rshift{}); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_xor, A, B> operator ^  (const A & a, const B & b) { return apply(detail::op_xor{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_int, A, B> operator &  (const A & a, const B & b) { return apply(detail::op_int{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_lsh, A, B> operator << (const A & a, const B & b) { return apply(detail::op_lsh{}, a, b); }
+    template<class A, class B> constexpr detail::vec_result_t<detail::op_rsh, A, B> operator >> (const A & a, const B & b) { return apply(detail::op_rsh{}, a, b); }
 
     // Algebraic binary operators: matrix * vector
     template<class T, int M> constexpr auto operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a[0]*b.x + a[1]*b.y; }
@@ -399,18 +429,18 @@ namespace linalg
     //////////////////////////////////////
 
     // Unary operators
-    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a) { return map(a, detail::pos{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a) { return map(a, detail::neg{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a) { return apply(detail::op_pos{}, a); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a) { return apply(detail::op_neg{}, a); }
 
     // Binary operators
-    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::add{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return zip(a, b, detail::sub{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return apply(detail::op_add{}, a, b); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return apply(detail::op_sub{}, a, b); }
     template<class T, int M, int N> constexpr mat<T,M,2> operator * (const mat<T,M,N> & a, const mat<T,N,2> & b) { return {a*b[0], a*b[1]}; }
     template<class T, int M, int N> constexpr mat<T,M,3> operator * (const mat<T,M,N> & a, const mat<T,N,3> & b) { return {a*b[0], a*b[1], a*b[2]}; }
     template<class T, int M, int N> constexpr mat<T,M,4> operator * (const mat<T,M,N> & a, const mat<T,N,4> & b) { return {a*b[0], a*b[1], a*b[2], a*b[3]}; }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return zip(a, b, detail::mul{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return zip(a, b, detail::mul{}); }
-    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return zip(a, b, detail::div{}); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (const mat<T,M,N> & a, T b) { return apply(detail::op_mul{}, a, b); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator * (T a, const mat<T,M,N> & b) { return apply(detail::op_mul{}, a, b); }
+    template<class T, int M, int N> constexpr mat<T,M,N> operator / (const mat<T,M,N> & a, T b) { return apply(detail::op_div{}, a, b); }
 
     // Binary assignment operators
     template<class T, int M, int N> constexpr mat<T,M,N> & operator += (mat<T,M,N> & a, const mat<T,M,N> & b) { return a = a + b; }
@@ -461,6 +491,12 @@ namespace linalg
     template<class T> constexpr quat<T> & operator /= (quat<T> & a, const T & b) { return a = a / b; }
 
     // Quaternion algebra functions
+
+    // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
+    template<class T> quat<T>           qexp     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
+    template<class T> quat<T>           qlog     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
+    template<class T> quat<T>           qpow     (const quat<T> & q, const T & p)            { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
+
     template<class T> constexpr quat<T> conjugate(const quat<T> & a)                         { return {-a.x, -a.y, -a.z, a.w}; }
     template<class T> constexpr T       dot      (const quat<T> & a, const quat<T> & b)      { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
     template<class T> constexpr T       length2  (const quat<T> & a)                         { return dot(a,a); }
@@ -472,53 +508,64 @@ namespace linalg
     template<class T> quat<T>           nlerp    (const quat<T> & a, const quat<T> & b, T t) { return normalize(lerp(a,b,t)); }
     template<class T> quat<T>           slerp    (const quat<T> & a, const quat<T> & b, T t) { T th=uangle(a,b); return th == 0 ? a : a*(std::sin(th*(1-t))/std::sin(th)) + b*(std::sin(th*t)/std::sin(th)); }
 
+    // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
+    template<class T> constexpr vec<T,3>   qxdir (const quat<T> & q)                          { return {q.w*q.w+q.x*q.x-q.y*q.y-q.z*q.z, (q.x*q.y+q.z*q.w)*2, (q.z*q.x-q.y*q.w)*2}; }
+    template<class T> constexpr vec<T,3>   qydir (const quat<T> & q)                          { return {(q.x*q.y-q.z*q.w)*2, q.w*q.w-q.x*q.x+q.y*q.y-q.z*q.z, (q.y*q.z+q.x*q.w)*2}; }
+    template<class T> constexpr vec<T,3>   qzdir (const quat<T> & q)                          { return {(q.z*q.x+q.y*q.w)*2, (q.y*q.z-q.x*q.w)*2, q.w*q.w-q.x*q.x-q.y*q.y+q.z*q.z}; }
+    template<class T> constexpr mat<T,3,3> qmat  (const quat<T> & q)                          { return {qxdir(q), qydir(q), qzdir(q)}; }
+    template<class T> constexpr vec<T,3>   qrot  (const quat<T> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
+    template<class T> T                    qangle(const quat<T> & q)                          { return std::atan2(length(q.xyz()), q.w)*2; }
+    template<class T> vec<T,3>             qaxis (const quat<T> & q)                          { return normalize(q.xyz()); }
+    template<class T> quat<T>              qnlerp(const quat<T> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
+    template<class T> quat<T>              qslerp(const quat<T> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
+
     ///////////////////////
     // Various functions //
     ///////////////////////
 
     // Reduction functions
-    template<class T, int M> constexpr bool any (const vec<T,M> & a) { return fold(a, detail::bool_or{}); }
-    template<class T, int M> constexpr bool all (const vec<T,M> & a) { return fold(a, detail::bool_and{}); }
-    template<class T, int M> constexpr T sum    (const vec<T,M> & a) { return fold(a, detail::add{}); }
-    template<class T, int M> constexpr T product(const vec<T,M> & a) { return fold(a, detail::mul{}); }
+    template<class T, int M> constexpr bool any (const vec<T,M> & a) { return fold(a, detail::op_or{}); }
+    template<class T, int M> constexpr bool all (const vec<T,M> & a) { return fold(a, detail::op_and{}); }
+    template<class T, int M> constexpr T sum    (const vec<T,M> & a) { return fold(a, detail::op_add{}); }
+    template<class T, int M> constexpr T product(const vec<T,M> & a) { return fold(a, detail::op_mul{}); }
     template<class T, int M> constexpr T minelem(const vec<T,M> & a) { return fold(a, detail::min{}); }
     template<class T, int M> constexpr T maxelem(const vec<T,M> & a) { return fold(a, detail::max{}); }
 
     // Component-wise standard library math functions
-    template<class A> auto abs  (const A & a) { return map(a, [](auto l) { return std::abs  (l); }); }
-    template<class A> auto floor(const A & a) { return map(a, [](auto l) { return std::floor(l); }); }
-    template<class A> auto ceil (const A & a) { return map(a, [](auto l) { return std::ceil (l); }); }
-    template<class A> auto exp  (const A & a) { return map(a, [](auto l) { return std::exp  (l); }); }
-    template<class A> auto log  (const A & a) { return map(a, [](auto l) { return std::log  (l); }); }
-    template<class A> auto log10(const A & a) { return map(a, [](auto l) { return std::log10(l); }); }
-    template<class A> auto sqrt (const A & a) { return map(a, [](auto l) { return std::sqrt (l); }); }
-    template<class A> auto sin  (const A & a) { return map(a, [](auto l) { return std::sin  (l); }); }
-    template<class A> auto cos  (const A & a) { return map(a, [](auto l) { return std::cos  (l); }); }
-    template<class A> auto tan  (const A & a) { return map(a, [](auto l) { return std::tan  (l); }); }
-    template<class A> auto asin (const A & a) { return map(a, [](auto l) { return std::asin (l); }); }
-    template<class A> auto acos (const A & a) { return map(a, [](auto l) { return std::acos (l); }); }
-    template<class A> auto atan (const A & a) { return map(a, [](auto l) { return std::atan (l); }); }
-    template<class A> auto sinh (const A & a) { return map(a, [](auto l) { return std::sinh (l); }); }
-    template<class A> auto cosh (const A & a) { return map(a, [](auto l) { return std::cosh (l); }); }
-    template<class A> auto tanh (const A & a) { return map(a, [](auto l) { return std::tanh (l); }); }
-    template<class A> auto round(const A & a) { return map(a, [](auto l) { return std::round(l); }); }
+    template<class A> detail::vec_mat_result_t<detail::std_abs,   A> abs  (const A & a) { return apply(detail::std_abs{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_floor, A> floor(const A & a) { return apply(detail::std_floor{}, a); }
+    template<class A> detail::vec_mat_result_t<detail::std_ceil,  A> ceil (const A & a) { return apply(detail::std_ceil{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_exp,   A> exp  (const A & a) { return apply(detail::std_exp{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_log,   A> log  (const A & a) { return apply(detail::std_log{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_log10, A> log10(const A & a) { return apply(detail::std_log10{}, a); }
+    template<class A> detail::vec_mat_result_t<detail::std_sqrt,  A> sqrt (const A & a) { return apply(detail::std_sqrt{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_sin,   A> sin  (const A & a) { return apply(detail::std_sin{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_cos,   A> cos  (const A & a) { return apply(detail::std_cos{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_tan,   A> tan  (const A & a) { return apply(detail::std_tan{},   a); }
+    template<class A> detail::vec_mat_result_t<detail::std_asin,  A> asin (const A & a) { return apply(detail::std_asin{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_acos,  A> acos (const A & a) { return apply(detail::std_acos{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_atan,  A> atan (const A & a) { return apply(detail::std_atan{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_sinh,  A> sinh (const A & a) { return apply(detail::std_sinh{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_cosh,  A> cosh (const A & a) { return apply(detail::std_cosh{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_tanh,  A> tanh (const A & a) { return apply(detail::std_tanh{},  a); }
+    template<class A> detail::vec_mat_result_t<detail::std_round, A> round(const A & a) { return apply(detail::std_round{}, a); }
 
-    template<class A, class B> auto fmod    (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::fmod    (l, r); }); }
-    template<class A, class B> auto pow     (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::pow     (l, r); }); }
-    template<class A, class B> auto atan2   (const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::atan2   (l, r); }); }
-    template<class A, class B> auto copysign(const A & a, const B & b) { return zip(a, b, [](auto l, auto r) { return std::copysign(l, r); }); }
+    template<class A, class B> detail::vec_mat_result_t<detail::std_fmod,     A, B> fmod    (const A & a, const B & b) { return apply(detail::std_fmod{},     a, b); }
+    template<class A, class B> detail::vec_mat_result_t<detail::std_pow,      A, B> pow     (const A & a, const B & b) { return apply(detail::std_pow{},      a, b); }
+    template<class A, class B> detail::vec_mat_result_t<detail::std_atan2,    A, B> atan2   (const A & a, const B & b) { return apply(detail::std_atan2{},    a, b); }
+    template<class A, class B> detail::vec_mat_result_t<detail::std_copysign, A, B> copysign(const A & a, const B & b) { return apply(detail::std_copysign{}, a, b); }
 
     // Component-wise relational functions
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::equal  > equal  (const A & a, const B & b) { return zip(a, b, detail::equal  {}); }
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::nequal > nequal (const A & a, const B & b) { return zip(a, b, detail::nequal {}); }
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::less   > less   (const A & a, const B & b) { return zip(a, b, detail::less   {}); }
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::greater> greater(const A & a, const B & b) { return zip(a, b, detail::greater{}); }
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::lequal > lequal (const A & a, const B & b) { return zip(a, b, detail::lequal {}); }
-    template<class A, class B> constexpr detail::zip_result_t<A,B,detail::gequal > gequal (const A & a, const B & b) { return zip(a, b, detail::gequal {}); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_eq, A, B> equal  (const A & a, const B & b) { return apply(detail::op_eq{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_ne, A, B> nequal (const A & a, const B & b) { return apply(detail::op_ne{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_lt, A, B> less   (const A & a, const B & b) { return apply(detail::op_lt{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_gt, A, B> greater(const A & a, const B & b) { return apply(detail::op_gt{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_le, A, B> lequal (const A & a, const B & b) { return apply(detail::op_le{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::op_ge, A, B> gequal (const A & a, const B & b) { return apply(detail::op_ge{}, a, b); }
 
     // Component-wise min, max, and clamp to a range
-    template<class A, class B> constexpr auto min  (const A & a, const B & b) { return zip(a, b, detail::min{}); }
-    template<class A, class B> constexpr auto max  (const A & a, const B & b) { return zip(a, b, detail::max{}); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::min, A, B> min(const A & a, const B & b) { return apply(detail::min{}, a, b); }
+    template<class A, class B> constexpr detail::vec_mat_result_t<detail::max, A, B> max(const A & a, const B & b) { return apply(detail::max{}, a, b); }
     template<class A, class B> constexpr auto clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
 
     // Search functions
@@ -550,12 +597,12 @@ namespace linalg
     // Provide typedefs for common element types and vector/matrix sizes
     namespace aliases
     {
-        typedef vec<bool,2> bool2; typedef vec<uint8_t,2> byte2; typedef vec<int16_t,2> short2; typedef vec<uint16_t,2> ushort2; 
-        typedef vec<bool,3> bool3; typedef vec<uint8_t,3> byte3; typedef vec<int16_t,3> short3; typedef vec<uint16_t,3> ushort3; 
-        typedef vec<bool,4> bool4; typedef vec<uint8_t,4> byte4; typedef vec<int16_t,4> short4; typedef vec<uint16_t,4> ushort4;
-        typedef vec<int,2> int2; typedef vec<unsigned,2> uint2; typedef vec<float,2> float2; typedef vec<double,2> double2;
-        typedef vec<int,3> int3; typedef vec<unsigned,3> uint3; typedef vec<float,3> float3; typedef vec<double,3> double3;
-        typedef vec<int,4> int4; typedef vec<unsigned,4> uint4; typedef vec<float,4> float4; typedef vec<double,4> double4;
+        using bool2=vec<bool,2>; using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>; 
+        using bool3=vec<bool,3>; using byte3=vec<uint8_t,3>; using short3=vec<int16_t,3>; using ushort3=vec<uint16_t,3>; 
+        using bool4=vec<bool,4>; using byte4=vec<uint8_t,4>; using short4=vec<int16_t,4>; using ushort4=vec<uint16_t,4>;
+        using int2=vec<int,2>; using uint2=vec<unsigned,2>; using float2=vec<float,2>; using double2=vec<double,2>;
+        using int3=vec<int,3>; using uint3=vec<unsigned,3>; using float3=vec<float,3>; using double3=vec<double,3>;
+        using int4=vec<int,4>; using uint4=vec<unsigned,4>; using float4=vec<float,4>; using double4=vec<double,4>;
         using bool2x2=mat<bool,2,2>; using int2x2=mat<int,2,2>; using float2x2=mat<float,2,2>; using double2x2=mat<double,2,2>;
         using bool2x3=mat<bool,2,3>; using int2x3=mat<int,2,3>; using float2x3=mat<float,2,3>; using double2x3=mat<double,2,3>;
         using bool2x4=mat<bool,2,4>; using int2x4=mat<int,2,4>; using float2x4=mat<float,2,4>; using double2x4=mat<double,2,4>;
@@ -589,12 +636,12 @@ namespace linalg
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
     // These functions exist to ease the difficulty of porting from older versions of linalg
-    template<class T> [[deprecated("prefer conjugate(quat<T>)")]] constexpr vec<T,4> qconj(const vec<T,4> & q) { return vec<T,4>(conjugate(quat<T>(q))); }
-    template<class T> [[deprecated("prefer inverse(quat<T>)")]] constexpr vec<T,4> qinv(const vec<T,4> & q) { return vec<T,4>(inverse(quat<T>(q))); }
-    template<class T> [[deprecated("prefer quat<T> * ...")]] constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return vec<T,4>(quat<T>(a) * quat<T>(b)); }
-    template<class T, class... R> [[deprecated("prefer quat<T> * ...")]] constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
-    template<class T, int M, int N, class B> [[deprecated("prefer mat<T,M,N> * ...")]] constexpr auto mul(const mat<T,M,N> & a, const B & b) { return a*b; }
-    template<class T, int M, int N, class... R> [[deprecated("prefer mat<T,M,N> * ...")]] constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
+    template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q) { return vec<T,4>(conjugate(quat<T>(q))); }
+    template<class T> constexpr vec<T,4> qinv(const vec<T,4> & q) { return vec<T,4>(inverse(quat<T>(q))); }
+    template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return vec<T,4>(quat<T>(a) * quat<T>(b)); }
+    template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
+    template<class T, int M, int N, class B> constexpr auto mul(const mat<T,M,N> & a, const B & b) { return a*b; }
+    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
 }
 
 // Provide specializations for std::hash<...> with linalg types

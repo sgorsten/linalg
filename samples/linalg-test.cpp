@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <typeinfo>
 
-static const int reps = 3; // Tests which use random data will be repeated this many times
-
 //////////////////////////////////////////////////////////
 // Test semantics of vec<T,M> element-wise constructors //
 //////////////////////////////////////////////////////////

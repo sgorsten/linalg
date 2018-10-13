@@ -4,11 +4,20 @@
 #include <random>
 using namespace linalg::aliases;
 
+// Tests which use random data will be repeated this many times
+constexpr int reps = 3;
+
 // Type lists to use in templated test cases
 using floating_point_types = doctest::Types<double, float>;
 using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
 using signed_types = doctest::Types<double, float, int, short>;
 using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
+
+// Template aliases to make it easier to use linalg types in templated test cases
+template<class T> using vec2 = linalg::vec<T,2>;
+template<class T> using vec3 = linalg::vec<T,3>;
+template<class T> using vec4 = linalg::vec<T,4>;
+template<class T> using quat = linalg::quat<T>;
 
 // SFINAE based expression validity helpers
 namespace detail
@@ -51,8 +60,14 @@ public:
     operator unsigned short () { return dist_ushort(rng); }
     template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
     template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, *this); }
+    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, (T)*this); }
     template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
+    template<class T> operator linalg::quat<T> () { return linalg::quat<T>((T)*this, (T)*this, (T)*this, (T)*this); }
 };
+
+template<class T, int M> void check_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) 
+{
+    for(int i=0; i<M; ++i) CHECK(a == Approx(b));
+}
