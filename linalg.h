@@ -83,14 +83,7 @@ namespace linalg
     namespace detail
     {
         // Type with an implicit conversion to the multiplicative identity of any given algebraic object
-        struct identity_t
-        {
-            constexpr identity_t(int) {};
-            template<class T> constexpr operator mat<T,2,2>() const { return {{1,0},{0,1}}; }
-            template<class T> constexpr operator mat<T,3,3>() const { return {{1,0,0},{0,1,0},{0,0,1}}; }
-            template<class T> constexpr operator mat<T,4,4>() const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; }
-            template<class T> constexpr operator quat<T>() const { return {0,0,0,1}; }
-        };
+        struct identity_t { constexpr identity_t(int) {}; };
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
         template<class T> struct ord { T a,b; };
@@ -263,6 +256,7 @@ namespace linalg
         using V=vec<T,M>;
         V                           cols[2];
         constexpr                   mat()                               : cols{} {}
+        constexpr                   mat(detail::identity_t)             : cols{{1,0},{0,1}} {}
         constexpr                   mat(const V & x_, const V & y_)     : cols{x_, y_} {}
         constexpr explicit          mat(const T & s)                    : cols{V(s), V(s)} {}
         constexpr explicit          mat(const T * p)                    : cols{V(p+M*0), V(p+M*1)} {}
@@ -277,6 +271,7 @@ namespace linalg
         using V=vec<T,M>;
         V                           cols[3];
         constexpr                   mat()                               : cols{} {}
+        constexpr                   mat(detail::identity_t)             : cols{{1,0,0},{0,1,0},{0,0,1}} {}
         constexpr                   mat(const V & x_, const V & y_, 
                                         const V & z_)                   : cols{x_, y_, z_} {}
         constexpr explicit          mat(const T & s)                    : cols{V(s), V(s), V(s)} {}
@@ -292,6 +287,7 @@ namespace linalg
         using V=vec<T,M>;
         V                           cols[4];
         constexpr                   mat()                               : cols{} {}
+        constexpr                   mat(detail::identity_t)             : cols{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}} {}
         constexpr                   mat(const V & x_, const V & y_,
                                         const V & z_, const V & w_)     : cols{x_, y_, z_, w_} {}
         constexpr explicit          mat(const T & s)                    : cols{V(s), V(s), V(s), V(s)} {}
@@ -311,6 +307,7 @@ namespace linalg
     {
         T x,y,z,w;
         constexpr                   quat()                              : x(), y(), z(), w() {}
+        constexpr                   quat(detail::identity_t)            : quat(0,0,0,1) {}
         constexpr                   quat(const T & x_, const T & y_,
                                          const T & z_, const T & w_)    : x(x_), y(y_), z(z_), w(w_) {}
         constexpr                   quat(const vec<T,3> & xyz,
