@@ -12,16 +12,17 @@ Visual Studio 2015, 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status]
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++14](http://en.cppreference.com/w/). 
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 600 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 750 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/), [Boost.QVM](https://www.boost.org/doc/libs/1_66_0/libs/qvm/doc/index.html) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
 # Breaking changes in `v3.0`
 
 * `linalg.h` now requires a C++14 compiler, and is known to work on GCC 5+, Clang 3.7+ and Visual Studio 2015+.
 * The set of operator overloads on matrices have been reduced to those with an obvious arithmetic meaning.
   * `mat+mat`, `mat-mat`, `mat*scalar`, `scalar*mat`, and `mat/scalar` are implemented as elementwise operations
-  * `mat*mat` computes the matrix product
+  * `mat*mat` and `mat*vec` computes the matrix product
   * All other binary matrix overloads have been deleted
-  * Elementwise operations can still be invoked manually with the `zip(...)` function
+  * Most componentwise and reduction functions no longer apply to matrices
+  * However, componentwise operations can still be invoked manually with the `apply(...)` function  
 * `vec::xy()` and `vec::xyz()` can no longer be used as lvalues
   * The original behavior relied on `reinterpret_cast` operations which were undefined behavior in standard C++
   * `a.xyz() = {1,2,3}` can be rewritten as `a = {1,2,3,a.w};`
@@ -41,7 +42,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 
 ## Data Structures
 
-The library is built on two fundamental template types, `linalg::vec<T,M>` and `linalg::mat<T,M,N>`, and provides a large set of `typedef`s of commonly used types in the `linalg::aliases` namespace, including the familiar `float3`, `float4x4`, `int2`, `bool4` etc. Library support, and the convenience aliases, are currently provided for vectors of length `2` to `4`, and matrices of between `2` to `4` columns and `2` to `4` rows.
+The library is built on three fundamental template types, `linalg::vec<T,M>`, `linalg::mat<T,M,N>`, and `linalg::quat<T>`, and provides a large set of `typedef`s of commonly used types in the `linalg::aliases` namespace, including the familiar `float3`, `float4x4`, `int2`, `bool4` etc. Library support, and the convenience aliases, are currently provided for vectors of length `2` to `4`, and matrices of between `2` to `4` columns and `2` to `4` rows.
 
 ### `vec<T,M>`
 
@@ -78,16 +79,16 @@ A variety of useful `typedef`s are provided in `namespace linalg::aliases`, whic
 
 The general pattern for vectors and matrices of other types are shown in the following table:
 
-| underlying type | `vec<T,M>` typedef | `mat<T,M,N>` typedef |
-|-----------------|--------------------|----------------------|
-| `float`         | `floatM`           | `floatMxN`           |
-| `double`        | `doubleM`          | `doubleMxN`          |
-| `int`           | `intM`             | `intMxN`             |
-| `bool`          | `boolM `           | `boolMxN`            |
-| `unsigned`      | `uintM`            |                      |
-| `int16_t`       | `shortM`           |                      |
-| `uint16_t`      | `ushortM`          |                      |
-| `uint8_t`       | `byteM`            |                      |
+| underlying type | `vec<T,M>` typedef | `mat<T,M,N>` typedef | `quat<T>` typedef |
+|-----------------|--------------------|----------------------|-------------------|
+| `float`         | `floatM`           | `floatMxN`           | `quatf`           |
+| `double`        | `doubleM`          | `doubleMxN`          | `quatd`           |
+| `int`           | `intM`             | `intMxN`             |                   |
+| `bool`          | `boolM `           | `boolMxN`            |                   |
+| `unsigned`      | `uintM`            |                      |                   |
+| `int16_t`       | `shortM`           |                      |                   |
+| `uint16_t`      | `ushortM`          |                      |                   |
+| `uint8_t`       | `byteM`            |                      |                   |
 
 ## Relational Operators
 
@@ -101,7 +102,7 @@ A large number of functions and operator overloads exist which interpret vectors
 
 ### Unary Operations
 
-For any vector or matrix `a`, the following unary operations will result in a vector or matrix of the same size:
+For any vector `a`, the following unary operations will result in a vector or matrix of the same size:
 
 * `+a` applies the unary `operator +` to each element from `a`
 * `-a` applies the unary `operator -` to each element from `a`
