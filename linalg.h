@@ -43,18 +43,15 @@
 
 
 
-// Option: Define LINALG_LEGACY_MATRIX_PRODUCT to define the matrix product as mul(a,b) instead of a*b.
-// Note that either way, the old element-wise definition of a*b has been removed. This can be used to audit
-// codebases transitioning from previous versions of linalg.
-
 #pragma once
 #ifndef LINALG_H
 #define LINALG_H
 
-#include <cmath>        // For various unary math functions, such as std::sqrt
-#include <cstdlib>      // To resolve std::abs ambiguity on clang
+#include <cmath>        // For std::sqrt, std::sin, std::cos, etc.
+#include <cstdlib>      // For std::abs
 #include <cstddef>      // For std::nullptr_t
-#include <cstdint>      // For implementing namespace linalg::aliases
+#include <cstdint>      // For std::uint8_t, std::uint16_t, std::int16_t, etc.
+#include <utility>      // For std::integer_sequence
 #include <array>        // For std::array
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
