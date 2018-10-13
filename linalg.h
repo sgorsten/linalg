@@ -187,15 +187,15 @@ namespace linalg
         struct std_copysign { template<class T> auto operator() (T a, T b) const { return std::copysign(a, b); } };
 
         // Elementwise function application helper function
-        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return vec<scalar_result_t<F,T>, sizeof...(I)>{f(a[I])...}; }
-        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b[I])...}; }
-        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b)...}; }
-        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a, b[I])...}; }
+        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return vec<scalar_result_t<F,T>, sizeof...(I)>{f(a[I])...}; }
+        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b[I])...}; }
+        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b)...}; }
+        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a, b[I])...}; }
 
-        template<int... J, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return mat<scalar_result_t<F,T>, M, sizeof...(J)>{apply(f, a[J])...}; }
-        template<int... J, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b[J])...}; }
-        template<int... J, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b)...}; }
-        template<int... J, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a, b[J])...}; }
+        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return mat<scalar_result_t<F,T>, M, sizeof...(J)>{apply(f, a[J])...}; }
+        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b[J])...}; }
+        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b)...}; }
+        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a, b[J])...}; }
     }
 
     //////////////////////////////////////////////////////////////
