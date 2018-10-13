@@ -180,6 +180,17 @@ namespace linalg
         struct std_pow      { template<class T> auto operator() (T a, T b) const { return std::pow     (a, b); } };
         struct std_atan2    { template<class T> auto operator() (T a, T b) const { return std::atan2   (a, b); } };
         struct std_copysign { template<class T> auto operator() (T a, T b) const { return std::copysign(a, b); } };
+
+        // Elementwise function application helper function
+        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return vec<scalar_result_t<F,T>,  M>{f(a[I])...}; }
+        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return vec<scalar_result_t<F,T,T>,M>{f(a[I], b[I])...}; }
+        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return vec<scalar_result_t<F,T,T>,M>{f(a[I], b)...}; }
+        template<int... I, class F, class T, int M> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return vec<scalar_result_t<F,T,T>,M>{f(a, b[I])...}; }
+
+        template<int... I, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const mat<T,M,N> & a)                       { return mat<scalar_result_t<F,T>,  M,N>{apply(f, a[I])...}; }
+        template<int... I, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return mat<scalar_result_t<F,T,T>,M,N>{apply(f, a[I], b[I])...}; }
+        template<int... I, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const mat<T,M,N> & a, T b)                  { return mat<scalar_result_t<F,T,T>,M,N>{apply(f, a[I], b)...}; }
+        template<int... I, class F, class T, int M, int N> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, T a, const mat<T,M,N> & b)                  { return mat<scalar_result_t<F,T,T>,M,N>{apply(f, a, b[I])...}; }
     }
 
     //////////////////////////////////////////////////////////////
@@ -349,18 +360,15 @@ namespace linalg
     template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)),fold(a[3],f)); }
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class T> constexpr auto apply(F f, const vec<T,2> & a, const vec<T,2> & b) { return vec<decltype(f(T(),T())),2>{f(a.x,b.x), f(a.y,b.y)}; }
-    template<class F, class T> constexpr auto apply(F f, const vec<T,3> & a, const vec<T,3> & b) { return vec<decltype(f(T(),T())),3>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
-    template<class F, class T> constexpr auto apply(F f, const vec<T,4> & a, const vec<T,4> & b) { return vec<decltype(f(T(),T())),4>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, T b) { return apply(f, a, vec<T,M>(b)); }
-    template<class F, class T, int M> constexpr auto apply(F f, T a, const vec<T,M> & b) { return apply(f, vec<T,M>(a), b); }
-    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a) { return apply([f](T l, T) { return f(l); }, a, a); }
-    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,2> & a, const mat<T,M,2> & b) { return mat<decltype(f(T(),T())),M,2>{apply(f,a[0],b[0]), apply(f,a[1],b[1])}; }
-    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,3> & a, const mat<T,M,3> & b) { return mat<decltype(f(T(),T())),M,3>{apply(f,a[0],b[0]), apply(f,a[1],b[1]), apply(f,a[2],b[2])}; }
-    template<class F, class T, int M> constexpr auto apply(F f, const mat<T,M,4> & a, const mat<T,M,4> & b) { return mat<decltype(f(T(),T())),M,4>{apply(f,a[0],b[0]), apply(f,a[1],b[1]), apply(f,a[2],b[2]), apply(f,a[3],b[3])}; }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, T b) { return apply(f, a, mat<T,M,N>(b)); }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, T a, const mat<T,M,N> & b) { return apply(f, mat<T,M,N>(a), b); }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a) { return apply([f](T l, T) { return f(l); }, a, a); }
+    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a)                     { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a); }
+    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, const vec<T,M> & b) { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }
+    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, T b)                { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }
+    template<class F, class T, int M> constexpr auto apply(F f, T a, const vec<T,M> & b)                { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }     
+
+    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a)                       { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a); }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, T b)                  { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
+    template<class F, class T, int M, int N> constexpr auto apply(F f, T a, const mat<T,M,N> & b)                  { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
 
     // Legacy functions zip(a,b,f) and map(a,f) have been subsumed by apply(f,...)
     template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F f) { return apply(f,a,b); }
