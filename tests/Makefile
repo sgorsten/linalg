@@ -3,7 +3,7 @@ sources = test-linalg.cpp test-expression-validity.cpp test-higher-order-functio
 all: test-linalg
 
 test-linalg: $(sources) ../linalg.h
-	$(CXX) $(sources) -std=c++14 $(CXXLIBRARY) -o $@
+	$(CXX) $(sources) -std=c++11 $(CXXLIBRARY) -o $@
 
 clean:
 	rm -f test-linalg

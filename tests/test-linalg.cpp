@@ -500,7 +500,7 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
 
 TEST_CASE_TEMPLATE("integral unary operator overloads on vec<T,M> are defined elementwise", T, integral_types) 
 {
-    using U = decltype(+T());
+    using U = decltype(~T());
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
