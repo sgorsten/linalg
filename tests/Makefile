@@ -1,4 +1,4 @@
-sources = test-linalg.cpp test-expression-validity.cpp test-constant-expressions.cpp test-quaternions.cpp 
+sources = test-linalg.cpp test-expression-validity.cpp test-higher-order-functions.cpp test-constant-expressions.cpp test-quaternions.cpp 
 
 all: test-linalg
 

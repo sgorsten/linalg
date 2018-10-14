@@ -135,8 +135,12 @@ namespace linalg
         template<class F, class A, class B> struct quat_apply<F, scalars_t<B>, quat<A>, B      > { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<A> & a, B               b) { return {f(a.x, b  ), f(a.y, b  ), f(a.z, b  ), f(a.w, b  )}; } };
         template<class F, class A, class B> struct quat_apply<F, scalars_t<A>, A,       quat<B>> { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, A               a, const quat<B> & b) { return {f(a,   b.x), f(a,   b.y), f(a,   b.z), f(a,   b.w)}; } };
 
+        // Define scalar/scalar patterns for arbitrary numbers of arguments to apply(...)
+        template<class F, class Void, class... T> struct scalar_apply {};
+        template<class F, class... A> struct scalar_apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, A... a) { return f(a...); } };
+
         // Aggregate all valid patterns for apply(...), apply_t<...> can be used for return-type SFINAE to control overload set
-        template<class F, class... T> struct any_apply : vec_apply<F,void,T...>, mat_apply<F,void,T...>, quat_apply<F,void,T...> {};
+        template<class F, class... T> struct any_apply : vec_apply<F,void,T...>, mat_apply<F,void,T...>, quat_apply<F,void,T...>, scalar_apply<F,void,T...> {};
 
         // Function objects for selecting between alternatives
         struct min { template<class T> constexpr T operator() (T a, T b) const { return a < b ? a : b; } };
