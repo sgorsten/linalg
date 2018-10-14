@@ -16,7 +16,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 
 # Breaking changes in `v3.0`
 
-* `linalg.h` now requires a C++14 compiler, and is known to work on GCC 5+, Clang 3.7+ and Visual Studio 2015+.
+* `linalg.h` no longer supports Visual Studio 2013. However, it is known to work on GCC 5+, Clang 3.5+ in C++11 mode and Visual Studio 2015+ in C++14 mode.
 * The set of operator overloads on matrices have been reduced to those with an obvious arithmetic meaning.
   * `mat+mat`, `mat-mat`, `mat*scalar`, `scalar*mat`, and `mat/scalar` are implemented as elementwise operations
   * `mat*mat` and `mat*vec` computes the matrix product
