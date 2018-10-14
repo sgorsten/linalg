@@ -102,31 +102,31 @@ namespace linalg
 
         // Define vec/vec and vec/scalar patterns for apply(...), vec_apply_t can be used for return-type SFINAE to control overload set
         template<class F, class... T> struct vec_apply {};
-        template<class F, class T, int M> struct vec_apply<F, vec<T,M>>           { using type = vec<ret_t<F,T>,M>;   static constexpr type impl(F f, const vec<T,M> & a)                     { return impl2(std::make_integer_sequence<int,M>{}, f, a);    } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return {f(a[I])...}; } };
-        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, vec<T,M>> { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, const vec<T,M> & a, const vec<T,M> & b) { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return {f(a[I], b[I])...}; } };
-        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, T>        { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, const vec<T,M> & a, T b)                { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return {f(a[I], b)...}; } };
-        template<class F, class T, int M> struct vec_apply<F, T, vec<T,M>>        { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, T a, const vec<T,M> & b)                { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return {f(a, b[I])...}; } };
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>>                     { using type=vec<ret_t<F,T>,M>;     enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                                         { return {f(a[I])...}; } };
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, T>                  { using type=vec<ret_t<F,T,T>,M>;   enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                                    { return {f(a[I], b)...}; } };
+        template<class F, class T, int M> struct vec_apply<F, T, vec<T,M>>                  { using type=vec<ret_t<F,T,T>,M>;   enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                                    { return {f(a, b[I])...}; } };
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, vec<T,M>>           { using type=vec<ret_t<F,T,T>,M>;   enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b)                     { return {f(a[I], b[I])...}; } };
 
         // Define mat/mat and mat/scalar patterns for apply(...), mat_apply_t<...> can be used for return-type SFINAE to control overload set
         template<class F, class... T> struct mat_apply {};
-        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>>             { using type = mat<ret_t<F,T>,M,N>;   static constexpr type impl(F f, const mat<T,M,N> & a)                       { return impl2(std::make_integer_sequence<int,N>{}, f, a);    } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return {vec_apply<F,vec<T,M>>::impl(f, a[J])...}; } };
-        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return {vec_apply<F,vec<T,M>,vec<T,M>>::impl(f, a[J], b[J])...}; }};
-        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, T>          { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, const mat<T,M,N> & a, T b)                  { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return {vec_apply<F,vec<T,M>,T>::impl(f, a[J], b)...}; }};
-        template<class F, class T, int M, int N> struct mat_apply<F, T, mat<T,M,N>>          { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, T a, const mat<T,M,N> & b)                  { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return {vec_apply<F,T,vec<T,M>>::impl(f, a, b[J])...}; }};
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>>             { using type = mat<ret_t<F,T>,M,N>;   enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return {vec_apply<F,vec<T,M>         >::impl(std::make_integer_sequence<int,M>{}, f, a[J])...}; } };
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, T>          { using type = mat<ret_t<F,T,T>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return {vec_apply<F,vec<T,M>,T       >::impl(std::make_integer_sequence<int,M>{}, f, a[J], b)...}; }};
+        template<class F, class T, int M, int N> struct mat_apply<F, T, mat<T,M,N>>          { using type = mat<ret_t<F,T,T>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return {vec_apply<F,T,vec<T,M>       >::impl(std::make_integer_sequence<int,M>{}, f, a, b[J])...}; }};
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<ret_t<F,T,T>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return {vec_apply<F,vec<T,M>,vec<T,M>>::impl(std::make_integer_sequence<int,M>{}, f, a[J], b[J])...}; }};
 
         // Define quat/quat and quat/scalar patterns for apply(...), quat_apply_t<...> can be used for return-type SFINAE to control overload set
         template<class F, class... T> struct quat_apply {};
-        template<class F, class T> struct quat_apply<F, quat<T>>          { using type = quat<ret_t<F,T>>;   static constexpr type impl(F f, const quat<T> & a)                    { return {f(a.x), f(a.y), f(a.z), f(a.w)}; }                 };
-        template<class F, class T> struct quat_apply<F, quat<T>, quat<T>> { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, const quat<T> & a, const quat<T> & b) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; } };
-        template<class F, class T> struct quat_apply<F, quat<T>, T>       { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, const quat<T> & a, T b)               { return {f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }         };
-        template<class F, class T> struct quat_apply<F, T, quat<T>>       { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, T a, const quat<T> & b)               { return {f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }         };
-        
+        template<class F, class T> struct quat_apply<F, quat<T>>          { using type = quat<ret_t<F,T>>;   enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<T> & a)                    { return {f(a.x), f(a.y), f(a.z), f(a.w)}; }                 };
+        template<class F, class T> struct quat_apply<F, quat<T>, T>       { using type = quat<ret_t<F,T,T>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<T> & a, T b)               { return {f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }         };
+        template<class F, class T> struct quat_apply<F, T, quat<T>>       { using type = quat<ret_t<F,T,T>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, T a, const quat<T> & b)               { return {f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }         };
+        template<class F, class T> struct quat_apply<F, quat<T>, quat<T>> { using type = quat<ret_t<F,T,T>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<T> & a, const quat<T> & b) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; } };
+
         // Aggregate all valid patterns for apply(...), apply_t<...> can be used for return-type SFINAE to control overload set
-        template<class F, class... T> struct apply : vec_apply<F,T...>, mat_apply<F,T...>, quat_apply<F,T...> {};
+        template<class F, class... T> struct any_apply : vec_apply<F,T...>, mat_apply<F,T...>, quat_apply<F,T...> {};
 
         // Function objects for selecting min/max of two values
-        struct min { template<class T> constexpr T operator() (T l, T r) const { return l < r ? l : r; } };
-        struct max { template<class T> constexpr T operator() (T l, T r) const { return l < r ? r : l; } };
+        struct min { template<class T> constexpr T operator() (T a, T b) const { return a < b ? a : b; } };
+        struct max { template<class T> constexpr T operator() (T a, T b) const { return a < b ? b : a; } };
 
         // Function objects for applying operators
         struct op_pos { template<class T> constexpr auto operator() (T a) const { return +a; } };
@@ -349,16 +349,16 @@ namespace linalg
     template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::apply<F,A...>::impl(func, args...); }
+    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::any_apply<F,A...>::impl(std::make_integer_sequence<int,detail::any_apply<F,A...>::size>{}, func, args...); }
 
     // map(a,f) is equivalent to apply(f,a)
-    template<class A, class F> constexpr auto map(const A & a, F func) { return detail::apply<F,A>::impl(func,a); }
+    template<class A, class F> constexpr auto map(const A & a, F func) { return apply(func, a); }
 
     // zip(a,b,f) is equivalent to apply(f,a,b)
-    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return detail::apply<F,A,B>::impl(func,a,b); }
+    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return apply(func, a, b); }
 
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
-    template<class F, class... A> using apply_t = typename detail::apply<F,A...>::type;
+    template<class F, class... A> using apply_t = typename detail::any_apply<F,A...>::type;
     template<class F, class... A> using vec_apply_t = typename detail::vec_apply<F,A...>::type;
     template<class F, class... A> using mat_apply_t = typename detail::mat_apply<F,A...>::type;
     template<class F, class... A> using quat_apply_t = typename detail::quat_apply<F,A...>::type;
