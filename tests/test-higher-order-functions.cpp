@@ -41,4 +41,22 @@ TEST_CASE("Test linalg::apply(...)")
 
     // Check quaternary application with scalars
     CHECK(linalg::apply(make_tuple, fs, ds, is, true) == std::tuple<float,double,int,bool>{fs,ds,is,true});
+
+    // Check legacy map(...)
+    CHECK(linalg::map(fv, make_tuple) == linalg::vec<std::tuple<float>,2>{{f0},{f1}});
+    CHECK(linalg::map(fm, make_tuple) == linalg::mat<std::tuple<float>,2,2>{{{f0},{f1}},{{f2},{f3}}});
+    CHECK(linalg::map(fq, make_tuple) == linalg::quat<std::tuple<float>>{{f0},{f1},{f2},{f3}});
+    CHECK(linalg::map(fs, make_tuple) == std::tuple<float>{fs});
+
+    // Check legacy zip(...)
+    CHECK(linalg::zip(fv, dv, make_tuple) == linalg::vec<std::tuple<float,double>,2>{{f0,d0},{f1,d1}});
+    CHECK(linalg::zip(fv, ds, make_tuple) == linalg::vec<std::tuple<float,double>,2>{{f0,ds},{f1,ds}});
+    CHECK(linalg::zip(fs, dv, make_tuple) == linalg::vec<std::tuple<float,double>,2>{{fs,d0},{fs,d1}});
+    CHECK(linalg::zip(fm, dm, make_tuple) == linalg::mat<std::tuple<float,double>,2,2>{{{f0,d0},{f1,d1}},{{f2,d2},{f3,d3}}});
+    CHECK(linalg::zip(fm, ds, make_tuple) == linalg::mat<std::tuple<float,double>,2,2>{{{f0,ds},{f1,ds}},{{f2,ds},{f3,ds}}});
+    CHECK(linalg::zip(fs, dm, make_tuple) == linalg::mat<std::tuple<float,double>,2,2>{{{fs,d0},{fs,d1}},{{fs,d2},{fs,d3}}});
+    CHECK(linalg::zip(fq, dq, make_tuple) == linalg::quat<std::tuple<float,double>>{{f0,d0},{f1,d1},{f2,d2},{f3,d3}});
+    CHECK(linalg::zip(fq, ds, make_tuple) == linalg::quat<std::tuple<float,double>>{{f0,ds},{f1,ds},{f2,ds},{f3,ds}});
+    CHECK(linalg::zip(fs, dq, make_tuple) == linalg::quat<std::tuple<float,double>>{{fs,d0},{fs,d1},{fs,d2},{fs,d3}});
+    CHECK(linalg::zip(fs, ds, make_tuple) == std::tuple<float,double>{fs,ds});
 }
