@@ -102,26 +102,26 @@ namespace linalg
 
         // Template type alias for the return type of calling apply(f,...) with vectors, can be used with SFINAE to indicate function applies only to vectors
         template<class F, class... T> struct vec_result {};
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>> { using type = vec<scalar_result_t<F,T>,M>; };
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; };
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>, T> { using type = vec<scalar_result_t<F,T,T>,M>; };
-        template<class F, class T, int M> struct vec_result<F, T, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; };
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>>           { using type = vec<scalar_result_t<F,T>,M>;   static constexpr type apply(F f, const vec<T,M> & a)                     { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a);    } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return {f(a[I])...}; } };
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, const vec<T,M> & a, const vec<T,M> & b) { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return {f(a[I], b[I])...}; } };
+        template<class F, class T, int M> struct vec_result<F, vec<T,M>, T>        { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, const vec<T,M> & a, T b)                { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return {f(a[I], b)...}; } };
+        template<class F, class T, int M> struct vec_result<F, T, vec<T,M>>        { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, T a, const vec<T,M> & b)                { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return {f(a, b[I])...}; } };
         template<class F, class... T> using vec_result_t = typename vec_result<F,T...>::type;
 
         // Template type alias for the return type of calling apply(f,...) with matrices, can be used with SFINAE to indicate function applies only to matrices
         template<class F, class... T> struct mat_result {};
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>> { using type = mat<scalar_result_t<F,T>,M,N>; };
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, T> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
-        template<class F, class T, int M, int N> struct mat_result<F, T, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; };
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>>             { using type = mat<scalar_result_t<F,T>,M,N>;   static constexpr type apply(F f, const mat<T,M,N> & a)                       { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a);    } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return {vec_result<F,vec<T,M>>::apply(f, a[J])...}; } };
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return {vec_result<F,vec<T,M>,vec<T,M>>::apply(f, a[J], b[J])...}; }};
+        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, T>          { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, const mat<T,M,N> & a, T b)                  { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return {vec_result<F,vec<T,M>,T>::apply(f, a[J], b)...}; }};
+        template<class F, class T, int M, int N> struct mat_result<F, T, mat<T,M,N>>          { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, T a, const mat<T,M,N> & b)                  { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return {vec_result<F,T,vec<T,M>>::apply(f, a, b[J])...}; }};
         template<class F, class... T> using mat_result_t = typename mat_result<F,T...>::type;
 
         // Template type alias for the return type of calling apply(f,...) with quaternions, can be used with SFINAE to indicate function applies only to quaternions
         template<class F, class... T> struct quat_result {};
-        template<class F, class T> struct quat_result<F, quat<T>> { using type = quat<scalar_result_t<F,T>>; };
-        template<class F, class T> struct quat_result<F, quat<T>, quat<T>> { using type = quat<scalar_result_t<F,T,T>>; };
-        template<class F, class T> struct quat_result<F, quat<T>, T> { using type = quat<scalar_result_t<F,T,T>>; };
-        template<class F, class T> struct quat_result<F, T, quat<T>> { using type = quat<scalar_result_t<F,T,T>>; };
+        template<class F, class T> struct quat_result<F, quat<T>>          { using type = quat<scalar_result_t<F,T>>;   static constexpr type apply(F f, const quat<T> & a)                    { return {f(a.x), f(a.y), f(a.z), f(a.w)}; }                 };
+        template<class F, class T> struct quat_result<F, quat<T>, quat<T>> { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, const quat<T> & a, const quat<T> & b) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; } };
+        template<class F, class T> struct quat_result<F, quat<T>, T>       { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, const quat<T> & a, T b)               { return {f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }         };
+        template<class F, class T> struct quat_result<F, T, quat<T>>       { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, T a, const quat<T> & b)               { return {f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }         };
         template<class F, class... T> using quat_result_t = typename quat_result<F,T...>::type;
 
         // Template type alias for the return type of calling apply(f,...) on any linalg types, can be used with SFINAE
@@ -178,17 +178,6 @@ namespace linalg
         struct std_pow      { template<class T> auto operator() (T a, T b) const { return std::pow     (a, b); } };
         struct std_atan2    { template<class T> auto operator() (T a, T b) const { return std::atan2   (a, b); } };
         struct std_copysign { template<class T> auto operator() (T a, T b) const { return std::copysign(a, b); } };
-
-        // Elementwise function application helper function
-        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return vec<scalar_result_t<F,T>, sizeof...(I)>{f(a[I])...}; }
-        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b[I])...}; }
-        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a[I], b)...}; }
-        template<class F, class T, int M, int... I> constexpr auto indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return vec<scalar_result_t<F,T,T>, sizeof...(I)>{f(a, b[I])...}; }
-
-        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return mat<scalar_result_t<F,T>, M, sizeof...(J)>{apply(f, a[J])...}; }
-        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b[J])...}; }
-        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a[J], b)...}; }
-        template<class F, class T, int M, int N, int... J> constexpr auto indexed_apply(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return mat<scalar_result_t<F,T,T>, M, sizeof...(J)>{apply(f, a, b[J])...}; }
     }
 
     //////////////////////////////////////////////////////////////
@@ -364,24 +353,13 @@ namespace linalg
     template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a)                     { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a); }
-    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, const vec<T,M> & b) { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }
-    template<class F, class T, int M> constexpr auto apply(F f, const vec<T,M> & a, T b)                { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }
-    template<class F, class T, int M> constexpr auto apply(F f, T a, const vec<T,M> & b)                { return detail::indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); }     
+    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::apply_result<F,A...>::apply(func, args...); }
 
-    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a)                       { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a); }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, const mat<T,M,N> & a, T b)                  { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
-    template<class F, class T, int M, int N> constexpr auto apply(F f, T a, const mat<T,M,N> & b)                  { return detail::indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); }
+    // map(a,f) is equivalent to apply(f,a)
+    template<class A, class F> constexpr auto map(const A & a, F func) { return detail::apply_result<F,A>::apply(func,a); }
 
-    template<class F, class T> constexpr auto apply(F f, const quat<T> & a)                    { return quat<detail::scalar_result_t<F,T,T>>{f(a.x), f(a.y), f(a.z), f(a.w)}; }
-    template<class F, class T> constexpr auto apply(F f, const quat<T> & a, const quat<T> & b) { return quat<detail::scalar_result_t<F,T,T>>{f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class F, class T> constexpr auto apply(F f, const quat<T> & a, T b)               { return quat<detail::scalar_result_t<F,T,T>>{f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }
-    template<class F, class T> constexpr auto apply(F f, T a, const quat<T> & b)               { return quat<detail::scalar_result_t<F,T,T>>{f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }
-
-    // Legacy functions map(a,f) and zip(a,b,f) have been subsumed by apply(f,a[,b])
-    template<class A, class F> constexpr auto map(const A & a, F f) { return apply(f,a); }
-    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F f) { return apply(f,a,b); }
+    // zip(a,b,f) is equivalent to apply(f,a,b)
+    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return detail::apply_result<F,A,B>::apply(func,a,b); }
 
     ////////////////////////////////////
     // Vector operators and functions //
