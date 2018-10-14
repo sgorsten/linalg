@@ -51,7 +51,6 @@
 #include <cstdlib>      // For std::abs
 #include <cstddef>      // For std::nullptr_t
 #include <cstdint>      // For std::uint8_t, std::uint16_t, std::int16_t, etc.
-#include <utility>      // For std::integer_sequence
 #include <array>        // For std::array
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
@@ -97,6 +96,16 @@ namespace linalg
         // Value type wrapper around a C array, for use in single-expression constexpr functions
         template<class T, int N> struct arr { T e[N]; };
 
+        // Stand-in for std::integer_sequence/std::make_integer_sequence
+        template<int... I> struct seq {};
+        template<int N> struct make_seq_impl;
+        template<> struct make_seq_impl<0> { using type=seq<>; };
+        template<> struct make_seq_impl<1> { using type=seq<0>; };
+        template<> struct make_seq_impl<2> { using type=seq<0,1>; };
+        template<> struct make_seq_impl<3> { using type=seq<0,1,2>; };
+        template<> struct make_seq_impl<4> { using type=seq<0,1,2,3>; };
+        template<int N> using make_seq = typename make_seq_impl<N>::type;
+
         // SFINAE helpers to determine result of function application
         template<class F, class... T> using ret_t = decltype(std::declval<F>()(std::declval<T>()...));
 
@@ -104,40 +113,40 @@ namespace linalg
         struct empty {};
         template<class... T> struct scalars;
         template<> struct scalars<> { using type=void; };
-        template<class T, class... U> struct scalars<T,U...> : std::conditional_t<std::is_arithmetic<T>::value, scalars<U...>, empty> {};
+        template<class T, class... U> struct scalars<T,U...> : std::conditional<std::is_arithmetic<T>::value, scalars<U...>, empty>::type {};
         template<class... T> using scalars_t = typename scalars<T...>::type;
 
         // Define vec/vec and vec/scalar patterns of up to three arguments to apply(...)
         template<class F, class Void, class... T> struct vec_apply {};
-        template<class F, int M, class A                  > struct vec_apply<F, scalars_t<   >, vec<A,M>                    > { using type=vec<ret_t<F,A    >,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a                                        ) { return {f(a[I]            )...}; } };
-        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<   >, vec<A,M>, vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, const vec<B,M> & b                    ) { return {f(a[I], b[I]      )...}; } };
-        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<B  >, vec<A,M>, B                 > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, B                b                    ) { return {f(a[I], b         )...}; } };
-        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<A  >, A,        vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, A                a, const vec<B,M> & b                    ) { return {f(a,    b[I]      )...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<   >, vec<A,M>, vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a[I], b[I], c[I])...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<C  >, vec<A,M>, vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, const vec<B,M> & b, C                c) { return {f(a[I], b[I], c   )...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<B  >, vec<A,M>, B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, B                b, const vec<C,M> & c) { return {f(a[I], b,    c[I])...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<B,C>, vec<A,M>, B,        C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, const vec<A,M> & a, B                b, C                c) { return {f(a[I], b,    c   )...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A  >, A,        vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, A                a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a,    b[I], c[I])...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A,C>, A,        vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, A                a, const vec<B,M> & b, C                c) { return {f(a,    b[I], c   )...}; } };
-        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A,B>, A,        B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(std::integer_sequence<int,I...>, F f, A                a, B                b, const vec<C,M> & c) { return {f(a,    b,    c[I])...}; } };
+        template<class F, int M, class A                  > struct vec_apply<F, scalars_t<   >, vec<A,M>                    > { using type=vec<ret_t<F,A    >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a                                        ) { return {f(a[I]            )...}; } };
+        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<   >, vec<A,M>, vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b                    ) { return {f(a[I], b[I]      )...}; } };
+        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<B  >, vec<A,M>, B                 > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b                    ) { return {f(a[I], b         )...}; } };
+        template<class F, int M, class A, class B         > struct vec_apply<F, scalars_t<A  >, A,        vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b                    ) { return {f(a,    b[I]      )...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<   >, vec<A,M>, vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a[I], b[I], c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<C  >, vec<A,M>, vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, C                c) { return {f(a[I], b[I], c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<B  >, vec<A,M>, B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, const vec<C,M> & c) { return {f(a[I], b,    c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<B,C>, vec<A,M>, B,        C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, C                c) { return {f(a[I], b,    c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A  >, A,        vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a,    b[I], c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A,C>, A,        vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, C                c) { return {f(a,    b[I], c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct vec_apply<F, scalars_t<A,B>, A,        B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, B                b, const vec<C,M> & c) { return {f(a,    b,    c[I])...}; } };
 
         // Define mat/mat and mat/scalar patterns of up to two arguments to apply(...)
         template<class F, class Void, class... T> struct mat_apply {};
-        template<class F, int M, int N, class A         > struct mat_apply<F, scalars_t< >, mat<A,M,N>            > { using type = mat<ret_t<F,A  >,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<A,M,N> & a                      ) { return {vec_apply<F, void, vec<A,M>          >::impl(std::make_integer_sequence<int,M>{}, f, a[J]      )...}; } };
-        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t< >, mat<A,M,N>, mat<B,M,N>> { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<A,M,N> & a, const mat<B,M,N> & b) { return {vec_apply<F, void, vec<A,M>, vec<B,M>>::impl(std::make_integer_sequence<int,M>{}, f, a[J], b[J])...}; } };
-        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t<B>, mat<A,M,N>, B         > { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, const mat<A,M,N> & a, B                  b) { return {vec_apply<F, void, vec<A,M>, B       >::impl(std::make_integer_sequence<int,M>{}, f, a[J], b   )...}; } };
-        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t<A>, A,          mat<B,M,N>> { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(std::integer_sequence<int,J...>, F f, A                  a, const mat<B,M,N> & b) { return {vec_apply<F, void, A,        vec<B,M>>::impl(std::make_integer_sequence<int,M>{}, f, a,    b[J])...}; } };
+        template<class F, int M, int N, class A         > struct mat_apply<F, scalars_t< >, mat<A,M,N>            > { using type = mat<ret_t<F,A  >,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a                      ) { return {vec_apply<F, void, vec<A,M>          >::impl(make_seq<M>{}, f, a[J]      )...}; } };
+        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t< >, mat<A,M,N>, mat<B,M,N>> { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, const mat<B,M,N> & b) { return {vec_apply<F, void, vec<A,M>, vec<B,M>>::impl(make_seq<M>{}, f, a[J], b[J])...}; } };
+        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t<B>, mat<A,M,N>, B         > { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, B                  b) { return {vec_apply<F, void, vec<A,M>, B       >::impl(make_seq<M>{}, f, a[J], b   )...}; } };
+        template<class F, int M, int N, class A, class B> struct mat_apply<F, scalars_t<A>, A,          mat<B,M,N>> { using type = mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, A                  a, const mat<B,M,N> & b) { return {vec_apply<F, void, A,        vec<B,M>>::impl(make_seq<M>{}, f, a,    b[J])...}; } };
 
         // Define quat/quat and quat/scalar patterns of up to two arguments to apply(...)
         template<class F, class Void, class... T> struct quat_apply {};
-        template<class F, class A         > struct quat_apply<F, scalars_t< >, quat<A>         > { using type = quat<ret_t<F,A  >>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<A> & a                   ) { return {f(a.x     ), f(a.y     ), f(a.z     ), f(a.w     )}; } };
-        template<class F, class A, class B> struct quat_apply<F, scalars_t< >, quat<A>, quat<B>> { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<A> & a, const quat<B> & b) { return {f(a.x, b.x), f(a.y, b.y), f(a.z, b.z), f(a.w, b.w)}; } };
-        template<class F, class A, class B> struct quat_apply<F, scalars_t<B>, quat<A>, B      > { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, const quat<A> & a, B               b) { return {f(a.x, b  ), f(a.y, b  ), f(a.z, b  ), f(a.w, b  )}; } };
-        template<class F, class A, class B> struct quat_apply<F, scalars_t<A>, A,       quat<B>> { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, A               a, const quat<B> & b) { return {f(a,   b.x), f(a,   b.y), f(a,   b.z), f(a,   b.w)}; } };
+        template<class F, class A         > struct quat_apply<F, scalars_t< >, quat<A>         > { using type = quat<ret_t<F,A  >>; enum {size=0}; static constexpr type impl(seq<>, F f, const quat<A> & a                   ) { return {f(a.x     ), f(a.y     ), f(a.z     ), f(a.w     )}; } };
+        template<class F, class A, class B> struct quat_apply<F, scalars_t< >, quat<A>, quat<B>> { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(seq<>, F f, const quat<A> & a, const quat<B> & b) { return {f(a.x, b.x), f(a.y, b.y), f(a.z, b.z), f(a.w, b.w)}; } };
+        template<class F, class A, class B> struct quat_apply<F, scalars_t<B>, quat<A>, B      > { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(seq<>, F f, const quat<A> & a, B               b) { return {f(a.x, b  ), f(a.y, b  ), f(a.z, b  ), f(a.w, b  )}; } };
+        template<class F, class A, class B> struct quat_apply<F, scalars_t<A>, A,       quat<B>> { using type = quat<ret_t<F,A,B>>; enum {size=0}; static constexpr type impl(seq<>, F f, A               a, const quat<B> & b) { return {f(a,   b.x), f(a,   b.y), f(a,   b.z), f(a,   b.w)}; } };
 
         // Define scalar/scalar patterns for arbitrary numbers of arguments to apply(...)
         template<class F, class Void, class... T> struct scalar_apply {};
-        template<class F, class... A> struct scalar_apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0}; static constexpr type impl(std::integer_sequence<int>, F f, A... a) { return f(a...); } };
+        template<class F, class... A> struct scalar_apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0}; static constexpr type impl(seq<>, F f, A... a) { return f(a...); } };
 
         // Aggregate all valid patterns for apply(...), apply_t<...> can be used for return-type SFINAE to control overload set
         template<class F, class... T> struct any_apply : vec_apply<F,void,T...>, mat_apply<F,void,T...>, quat_apply<F,void,T...>, scalar_apply<F,void,T...> {};
@@ -149,51 +158,51 @@ namespace linalg
         struct select { template<class T> constexpr T operator() (bool a, T b, T c) const { return a ? b : c; } };
 
         // Function objects for applying operators
-        struct op_pos { template<class T> constexpr auto operator() (T a) const { return +a; } };
-        struct op_neg { template<class T> constexpr auto operator() (T a) const { return -a; } };
-        struct op_not { template<class T> constexpr auto operator() (T a) const { return !a; } };
-        struct op_cmp { template<class T> constexpr auto operator() (T a) const { return ~a; } };
-        struct op_mul { template<class T> constexpr auto operator() (T a, T b) const { return a * b; } };
-        struct op_div { template<class T> constexpr auto operator() (T a, T b) const { return a / b; } };
-        struct op_mod { template<class T> constexpr auto operator() (T a, T b) const { return a % b; } };
-        struct op_add { template<class T> constexpr auto operator() (T a, T b) const { return a + b; } };
-        struct op_sub { template<class T> constexpr auto operator() (T a, T b) const { return a - b; } };
-        struct op_lsh { template<class T> constexpr auto operator() (T a, T b) const { return a << b; } };
-        struct op_rsh { template<class T> constexpr auto operator() (T a, T b) const { return a >> b; } };
-        struct op_lt  { template<class T> constexpr auto operator() (T a, T b) const { return a < b; } };
-        struct op_gt  { template<class T> constexpr auto operator() (T a, T b) const { return a > b; } };
-        struct op_le  { template<class T> constexpr auto operator() (T a, T b) const { return a <= b; } };
-        struct op_ge  { template<class T> constexpr auto operator() (T a, T b) const { return a >= b; } };
-        struct op_eq  { template<class T> constexpr auto operator() (T a, T b) const { return a == b; } };
-        struct op_ne  { template<class T> constexpr auto operator() (T a, T b) const { return a != b; } };
-        struct op_int { template<class T> constexpr auto operator() (T a, T b) const { return a & b; } };        
-        struct op_xor { template<class T> constexpr auto operator() (T a, T b) const { return a ^ b; } };
-        struct op_un  { template<class T> constexpr auto operator() (T a, T b) const { return a | b; } };
-        struct op_and { template<class T> constexpr auto operator() (T a, T b) const { return a && b; } };
-        struct op_or  { template<class T> constexpr auto operator() (T a, T b) const { return a || b; } };
+        struct op_pos { template<class A> constexpr auto operator() (A a) const -> decltype(+a) { return +a; } };
+        struct op_neg { template<class A> constexpr auto operator() (A a) const -> decltype(-a) { return -a; } };
+        struct op_not { template<class A> constexpr auto operator() (A a) const -> decltype(!a) { return !a; } };
+        struct op_cmp { template<class A> constexpr auto operator() (A a) const -> decltype(~(a)) { return ~a; } };
+        struct op_mul { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a * b)  { return a * b; } };
+        struct op_div { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a / b)  { return a / b; } };
+        struct op_mod { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a % b)  { return a % b; } };
+        struct op_add { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a + b)  { return a + b; } };
+        struct op_sub { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a - b)  { return a - b; } };
+        struct op_lsh { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a << b) { return a << b; } };
+        struct op_rsh { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a >> b) { return a >> b; } };
+        struct op_lt  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a < b)  { return a < b; } };
+        struct op_gt  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a > b)  { return a > b; } };
+        struct op_le  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a <= b) { return a <= b; } };
+        struct op_ge  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a >= b) { return a >= b; } };
+        struct op_eq  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a == b) { return a == b; } };
+        struct op_ne  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a != b) { return a != b; } };
+        struct op_int { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a & b)  { return a & b; } };        
+        struct op_xor { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a ^ b)  { return a ^ b; } };
+        struct op_un  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a | b)  { return a | b; } };
+        struct op_and { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a && b) { return a && b; } };
+        struct op_or  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a || b) { return a || b; } };
 
         // Function objects for applying standard library math functions
-        struct std_abs      { template<class T> auto operator() (T a) const { return std::abs  (a); } };
-        struct std_floor    { template<class T> auto operator() (T a) const { return std::floor(a); } };
-        struct std_ceil     { template<class T> auto operator() (T a) const { return std::ceil (a); } };
-        struct std_exp      { template<class T> auto operator() (T a) const { return std::exp  (a); } };
-        struct std_log      { template<class T> auto operator() (T a) const { return std::log  (a); } };
-        struct std_log10    { template<class T> auto operator() (T a) const { return std::log10(a); } };
-        struct std_sqrt     { template<class T> auto operator() (T a) const { return std::sqrt (a); } };
-        struct std_sin      { template<class T> auto operator() (T a) const { return std::sin  (a); } };
-        struct std_cos      { template<class T> auto operator() (T a) const { return std::cos  (a); } };
-        struct std_tan      { template<class T> auto operator() (T a) const { return std::tan  (a); } };
-        struct std_asin     { template<class T> auto operator() (T a) const { return std::asin (a); } };
-        struct std_acos     { template<class T> auto operator() (T a) const { return std::acos (a); } };
-        struct std_atan     { template<class T> auto operator() (T a) const { return std::atan (a); } };
-        struct std_sinh     { template<class T> auto operator() (T a) const { return std::sinh (a); } };
-        struct std_cosh     { template<class T> auto operator() (T a) const { return std::cosh (a); } };
-        struct std_tanh     { template<class T> auto operator() (T a) const { return std::tanh (a); } };
-        struct std_round    { template<class T> auto operator() (T a) const { return std::round(a); } };
-        struct std_fmod     { template<class T> auto operator() (T a, T b) const { return std::fmod    (a, b); } };
-        struct std_pow      { template<class T> auto operator() (T a, T b) const { return std::pow     (a, b); } };
-        struct std_atan2    { template<class T> auto operator() (T a, T b) const { return std::atan2   (a, b); } };
-        struct std_copysign { template<class T> auto operator() (T a, T b) const { return std::copysign(a, b); } };
+        struct std_abs      { template<class A> auto operator() (A a) const -> decltype(std::abs  (a)) { return std::abs  (a); } };
+        struct std_floor    { template<class A> auto operator() (A a) const -> decltype(std::floor(a)) { return std::floor(a); } };
+        struct std_ceil     { template<class A> auto operator() (A a) const -> decltype(std::ceil (a)) { return std::ceil (a); } };
+        struct std_exp      { template<class A> auto operator() (A a) const -> decltype(std::exp  (a)) { return std::exp  (a); } };
+        struct std_log      { template<class A> auto operator() (A a) const -> decltype(std::log  (a)) { return std::log  (a); } };
+        struct std_log10    { template<class A> auto operator() (A a) const -> decltype(std::log10(a)) { return std::log10(a); } };
+        struct std_sqrt     { template<class A> auto operator() (A a) const -> decltype(std::sqrt (a)) { return std::sqrt (a); } };
+        struct std_sin      { template<class A> auto operator() (A a) const -> decltype(std::sin  (a)) { return std::sin  (a); } };
+        struct std_cos      { template<class A> auto operator() (A a) const -> decltype(std::cos  (a)) { return std::cos  (a); } };
+        struct std_tan      { template<class A> auto operator() (A a) const -> decltype(std::tan  (a)) { return std::tan  (a); } };
+        struct std_asin     { template<class A> auto operator() (A a) const -> decltype(std::asin (a)) { return std::asin (a); } };
+        struct std_acos     { template<class A> auto operator() (A a) const -> decltype(std::acos (a)) { return std::acos (a); } };
+        struct std_atan     { template<class A> auto operator() (A a) const -> decltype(std::atan (a)) { return std::atan (a); } };
+        struct std_sinh     { template<class A> auto operator() (A a) const -> decltype(std::sinh (a)) { return std::sinh (a); } };
+        struct std_cosh     { template<class A> auto operator() (A a) const -> decltype(std::cosh (a)) { return std::cosh (a); } };
+        struct std_tanh     { template<class A> auto operator() (A a) const -> decltype(std::tanh (a)) { return std::tanh (a); } };
+        struct std_round    { template<class A> auto operator() (A a) const -> decltype(std::round(a)) { return std::round(a); } };
+        struct std_fmod     { template<class A, class B> auto operator() (A a, B b) const -> decltype(std::fmod    (a, b)) { return std::fmod    (a, b); } };
+        struct std_pow      { template<class A, class B> auto operator() (A a, B b) const -> decltype(std::pow     (a, b)) { return std::pow     (a, b); } };
+        struct std_atan2    { template<class A, class B> auto operator() (A a, B b) const -> decltype(std::atan2   (a, b)) { return std::atan2   (a, b); } };
+        struct std_copysign { template<class A, class B> auto operator() (A a, B b) const -> decltype(std::copysign(a, b)) { return std::copysign(a, b); } };
     }
 
     //////////////////////////////////////////////////////////////
@@ -368,30 +377,30 @@ namespace linalg
 
     template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
-    // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::any_apply<F,A...>::impl(std::make_integer_sequence<int,detail::any_apply<F,A...>::size>{}, func, args...); }
-
-    // map(a,f) is equivalent to apply(f,a)
-    template<class A, class F> constexpr auto map(const A & a, F func) { return apply(func, a); }
-
-    // zip(a,b,f) is equivalent to apply(f,a,b)
-    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return apply(func, a, b); }
-
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
-    template<class F, class... A> using apply_t = typename detail::any_apply<F,void,A...>::type;
+    template<class F, class... A> using apply_t = typename detail::any_apply<F,A...>::type;
     template<class F, class... A> using vec_apply_t = typename detail::vec_apply<F,void,A...>::type;
     template<class F, class... A> using mat_apply_t = typename detail::mat_apply<F,void,A...>::type;
     template<class F, class... A> using quat_apply_t = typename detail::quat_apply<F,void,A...>::type;
+
+    // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
+    template<class F, class... A> constexpr apply_t<F,A...> apply(F func, const A & ... args) { return detail::any_apply<F,A...>::impl(detail::make_seq<detail::any_apply<F,A...>::size>{}, func, args...); }
+
+    // map(a,f) is equivalent to apply(f,a)
+    template<class A, class F> constexpr apply_t<F,A> map(const A & a, F func) { return apply(func, a); }
+
+    // zip(a,b,f) is equivalent to apply(f,a,b)
+    template<class A, class B, class F> constexpr apply_t<F,A,B> zip(const A & a, const B & b, F func) { return apply(func, a, b); }
 
     ////////////////////////////////////
     // Vector operators and functions //
     ////////////////////////////////////
 
     // Component-wise unary operators: $vector
-    template<class T, int M> constexpr auto operator + (const vec<T,M> & a) { return apply(detail::op_pos{}, a); }
-    template<class T, int M> constexpr auto operator - (const vec<T,M> & a) { return apply(detail::op_neg{}, a); }
-    template<class T, int M> constexpr auto operator ~ (const vec<T,M> & a) { return apply(detail::op_cmp{}, a); }
-    template<class T, int M> constexpr auto operator ! (const vec<T,M> & a) { return apply(detail::op_not{}, a); }
+    template<class A> constexpr vec_apply_t<detail::op_pos, A> operator + (const A & a) { return apply(detail::op_pos{}, a); }
+    template<class A> constexpr vec_apply_t<detail::op_neg, A> operator - (const A & a) { return apply(detail::op_neg{}, a); }
+    template<class A> constexpr vec_apply_t<detail::op_cmp, A> operator ~ (const A & a) { return apply(detail::op_cmp{}, a); }
+    template<class A> constexpr vec_apply_t<detail::op_not, A> operator ! (const A & a) { return apply(detail::op_not{}, a); }
 
     // Component-wise binary operators: vector $ vector; vector $ scalar; scalar $ vector
     template<class A, class B> constexpr vec_apply_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
@@ -494,9 +503,9 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a) { return apply(detail::op_neg{}, a); }
 
     // Binary operators: matrix $ vector
-    template<class T, int M> constexpr auto operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a[0]*b.x + a[1]*b.y; }
-    template<class T, int M> constexpr auto operator * (const mat<T,M,3> & a, const vec<T,3> & b) { return a[0]*b.x + a[1]*b.y + a[2]*b.z; }
-    template<class T, int M> constexpr auto operator * (const mat<T,M,4> & a, const vec<T,4> & b) { return a[0]*b.x + a[1]*b.y + a[2]*b.z + a[3]*b.w; }
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a[0]*b.x + a[1]*b.y; }
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,3> & a, const vec<T,3> & b) { return a[0]*b.x + a[1]*b.y + a[2]*b.z; }
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,4> & a, const vec<T,4> & b) { return a[0]*b.x + a[1]*b.y + a[2]*b.z + a[3]*b.w; }
 
     // Binary operators: matrix $ matrix, matrix $ scalar, scalar $ matrix
     template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return apply(detail::op_add{}, a, b); }
@@ -657,8 +666,8 @@ namespace linalg
     template<class T> constexpr vec<T,4> qinv(const vec<T,4> & q) { return vec<T,4>(inverse(quat<T>(q))); }
     template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return vec<T,4>(quat<T>(a) * quat<T>(b)); }
     template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
-    template<class T, int M, int N, class B> constexpr auto mul(const mat<T,M,N> & a, const B & b) { return a*b; }
-    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) { return mul(a, mul(r...)); }
+    template<class T, int M, int N, class B> constexpr auto mul(const mat<T,M,N> & a, const B & b) -> decltype(a*b) { return a*b; }
+    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
 }
 
 ////////////////////////////////////////////////////////

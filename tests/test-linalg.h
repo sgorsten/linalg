@@ -34,10 +34,10 @@ namespace detail
     template<class T, class U> inline std::false_type has_op_mul(...) { return {}; }
     template<class T, class U> inline std::false_type has_op_div(...) { return {}; }
 }
-template<class T, class U> constexpr bool has_op_add = decltype(detail::has_op_add<T,U>(0))::value;
-template<class T, class U> constexpr bool has_op_sub = decltype(detail::has_op_sub<T,U>(0))::value;
-template<class T, class U> constexpr bool has_op_mul = decltype(detail::has_op_mul<T,U>(0))::value;
-template<class T, class U> constexpr bool has_op_div = decltype(detail::has_op_div<T,U>(0))::value;
+template<class T, class U> struct has_op_add : decltype(detail::has_op_add<T,U>(0)) {};
+template<class T, class U> struct has_op_sub : decltype(detail::has_op_sub<T,U>(0)) {};
+template<class T, class U> struct has_op_mul : decltype(detail::has_op_mul<T,U>(0)) {};
+template<class T, class U> struct has_op_div : decltype(detail::has_op_div<T,U>(0)) {};
 
 // Facility for retrieving random numbers
 class random_number_generator
