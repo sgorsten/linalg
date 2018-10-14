@@ -104,7 +104,7 @@ namespace linalg
         struct empty {};
         template<class... T> struct scalars;
         template<> struct scalars<> { using type=void; };
-        template<class T, class... U> struct scalars<T,U...> : std::conditional_t<std::is_arithmetic_v<T>, scalars<U...>, empty> {};
+        template<class T, class... U> struct scalars<T,U...> : std::conditional_t<std::is_arithmetic<T>::value, scalars<U...>, empty> {};
         template<class... T> using scalars_t = typename scalars<T...>::type;
 
         // Define vec/vec and vec/scalar patterns for apply(...), vec_apply_t can be used for return-type SFINAE to control overload set
