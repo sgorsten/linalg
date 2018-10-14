@@ -12,7 +12,7 @@ TEST_CASE("Test linalg::apply(...)")
     const float2  fv {f0,f1}; const float2x2  fm {{f0,f1}, {f2,f3}}; const quatf fq {f0,f1,f2,f3};
     const double2 dv {d0,d1}; const double2x2 dm {{d0,d1}, {d2,d3}}; const quatd dq {d0,d1,d2,d3};
     const int2    iv {i0,i1}; const int2x2    im {{i0,i1}, {i2,i3}};
-    const make_tuple tup;
+    auto tup = make_tuple{};
 
     // Check unary application with vectors/matrices/quaternions/scalars
     CHECK(linalg::apply(tup, fv) == linalg::vec<std::tuple<float>,2>{tup(f0), tup(f1)});
