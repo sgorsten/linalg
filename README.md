@@ -57,37 +57,26 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 
 This section has been removed pending a complete rewrite. Documentation needs to be provided for the following symbols.
 
-[ ] `struct vec<T,M>`
-  [ ] `x`, `y`, `z`, `w`
-  [ ] constructors
-  [ ] `operator[]`
-  [ ] `xy`, `xyz`
-[ ] `struct mat<T,M,N>`
-  [ ] `cols`
-  [ ] constructors
-  [ ] `operator[]`
-  [ ] `row`
-[ ] `struct quat<T>`
-  [ ] `x`, `y`, `z`, `w`
-  [ ] constructors
-  [ ] `xyz`
-[ ] `identity`
-[ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
-[ ] three-way comparison: `compare`
-[ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
-[ ] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
-[ ] component-wise operator overloads for `vec<T,M>`
-[ ] algebraic operator overloads for `mat<T,M,N>` and `quat<T>`
-[ ] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
-[ ] search functions: `argmin`, `argmax`
-[ ] `<cmath>` projections: `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round`, `fmod`, `pow`, `atan2`, `copysign`
-[ ] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
-[ ] component-wise selection: `min`, `max`, `clamp`, `select`
-[ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `rot`, `lerp`, `nlerp`, `slerp`
-[ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `inverse`
-[ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
-[ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
-[ ] transformations support: `rotation_quat`, `translation_matrix`, `rotation_matrix`, `scaling_matrix`, `pose_matrix`, `frustum_matrix`, `perspective_matrix`, `fwd_axis`, `z_range`
-[ ] iterators and ranges: `begin`, `end`
-[ ] `std::hash<...>` specializations
-[ ] `namespace linalg::aliases`
+- [ ] `identity`
+- [ ] `struct vec<T,M>`: `x`, `y`, `z`, `w`, constructors, `operator[]`, `xy`, `xyz`
+- [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
+- [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
+- [ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
+- [ ] three-way comparison: `compare`
+- [ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
+- [ ] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
+- [ ] component-wise operator overloads for `vec<T,M>`
+- [ ] algebraic operator overloads for `mat<T,M,N>` and `quat<T>`
+- [ ] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
+- [ ] search functions: `argmin`, `argmax`
+- [ ] `<cmath>` projections: `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round`, `fmod`, `pow`, `atan2`, `copysign`
+- [ ] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
+- [ ] component-wise selection: `min`, `max`, `clamp`, `select`
+- [ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `rot`, `lerp`, `nlerp`, `slerp`
+- [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `inverse`
+- [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
+- [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
+- [ ] transformations support: `rotation_quat`, `translation_matrix`, `rotation_matrix`, `scaling_matrix`, `pose_matrix`, `frustum_matrix`, `perspective_matrix`, `fwd_axis`, `z_range`
+- [ ] iterators and ranges: `begin`, `end`
+- [ ] `std::hash<...>` specializations
+- [ ] `namespace linalg::aliases`
