@@ -12,10 +12,10 @@ matrix:
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
     - env: COMPILER=g++-8
       addons: { apt: { packages: ["g++-8"], sources: ["ubuntu-toolchain-r-test"] } }
-    - env: COMPILER=clang++-3.3 CXXLIBRARY="-stdlib=libc++ -lc++abi"
-      addons: { apt: { packages: ["clang-3.3", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.3"] } }
-    - env: COMPILER=clang++-3.4 CXXLIBRARY="-stdlib=libc++ -lc++abi"
-      addons: { apt: { packages: ["clang-3.4", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.4"] } }
+    #- env: COMPILER=clang++-3.3 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    #  addons: { apt: { packages: ["clang-3.3", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.3"] } }
+    #- env: COMPILER=clang++-3.4 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    #  addons: { apt: { packages: ["clang-3.4", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.4"] } }
     - env: COMPILER=clang++-3.5 CXXLIBRARY="-stdlib=libc++ -lc++abi"
       addons: { apt: { packages: ["clang-3.5", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.5"] } }
     - env: COMPILER=clang++-3.6 CXXLIBRARY="-stdlib=libc++ -lc++abi"

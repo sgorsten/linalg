@@ -7,7 +7,7 @@ NOTE: This is the development branch for `linalg.h v3.0`. It should be considere
 
 Platform | Build Status |
 -------- | ------------ |
-GCC 5,6,7,8 Clang 3.7,4,5,6 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=v3)](https://travis-ci.org/sgorsten/linalg) |
+GCC 4.9-8.0 Clang 3.5-6.0 | [Travis CI](http://travis-ci.org): [![Build status](http://travis-ci.org/sgorsten/linalg.svg?branch=v3)](https://travis-ci.org/sgorsten/linalg) |
 Visual Studio 2015, 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++14](http://en.cppreference.com/w/). 
@@ -16,7 +16,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 
 # Breaking changes in `v3.0`
 
-* `linalg.h` no longer supports Visual Studio 2013. However, it is known to work on GCC 5+, Clang 3.5+ in C++11 mode and Visual Studio 2015+ in C++14 mode.
+* `linalg.h` no longer supports Visual Studio 2013. However, it is known to work on GCC 4.9+, Clang 3.5+ in C++11 mode and Visual Studio 2015+.
 * The set of operator overloads on matrices have been reduced to those with an obvious arithmetic meaning.
   * `mat+mat`, `mat-mat`, `mat*scalar`, `scalar*mat`, and `mat/scalar` are implemented as elementwise operations
   * `mat*mat` and `mat*vec` computes the matrix product
