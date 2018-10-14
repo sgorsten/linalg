@@ -98,35 +98,31 @@ namespace linalg
         template<class T, int N> struct arr { T e[N]; };
 
         // SFINAE helpers to determine result of function application
-        template<class F, class... T> using scalar_result_t = decltype(std::declval<F>()(std::declval<T>()...));
+        template<class F, class... T> using ret_t = decltype(std::declval<F>()(std::declval<T>()...));
 
-        // Template type alias for the return type of calling apply(f,...) with vectors, can be used with SFINAE to indicate function applies only to vectors
-        template<class F, class... T> struct vec_result {};
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>>           { using type = vec<scalar_result_t<F,T>,M>;   static constexpr type apply(F f, const vec<T,M> & a)                     { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a);    } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return {f(a[I])...}; } };
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>, vec<T,M>> { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, const vec<T,M> & a, const vec<T,M> & b) { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return {f(a[I], b[I])...}; } };
-        template<class F, class T, int M> struct vec_result<F, vec<T,M>, T>        { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, const vec<T,M> & a, T b)                { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return {f(a[I], b)...}; } };
-        template<class F, class T, int M> struct vec_result<F, T, vec<T,M>>        { using type = vec<scalar_result_t<F,T,T>,M>; static constexpr type apply(F f, T a, const vec<T,M> & b)                { return indexed_apply(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type indexed_apply(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return {f(a, b[I])...}; } };
-        template<class F, class... T> using vec_result_t = typename vec_result<F,T...>::type;
+        // Define vec/vec and vec/scalar patterns for apply(...), vec_apply_t can be used for return-type SFINAE to control overload set
+        template<class F, class... T> struct vec_apply {};
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>>           { using type = vec<ret_t<F,T>,M>;   static constexpr type impl(F f, const vec<T,M> & a)                     { return impl2(std::make_integer_sequence<int,M>{}, f, a);    } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a)                     { return {f(a[I])...}; } };
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, vec<T,M>> { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, const vec<T,M> & a, const vec<T,M> & b) { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, const vec<T,M> & b) { return {f(a[I], b[I])...}; } };
+        template<class F, class T, int M> struct vec_apply<F, vec<T,M>, T>        { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, const vec<T,M> & a, T b)                { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, const vec<T,M> & a, T b)                { return {f(a[I], b)...}; } };
+        template<class F, class T, int M> struct vec_apply<F, T, vec<T,M>>        { using type = vec<ret_t<F,T,T>,M>; static constexpr type impl(F f, T a, const vec<T,M> & b)                { return impl2(std::make_integer_sequence<int,M>{}, f, a, b); } template<int... I> static constexpr type impl2(std::integer_sequence<int,I...>, F f, T a, const vec<T,M> & b)                { return {f(a, b[I])...}; } };
 
-        // Template type alias for the return type of calling apply(f,...) with matrices, can be used with SFINAE to indicate function applies only to matrices
-        template<class F, class... T> struct mat_result {};
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>>             { using type = mat<scalar_result_t<F,T>,M,N>;   static constexpr type apply(F f, const mat<T,M,N> & a)                       { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a);    } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return {vec_result<F,vec<T,M>>::apply(f, a[J])...}; } };
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return {vec_result<F,vec<T,M>,vec<T,M>>::apply(f, a[J], b[J])...}; }};
-        template<class F, class T, int M, int N> struct mat_result<F, mat<T,M,N>, T>          { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, const mat<T,M,N> & a, T b)                  { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return {vec_result<F,vec<T,M>,T>::apply(f, a[J], b)...}; }};
-        template<class F, class T, int M, int N> struct mat_result<F, T, mat<T,M,N>>          { using type = mat<scalar_result_t<F,T,T>,M,N>; static constexpr type apply(F f, T a, const mat<T,M,N> & b)                  { return indexed_apply(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type indexed_apply(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return {vec_result<F,T,vec<T,M>>::apply(f, a, b[J])...}; }};
-        template<class F, class... T> using mat_result_t = typename mat_result<F,T...>::type;
+        // Define mat/mat and mat/scalar patterns for apply(...), mat_apply_t<...> can be used for return-type SFINAE to control overload set
+        template<class F, class... T> struct mat_apply {};
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>>             { using type = mat<ret_t<F,T>,M,N>;   static constexpr type impl(F f, const mat<T,M,N> & a)                       { return impl2(std::make_integer_sequence<int,N>{}, f, a);    } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a)                       { return {vec_apply<F,vec<T,M>>::impl(f, a[J])...}; } };
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, mat<T,M,N>> { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, const mat<T,M,N> & b) { return {vec_apply<F,vec<T,M>,vec<T,M>>::impl(f, a[J], b[J])...}; }};
+        template<class F, class T, int M, int N> struct mat_apply<F, mat<T,M,N>, T>          { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, const mat<T,M,N> & a, T b)                  { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, const mat<T,M,N> & a, T b)                  { return {vec_apply<F,vec<T,M>,T>::impl(f, a[J], b)...}; }};
+        template<class F, class T, int M, int N> struct mat_apply<F, T, mat<T,M,N>>          { using type = mat<ret_t<F,T,T>,M,N>; static constexpr type impl(F f, T a, const mat<T,M,N> & b)                  { return impl2(std::make_integer_sequence<int,N>{}, f, a, b); } template<int... J> static constexpr type impl2(std::integer_sequence<int,J...>, F f, T a, const mat<T,M,N> & b)                  { return {vec_apply<F,T,vec<T,M>>::impl(f, a, b[J])...}; }};
 
-        // Template type alias for the return type of calling apply(f,...) with quaternions, can be used with SFINAE to indicate function applies only to quaternions
-        template<class F, class... T> struct quat_result {};
-        template<class F, class T> struct quat_result<F, quat<T>>          { using type = quat<scalar_result_t<F,T>>;   static constexpr type apply(F f, const quat<T> & a)                    { return {f(a.x), f(a.y), f(a.z), f(a.w)}; }                 };
-        template<class F, class T> struct quat_result<F, quat<T>, quat<T>> { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, const quat<T> & a, const quat<T> & b) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; } };
-        template<class F, class T> struct quat_result<F, quat<T>, T>       { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, const quat<T> & a, T b)               { return {f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }         };
-        template<class F, class T> struct quat_result<F, T, quat<T>>       { using type = quat<scalar_result_t<F,T,T>>; static constexpr type apply(F f, T a, const quat<T> & b)               { return {f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }         };
-        template<class F, class... T> using quat_result_t = typename quat_result<F,T...>::type;
-
-        // Template type alias for the return type of calling apply(f,...) on any linalg types, can be used with SFINAE
-        template<class F, class... T> struct apply_result : vec_result<F,T...>, mat_result<F,T...>, quat_result<F,T...> {};
-        template<class F, class... T> using apply_result_t = typename apply_result<F,T...>::type;
+        // Define quat/quat and quat/scalar patterns for apply(...), quat_apply_t<...> can be used for return-type SFINAE to control overload set
+        template<class F, class... T> struct quat_apply {};
+        template<class F, class T> struct quat_apply<F, quat<T>>          { using type = quat<ret_t<F,T>>;   static constexpr type impl(F f, const quat<T> & a)                    { return {f(a.x), f(a.y), f(a.z), f(a.w)}; }                 };
+        template<class F, class T> struct quat_apply<F, quat<T>, quat<T>> { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, const quat<T> & a, const quat<T> & b) { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; } };
+        template<class F, class T> struct quat_apply<F, quat<T>, T>       { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, const quat<T> & a, T b)               { return {f(a.x,b), f(a.y,b), f(a.z,b), f(a.w,b)}; }         };
+        template<class F, class T> struct quat_apply<F, T, quat<T>>       { using type = quat<ret_t<F,T,T>>; static constexpr type impl(F f, T a, const quat<T> & b)               { return {f(a,b.x), f(a,b.y), f(a,b.z), f(a,b.w)}; }         };
+        
+        // Aggregate all valid patterns for apply(...), apply_t<...> can be used for return-type SFINAE to control overload set
+        template<class F, class... T> struct apply : vec_apply<F,T...>, mat_apply<F,T...>, quat_apply<F,T...> {};
 
         // Function objects for selecting min/max of two values
         struct min { template<class T> constexpr T operator() (T l, T r) const { return l < r ? l : r; } };
@@ -353,13 +349,19 @@ namespace linalg
     template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::apply_result<F,A...>::apply(func, args...); }
+    template<class F, class... A> constexpr auto apply(F func, const A & ... args) { return detail::apply<F,A...>::impl(func, args...); }
 
     // map(a,f) is equivalent to apply(f,a)
-    template<class A, class F> constexpr auto map(const A & a, F func) { return detail::apply_result<F,A>::apply(func,a); }
+    template<class A, class F> constexpr auto map(const A & a, F func) { return detail::apply<F,A>::impl(func,a); }
 
     // zip(a,b,f) is equivalent to apply(f,a,b)
-    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return detail::apply_result<F,A,B>::apply(func,a,b); }
+    template<class A, class B, class F> constexpr auto zip(const A & a, const B & b, F func) { return detail::apply<F,A,B>::impl(func,a,b); }
+
+    // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
+    template<class F, class... A> using apply_t = typename detail::apply<F,A...>::type;
+    template<class F, class... A> using vec_apply_t = typename detail::vec_apply<F,A...>::type;
+    template<class F, class... A> using mat_apply_t = typename detail::mat_apply<F,A...>::type;
+    template<class F, class... A> using quat_apply_t = typename detail::quat_apply<F,A...>::type;
 
     ////////////////////////////////////
     // Vector operators and functions //
@@ -372,16 +374,16 @@ namespace linalg
     template<class T, int M> constexpr auto operator ! (const vec<T,M> & a) { return apply(detail::op_not{}, a); }
 
     // Component-wise binary operators: vector $ vector; vector $ scalar; scalar $ vector
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_xor, A, B> operator ^  (const A & a, const B & b) { return apply(detail::op_xor{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_int, A, B> operator &  (const A & a, const B & b) { return apply(detail::op_int{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_lsh, A, B> operator << (const A & a, const B & b) { return apply(detail::op_lsh{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_rsh, A, B> operator >> (const A & a, const B & b) { return apply(detail::op_rsh{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_xor, A, B> operator ^  (const A & a, const B & b) { return apply(detail::op_xor{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_int, A, B> operator &  (const A & a, const B & b) { return apply(detail::op_int{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_lsh, A, B> operator << (const A & a, const B & b) { return apply(detail::op_lsh{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_rsh, A, B> operator >> (const A & a, const B & b) { return apply(detail::op_rsh{}, a, b); }
 
     // Binary assignment operators: vector $= vector, vector $= scalar
     template<class T, int M, class B> constexpr vec<T,M> & operator +=  (vec<T,M> & a, const B & b) { return a = a + b; }
@@ -408,40 +410,40 @@ namespace linalg
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
 
     // Component-wise standard library math functions on vectors
-    template<class A> detail::vec_result_t<detail::std_abs,   A> abs  (const A & a) { return apply(detail::std_abs{},   a); }
-    template<class A> detail::vec_result_t<detail::std_floor, A> floor(const A & a) { return apply(detail::std_floor{}, a); }
-    template<class A> detail::vec_result_t<detail::std_ceil,  A> ceil (const A & a) { return apply(detail::std_ceil{},  a); }
-    template<class A> detail::vec_result_t<detail::std_exp,   A> exp  (const A & a) { return apply(detail::std_exp{},   a); }
-    template<class A> detail::vec_result_t<detail::std_log,   A> log  (const A & a) { return apply(detail::std_log{},   a); }
-    template<class A> detail::vec_result_t<detail::std_log10, A> log10(const A & a) { return apply(detail::std_log10{}, a); }
-    template<class A> detail::vec_result_t<detail::std_sqrt,  A> sqrt (const A & a) { return apply(detail::std_sqrt{},  a); }
-    template<class A> detail::vec_result_t<detail::std_sin,   A> sin  (const A & a) { return apply(detail::std_sin{},   a); }
-    template<class A> detail::vec_result_t<detail::std_cos,   A> cos  (const A & a) { return apply(detail::std_cos{},   a); }
-    template<class A> detail::vec_result_t<detail::std_tan,   A> tan  (const A & a) { return apply(detail::std_tan{},   a); }
-    template<class A> detail::vec_result_t<detail::std_asin,  A> asin (const A & a) { return apply(detail::std_asin{},  a); }
-    template<class A> detail::vec_result_t<detail::std_acos,  A> acos (const A & a) { return apply(detail::std_acos{},  a); }
-    template<class A> detail::vec_result_t<detail::std_atan,  A> atan (const A & a) { return apply(detail::std_atan{},  a); }
-    template<class A> detail::vec_result_t<detail::std_sinh,  A> sinh (const A & a) { return apply(detail::std_sinh{},  a); }
-    template<class A> detail::vec_result_t<detail::std_cosh,  A> cosh (const A & a) { return apply(detail::std_cosh{},  a); }
-    template<class A> detail::vec_result_t<detail::std_tanh,  A> tanh (const A & a) { return apply(detail::std_tanh{},  a); }
-    template<class A> detail::vec_result_t<detail::std_round, A> round(const A & a) { return apply(detail::std_round{}, a); }
+    template<class A> vec_apply_t<detail::std_abs,   A> abs  (const A & a) { return apply(detail::std_abs{},   a); }
+    template<class A> vec_apply_t<detail::std_floor, A> floor(const A & a) { return apply(detail::std_floor{}, a); }
+    template<class A> vec_apply_t<detail::std_ceil,  A> ceil (const A & a) { return apply(detail::std_ceil{},  a); }
+    template<class A> vec_apply_t<detail::std_exp,   A> exp  (const A & a) { return apply(detail::std_exp{},   a); }
+    template<class A> vec_apply_t<detail::std_log,   A> log  (const A & a) { return apply(detail::std_log{},   a); }
+    template<class A> vec_apply_t<detail::std_log10, A> log10(const A & a) { return apply(detail::std_log10{}, a); }
+    template<class A> vec_apply_t<detail::std_sqrt,  A> sqrt (const A & a) { return apply(detail::std_sqrt{},  a); }
+    template<class A> vec_apply_t<detail::std_sin,   A> sin  (const A & a) { return apply(detail::std_sin{},   a); }
+    template<class A> vec_apply_t<detail::std_cos,   A> cos  (const A & a) { return apply(detail::std_cos{},   a); }
+    template<class A> vec_apply_t<detail::std_tan,   A> tan  (const A & a) { return apply(detail::std_tan{},   a); }
+    template<class A> vec_apply_t<detail::std_asin,  A> asin (const A & a) { return apply(detail::std_asin{},  a); }
+    template<class A> vec_apply_t<detail::std_acos,  A> acos (const A & a) { return apply(detail::std_acos{},  a); }
+    template<class A> vec_apply_t<detail::std_atan,  A> atan (const A & a) { return apply(detail::std_atan{},  a); }
+    template<class A> vec_apply_t<detail::std_sinh,  A> sinh (const A & a) { return apply(detail::std_sinh{},  a); }
+    template<class A> vec_apply_t<detail::std_cosh,  A> cosh (const A & a) { return apply(detail::std_cosh{},  a); }
+    template<class A> vec_apply_t<detail::std_tanh,  A> tanh (const A & a) { return apply(detail::std_tanh{},  a); }
+    template<class A> vec_apply_t<detail::std_round, A> round(const A & a) { return apply(detail::std_round{}, a); }
 
-    template<class A, class B> detail::vec_result_t<detail::std_fmod,     A, B> fmod    (const A & a, const B & b) { return apply(detail::std_fmod{},     a, b); }
-    template<class A, class B> detail::vec_result_t<detail::std_pow,      A, B> pow     (const A & a, const B & b) { return apply(detail::std_pow{},      a, b); }
-    template<class A, class B> detail::vec_result_t<detail::std_atan2,    A, B> atan2   (const A & a, const B & b) { return apply(detail::std_atan2{},    a, b); }
-    template<class A, class B> detail::vec_result_t<detail::std_copysign, A, B> copysign(const A & a, const B & b) { return apply(detail::std_copysign{}, a, b); }
+    template<class A, class B> vec_apply_t<detail::std_fmod,     A, B> fmod    (const A & a, const B & b) { return apply(detail::std_fmod{},     a, b); }
+    template<class A, class B> vec_apply_t<detail::std_pow,      A, B> pow     (const A & a, const B & b) { return apply(detail::std_pow{},      a, b); }
+    template<class A, class B> vec_apply_t<detail::std_atan2,    A, B> atan2   (const A & a, const B & b) { return apply(detail::std_atan2{},    a, b); }
+    template<class A, class B> vec_apply_t<detail::std_copysign, A, B> copysign(const A & a, const B & b) { return apply(detail::std_copysign{}, a, b); }
 
     // Component-wise relational functions on vectors
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_eq, A, B> equal  (const A & a, const B & b) { return apply(detail::op_eq{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_ne, A, B> nequal (const A & a, const B & b) { return apply(detail::op_ne{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_lt, A, B> less   (const A & a, const B & b) { return apply(detail::op_lt{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_gt, A, B> greater(const A & a, const B & b) { return apply(detail::op_gt{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_le, A, B> lequal (const A & a, const B & b) { return apply(detail::op_le{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::op_ge, A, B> gequal (const A & a, const B & b) { return apply(detail::op_ge{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_eq, A, B> equal  (const A & a, const B & b) { return apply(detail::op_eq{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_ne, A, B> nequal (const A & a, const B & b) { return apply(detail::op_ne{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_lt, A, B> less   (const A & a, const B & b) { return apply(detail::op_lt{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_gt, A, B> greater(const A & a, const B & b) { return apply(detail::op_gt{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_le, A, B> lequal (const A & a, const B & b) { return apply(detail::op_le{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_ge, A, B> gequal (const A & a, const B & b) { return apply(detail::op_ge{}, a, b); }
 
     // Component-wise selection functions on vectors
-    template<class A, class B> constexpr detail::vec_result_t<detail::min, A, B> min(const A & a, const B & b) { return apply(detail::min{}, a, b); }
-    template<class A, class B> constexpr detail::vec_result_t<detail::max, A, B> max(const A & a, const B & b) { return apply(detail::max{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::min, A, B> min(const A & a, const B & b) { return apply(detail::min{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::max, A, B> max(const A & a, const B & b) { return apply(detail::max{}, a, b); }
     template<class A, class B> constexpr auto clamp(const A & a, const B & b, const B & c) { return min(max(a,b),c); } // TODO: Revisit
 
     // Vector algebra functions
