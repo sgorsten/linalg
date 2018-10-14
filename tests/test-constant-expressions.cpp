@@ -1,5 +1,4 @@
-#include "../linalg.h"
-using namespace linalg::aliases;
+#include "test-linalg.h"
 
 // Test constexpr construction
 namespace

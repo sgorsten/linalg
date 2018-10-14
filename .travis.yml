@@ -31,12 +31,10 @@ matrix:
       
 install:
   - export CXX=${COMPILER}
-  - ${CXX} --version
-  - ${CXX} -v
   - export CXXLIBRARY=${CXXLIBRARY}
-  - echo ${CXXLIBRARY}
+  - ${CXX} --version  
 
 script: 
-  cd samples;
+  cd tests;
   make;
-  ./linalg-test;
+  ./test-linalg;

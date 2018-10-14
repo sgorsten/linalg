@@ -1,4 +1,4 @@
-#include "linalg-test.h"
+#include "test-linalg.h"
 
 TEST_CASE("Sums between matrices of the same dimension are well formed")
 {

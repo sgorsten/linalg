@@ -1,4 +1,4 @@
-#include "linalg-test.h"
+#include "test-linalg.h"
 
 TEST_CASE_TEMPLATE("qxdir(q) == qvq* where v={1,0,0,0}",  T, floating_point_types)
 {

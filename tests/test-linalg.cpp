@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "linalg-test.h"
+#include "test-linalg.h"
 
 #include <algorithm>
 #include <typeinfo>
