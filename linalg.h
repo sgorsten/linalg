@@ -87,6 +87,32 @@ namespace linalg
     template<class T> struct converter<quat<T>, identity_t> { quat<T> operator() (identity_t) const { return {0,0,0,1}; } };
     constexpr identity_t identity {1};
 
+    // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor
+    template<class T, class A, int I> struct scalar_accessor 
+    { 
+        A elems;
+        scalar_accessor()                = delete;
+        operator const T & () const      { return elems[I]; }
+        operator T & ()                  { return elems[I]; }
+        const T * operator & () const    { return &elems[I]; }
+        T * operator & ()                { return &elems[I]; }
+        T & operator = (const T & value) { return elems[I] = value; }
+    };
+    template<class T, class A, int... I> struct swizzle_accessor
+    {
+        A elems;
+        swizzle_accessor() = delete;
+        operator vec<T,sizeof...(I)> () const { return {elems[I]...}; }
+        void operator = (const vec<T,sizeof...(I)> & value) 
+        { 
+            int i[] {I...}; 
+            for(int j=0; j<sizeof...(I); ++j)
+            {
+                elems[i[j]] = value[j];
+            }
+        }
+    };
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Implementation details. Do not make use of the contents of this namespace from outside the library. //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,18 +123,9 @@ namespace linalg
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type;
         template<class T, class U> constexpr T convert(const U & u) { return converter<T,U>()(u); }
 
-        // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor
-        template<class T, class A, int I> struct scalar_accessor 
-        { 
-            A elems;
-            operator const T & () const      { return elems[I]; }
-            operator T & ()                  { return elems[I]; }
-            const T * operator & () const    { return &elems[I]; }
-            T * operator & ()                { return &elems[I]; }
-            T & operator = (const T & value) { return elems[I] = value; }
-        };
         template<class T> struct unpack { using type=T; };
         template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
+        template<class T, class A, int... I> struct unpack<swizzle_accessor<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
         template<class T> using unpack_t = typename unpack<T>::type;
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
@@ -239,8 +256,10 @@ namespace linalg
         union
         {
             T elems[2];
-            detail::scalar_accessor<T,T[2],0> x,r,s;
-            detail::scalar_accessor<T,T[2],1> y,g,t;
+            scalar_accessor<T,T[2],0> x, r, s;
+            scalar_accessor<T,T[2],1> y, g, t;
+            swizzle_accessor<T,T[2],0,1> xy, rg, st;
+            swizzle_accessor<T,T[2],1,0> yx, gr, ts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
@@ -260,9 +279,21 @@ namespace linalg
         union
         {
             T elems[3];
-            detail::scalar_accessor<T,T[3],0> x,r,s;
-            detail::scalar_accessor<T,T[3],1> y,g,t;
-            detail::scalar_accessor<T,T[3],2> z,b,p;
+            scalar_accessor<T,T[3],0> x, r, s;
+            scalar_accessor<T,T[3],1> y, g, t;
+            scalar_accessor<T,T[3],2> z, b, p;
+            swizzle_accessor<T,T[3],0,1> xy, rg, st;
+            swizzle_accessor<T,T[3],0,2> xz, rb, sp;
+            swizzle_accessor<T,T[3],1,0> yx, gr, ts;
+            swizzle_accessor<T,T[3],1,2> yz, gb, tp;
+            swizzle_accessor<T,T[3],2,0> zx, br, ps;
+            swizzle_accessor<T,T[3],2,1> zy, bg, pt;
+            swizzle_accessor<T,T[3],0,1,2> xyz, rgb, stp;
+            swizzle_accessor<T,T[3],0,2,1> xzy, rbg, spt;
+            swizzle_accessor<T,T[3],1,0,2> yxz, grb, tsp;
+            swizzle_accessor<T,T[3],1,2,0> yzx, gbr, tps;
+            swizzle_accessor<T,T[3],2,0,1> zxy, brg, pst;
+            swizzle_accessor<T,T[3],2,1,0> zyx, bgr, pts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
@@ -274,7 +305,6 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
         constexpr const T *                  data() const                                                { return elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
-        constexpr vec<T,2>                   xy() const                                                  { return {elems[0],elems[1]}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -284,10 +314,70 @@ namespace linalg
         union
         {
             T elems[4];
-            detail::scalar_accessor<T,T[4],0> x,r,s;
-            detail::scalar_accessor<T,T[4],1> y,g,t;
-            detail::scalar_accessor<T,T[4],2> z,b,p;
-            detail::scalar_accessor<T,T[4],3> w,a,q;
+            scalar_accessor<T,T[4],0> x, r, s;
+            scalar_accessor<T,T[4],1> y, g, t;
+            scalar_accessor<T,T[4],2> z, b, p;
+            scalar_accessor<T,T[4],3> w, a, q;
+            swizzle_accessor<T,T[4],0,1> xy, rg, st;
+            swizzle_accessor<T,T[4],0,2> xz, rb, sp;
+            swizzle_accessor<T,T[4],0,3> xw, ra, sq;
+            swizzle_accessor<T,T[4],1,0> yx, gr, ts;
+            swizzle_accessor<T,T[4],1,2> yz, gb, tp;
+            swizzle_accessor<T,T[4],1,3> yw, ga, tq;
+            swizzle_accessor<T,T[4],2,0> zx, br, ps;
+            swizzle_accessor<T,T[4],2,1> zy, bg, pt;
+            swizzle_accessor<T,T[4],2,3> zw, ba, pq;
+            swizzle_accessor<T,T[4],3,0> wx, ar, qs;
+            swizzle_accessor<T,T[4],3,1> wy, ag, qt;
+            swizzle_accessor<T,T[4],3,2> wz, ab, qp;
+            swizzle_accessor<T,T[4],0,1,2> xyz, rgb, stp;
+            swizzle_accessor<T,T[4],0,1,3> xyw, rga, stq;
+            swizzle_accessor<T,T[4],0,2,1> xzy, rbg, spt;
+            swizzle_accessor<T,T[4],0,2,3> xzw, rba, spq;
+            swizzle_accessor<T,T[4],0,3,1> xwy, rag, sqt;
+            swizzle_accessor<T,T[4],0,3,2> xwz, rab, sqp;
+            swizzle_accessor<T,T[4],1,0,2> yxz, grb, tsp;
+            swizzle_accessor<T,T[4],1,0,3> yxw, gra, tsq;
+            swizzle_accessor<T,T[4],1,2,0> yzx, gbr, tps;
+            swizzle_accessor<T,T[4],1,2,3> yzw, gba, tpq;
+            swizzle_accessor<T,T[4],1,3,0> ywx, gar, tqs;
+            swizzle_accessor<T,T[4],1,3,2> ywz, gab, tqp;
+            swizzle_accessor<T,T[4],2,0,1> zxy, brg, pst;
+            swizzle_accessor<T,T[4],2,0,3> zxw, bra, psq;
+            swizzle_accessor<T,T[4],2,1,0> zyx, bgr, pts;
+            swizzle_accessor<T,T[4],2,1,3> zyw, bga, ptq;
+            swizzle_accessor<T,T[4],2,3,0> zwx, bar, pqs;
+            swizzle_accessor<T,T[4],2,3,1> zwy, bag, pqt;
+            swizzle_accessor<T,T[4],3,0,1> wxy, arg, qst;
+            swizzle_accessor<T,T[4],3,0,2> wxz, arb, qsp;
+            swizzle_accessor<T,T[4],3,1,0> wyx, agr, qts;
+            swizzle_accessor<T,T[4],3,1,2> wyz, agb, qtp;
+            swizzle_accessor<T,T[4],3,2,0> wzx, abr, qps;
+            swizzle_accessor<T,T[4],3,2,1> wzy, abg, qpt;
+            swizzle_accessor<T,T[4],0,1,2,3> xyzw, rgba, stpq;
+            swizzle_accessor<T,T[4],0,1,3,2> xywz, rgab, stqp;
+            swizzle_accessor<T,T[4],0,2,1,3> xzyw, rbga, sptq;
+            swizzle_accessor<T,T[4],0,2,3,1> xzwy, rbag, spqt;
+            swizzle_accessor<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
+            swizzle_accessor<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
+            swizzle_accessor<T,T[4],1,0,2,3> yxzw, grba, tspq;
+            swizzle_accessor<T,T[4],1,0,3,2> yxwz, grab, tsqp;
+            swizzle_accessor<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
+            swizzle_accessor<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
+            swizzle_accessor<T,T[4],1,3,0,2> ywxz, garb, tqsp;
+            swizzle_accessor<T,T[4],1,3,2,0> ywzx, gabr, tqps;
+            swizzle_accessor<T,T[4],2,0,1,3> zxyw, brga, pstq;
+            swizzle_accessor<T,T[4],2,0,3,1> zxwy, brag, psqt;
+            swizzle_accessor<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
+            swizzle_accessor<T,T[4],2,1,3,0> zywx, bgar, ptqs;
+            swizzle_accessor<T,T[4],2,3,0,1> zwxy, barg, pqst;
+            swizzle_accessor<T,T[4],2,3,1,0> zwyx, bagr, pqts;
+            swizzle_accessor<T,T[4],3,0,1,2> wxyz, argb, qstp;
+            swizzle_accessor<T,T[4],3,0,2,1> wxzy, arbg, qspt;
+            swizzle_accessor<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
+            swizzle_accessor<T,T[4],3,1,2,0> wyzx, agbr, qtps;
+            swizzle_accessor<T,T[4],3,2,0,1> wzxy, abrg, qpst;
+            swizzle_accessor<T,T[4],3,2,1,0> wzyx, abgr, qpts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
@@ -301,8 +391,6 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
         constexpr const T *                  data() const                                                { return elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
-        constexpr vec<T,3>                   xyz() const                                                 { return {elems[0],elems[1],elems[2]}; }
-        constexpr vec<T,2>                   xy() const                                                  { return {elems[0],elems[1]}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -455,7 +543,7 @@ namespace linalg
     template<class A, class B> constexpr vec_apply_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
-    template<class A, class B> constexpr vec_apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
+    template<class A, class B> vec_apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_xor, A, B> operator ^  (const A & a, const B & b) { return apply(detail::op_xor{}, a, b); }
@@ -685,9 +773,9 @@ namespace linalg
     ////////////////////
 
     // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
-    template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
-    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
-    template<class T> vec<T,4>           qpow (const vec<T,4> & q, const T & p)        { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
+    template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const vec<T,3> v = q.xyz; const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
+    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const vec<T,3> v = q.xyz; const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
+    template<class T> vec<T,4>           qpow (const vec<T,4> & q, const T & p)        { const vec<T,3> v = q.xyz; const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
 
     // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
     template<class T> constexpr vec<T,3>   qxdir (const vec<T,4> & q)                          { return {q.w*q.w+q.x*q.x-q.y*q.y-q.z*q.z, (q.x*q.y+q.z*q.w)*2, (q.z*q.x-q.y*q.w)*2}; }
@@ -695,8 +783,8 @@ namespace linalg
     template<class T> constexpr vec<T,3>   qzdir (const vec<T,4> & q)                          { return {(q.z*q.x+q.y*q.w)*2, (q.y*q.z-q.x*q.w)*2, q.w*q.w-q.x*q.x-q.y*q.y+q.z*q.z}; }
     template<class T> constexpr mat<T,3,3> qmat  (const vec<T,4> & q)                          { return {qxdir(q), qydir(q), qzdir(q)}; }
     template<class T> constexpr vec<T,3>   qrot  (const vec<T,4> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
-    template<class T> T                    qangle(const vec<T,4> & q)                          { return std::atan2(length(q.xyz()), q.w)*2; }
-    template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { return normalize(q.xyz()); }
+    template<class T> T                    qangle(const vec<T,4> & q)                          { return std::atan2(length(vec<T,3>{q.xyz}), q.w)*2; }
+    template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { return normalize(vec<T,3>{q.xyz}); }
     template<class T> vec<T,4>             qnlerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 

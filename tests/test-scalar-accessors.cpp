@@ -86,3 +86,16 @@ TEST_CASE("Scalar accessors behave as intended")
     CHECK(i4[0] == 10);
     CHECK(i4[1] == i4[2]);
 }
+
+TEST_CASE("Test swizzles")
+{
+    // Can read vectors from swizzles
+    float4 v {1,2,3,4};
+    CHECK(float2{v.xy} == float2{1,2});
+    CHECK(float3{v.wzx} == float3{4,3,1});
+
+    // Can write through swizzles
+    v.zy = float2{5,6};
+    CHECK(v == float4{1,6,5,4});
+    // TODO: Protect against v.zy = {5,6}, which assigns the ENTIRE SWIZZLE, resulting in {5,6,0,0}
+}
