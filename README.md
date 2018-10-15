@@ -27,6 +27,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `compare(a,b)` provide three-way comparison between compatible types
 * `clamp(a,b,c)` can be invoked with three distinct (but compatible) types
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
+* `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
 * No undefined behavior according to the C++11 standard
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`

@@ -85,8 +85,11 @@ namespace linalg
         template<class T, class A, int I> struct scalar_accessor 
         { 
             A elems;
-            constexpr operator T () const { return elems[I]; }
-            LINALG_CONSTEXPR14 T & operator = (T value) { elems[I] = value; }
+            operator const T & () const      { return elems[I]; }
+            operator T & ()                  { return elems[I]; }
+            const T * operator & () const    { return &elems[I]; }
+            T * operator & ()                { return &elems[I]; }
+            T & operator = (const T & value) { return elems[I] = value; }
         };
         template<class T> struct unpack { using type=T; };
         template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
@@ -235,6 +238,8 @@ namespace linalg
         template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
+        constexpr const T *                  data() const                                                { return elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
     };
     template<class T> struct vec<T,3>
     {
@@ -255,6 +260,8 @@ namespace linalg
         template<class U> constexpr explicit vec(const vec<U,3> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2])} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
+        constexpr const T *                  data() const                                                { return elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
         constexpr vec<T,2>                   xy() const                                                  { return {elems[0],elems[1]}; }
     };
     template<class T> struct vec<T,4>
@@ -279,6 +286,8 @@ namespace linalg
         constexpr explicit                   vec(const quat<T> & q)                                      : elems{q.x, q.y, q.z, q.w} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
+        constexpr const T *                  data() const                                                { return elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
         constexpr vec<T,3>                   xyz() const                                                 { return {elems[0],elems[1],elems[2]}; }
         constexpr vec<T,2>                   xy() const                                                  { return {elems[0],elems[1]}; }
     };
@@ -384,13 +393,13 @@ namespace linalg
     // Range support //
     ///////////////////
 
-    template<class T, int M> constexpr const T * begin(const vec<T,M> & a) { return a.elems; }
-    template<class T, int M> constexpr const T * end  (const vec<T,M> & a) { return a.elems + M; }
+    template<class T, int M> constexpr const T * begin(const vec<T,M> & a) { return a.data(); }
+    template<class T, int M> constexpr const T * end  (const vec<T,M> & a) { return a.data() + M; }
     template<class T, int M, int N> constexpr const vec<T,M> * begin(const mat<T,M,N> & a) { return a.cols; }
     template<class T, int M, int N> constexpr const vec<T,M> * end  (const mat<T,M,N> & a) { return a.cols + N; }
 
-    template<class T, int M> constexpr T * begin(vec<T,M> & a) { return a.elems; }
-    template<class T, int M> constexpr T * end  (vec<T,M> & a) { return a.elems + M; }
+    template<class T, int M> constexpr T * begin(vec<T,M> & a) { return a.data(); }
+    template<class T, int M> constexpr T * end  (vec<T,M> & a) { return a.data() + M; }
     template<class T, int M, int N> constexpr vec<T,M> * begin(mat<T,M,N> & a) { return a.cols; }
     template<class T, int M, int N> constexpr vec<T,M> * end  (mat<T,M,N> & a) { return a.cols + N; }
 
