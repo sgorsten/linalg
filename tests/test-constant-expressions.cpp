@@ -64,3 +64,10 @@ static_assert(maxelem(int4(1, -2, -3, -4)) == 1, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, 2, -3, -4)) == 2, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, -2, 3, -4)) == 3, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, -2, -3, 4)) == 4, "maxelem should be constexpr");
+
+// Check constexpr iterators
+#if !defined(_MSC_VER) || _MSC_VER > 1900
+static_assert(linalg::end(a2) - linalg::begin(a2) == 2, "begin()/end() should be constexpr");
+static_assert(linalg::end(a3) - linalg::begin(a3) == 3, "begin()/end() should be constexpr");
+static_assert(linalg::end(a4) - linalg::begin(a4) == 4, "begin()/end() should be constexpr");
+#endif

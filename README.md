@@ -27,13 +27,11 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `compare(a,b)` provide three-way comparison between compatible types
 * `clamp(a,b,c)` can be invoked with three distinct (but compatible) types
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
-* The library does not internally rely on undefined behavior
-  * Use of `begin` and `end` on `vec<T,M>` types is still undefined behavior
-* Almost all operations which do not internally call `<cmath>` functions are `constexpr`
-  * Current exceptions: `argmin`, `argmax`, `begin`, `end`
-* No lambdas are used in `linalg.h`
-  * This avoids potential undefined behavior due to ODR violations
-  * The library remains compatible with lambdas provided in user code
+* `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
+* No undefined behavior according to the C++11 standard
+* Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
+* No lambdas are used in `linalg.h`, avoidng potential ODR violations
+
 
 # Breaking changes in `v3.0`
 
@@ -47,7 +45,8 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * All other binary matrix overloads have been deleted
   * Most componentwise and reduction functions no longer apply to matrices
   * However, componentwise operations can still be invoked manually with the `apply(...)` function
-* `mat<T,M,N>` is now defined in terms of an array, instead of explicit column fields `x`, `y`, `z`, `w`
+* `vec<T,M>` and `mat<T,M,N>` are now defined in terms of arrays, instead of explicit fields `x`, `y`, `z`, `w`
+  * However, `vec<T,M>` can still be accessed with `x`,`y`,`z`,`w` due to special scalar accessor types which should silently convert to `T` in most scenarios
 * `vec::xy()` and `vec::xyz()` can no longer be used as lvalues
   * The original behavior relied on `reinterpret_cast` operations which were undefined behavior in standard C++
   * `a.xyz() = {1,2,3}` can be rewritten as `a = {1,2,3,a.w};`
@@ -58,7 +57,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 This section has been removed pending a complete rewrite. Documentation needs to be provided for the following symbols.
 
 - [ ] `identity`
-- [ ] `struct vec<T,M>`: `x`, `y`, `z`, `w`, constructors, `operator[]`, `xy`, `xyz`
+- [ ] `struct vec<T,M>`: `elems`, accessors, constructors, `operator[]`, `xy`, `xyz`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 - [ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`

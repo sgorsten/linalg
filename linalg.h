@@ -81,6 +81,17 @@ namespace linalg
 
     namespace detail
     {
+        // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor
+        template<class T, class A, int I> struct scalar_accessor 
+        { 
+            A elems;
+            constexpr operator T () const { return elems[I]; }
+            LINALG_CONSTEXPR14 T & operator = (T value) { elems[I] = value; }
+        };
+        template<class T> struct unpack { using type=T; };
+        template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
+        template<class T> using unpack_t = typename unpack<T>::type;
+
         // Type with an implicit conversion to the multiplicative identity of any given algebraic object
         struct identity_t { constexpr identity_t(int) {}; };
 
@@ -92,9 +103,6 @@ namespace linalg
         template<class T> constexpr bool operator > (const ord<T> & o, std::nullptr_t) { return o.b < o.a; }
         template<class T> constexpr bool operator <= (const ord<T> & o, std::nullptr_t) { return !(o.b < o.a); }
         template<class T> constexpr bool operator >= (const ord<T> & o, std::nullptr_t) { return !(o.a < o.b); }
-
-        // Value type wrapper around a C array, for use in single-expression constexpr functions
-        template<class T, int N> struct arr { T e[N]; };
 
         // Stand-in for std::integer_sequence/std::make_integer_sequence
         template<int... I> struct seq {};
@@ -211,54 +219,75 @@ namespace linalg
 
     template<class T> struct vec<T,2>
     {
-        T                           x,y;
-        constexpr                   vec()                               : x(), y() {}
-        constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-        constexpr                   vec(const std::array<T,2> & a)      : vec(a[0], a[1]) {}
-        constexpr explicit          vec(const T & s)                    : vec(s, s) {}
-        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
+        union
+        {
+            T elems[2];
+            detail::scalar_accessor<T,T[2],0> x,r,s;
+            detail::scalar_accessor<T,T[2],1> y,g,t;
+        };
+        constexpr                   vec()                               : elems{} {}
+        constexpr                   vec(const vec & v)                  : elems{v[0], v[1]} {}
+        constexpr                   vec(const T & x_, const T & y_)     : elems{x_, y_} {}
+        constexpr                   vec(const std::array<T,2> & a)      : elems{a[0], a[1]} {}
+        constexpr explicit          vec(const T & s)                    : elems{s, s} {}
+        constexpr explicit          vec(const T * p)                    : elems{p[0], p[1]} {}
         template<class U>
-        constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.e[i]); }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.e[i]); }
+        constexpr explicit          vec(const vec<U,2> & v)             : elems{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
+        constexpr const T &         operator[] (int i) const            { return elems[i]; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return elems[i]; }
     };
     template<class T> struct vec<T,3>
     {
-        T                           x,y,z;
-        constexpr                   vec()                               : x(), y(), z() {}
+        union
+        {
+            T elems[3];
+            detail::scalar_accessor<T,T[3],0> x,r,s;
+            detail::scalar_accessor<T,T[3],1> y,g,t;
+            detail::scalar_accessor<T,T[3],2> z,b,p;
+        };
+        constexpr                   vec()                               : elems{} {}
+        constexpr                   vec(const vec & v)                  : elems{v[0], v[1], v[2]} {}
         constexpr                   vec(const T & x_, const T & y_, 
-                                        const T & z_)                   : x(x_), y(y_), z(z_) {}
+                                        const T & z_)                   : elems{x_, y_, z_} {}
         constexpr                   vec(const vec<T,2> & xy,
-                                        const T & z_)                   : vec(xy.x, xy.y, z_) {}
-        constexpr                   vec(const std::array<T,3> & a)      : vec(a[0], a[1], a[2]) {}
-        constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
-        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
+                                        const T & z_)                   : elems{xy.x, xy.y, z_} {}
+        constexpr                   vec(const std::array<T,3> & a)      : elems{a[0], a[1], a[2]} {}
+        constexpr explicit          vec(const T & s)                    : elems{s, s, s} {}
+        constexpr explicit          vec(const T * p)                    : elems{p[0], p[1], p[2]} {}
         template<class U>
-        constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.e[i]); }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.e[i]); }
-        constexpr vec<T,2>          xy() const                          { return {x,y}; }
+        constexpr explicit          vec(const vec<U,3> & v)             : elems{static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)} {}
+        constexpr const T &         operator[] (int i) const            { return elems[i]; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return elems[i]; }
+        constexpr vec<T,2>          xy() const                          { return {elems[0],elems[1]}; }
     };
     template<class T> struct vec<T,4>
     {
-        T                           x,y,z,w;
-        constexpr                   vec()                               : x(), y(), z(), w() {}
+        union
+        {
+            T elems[4];
+            detail::scalar_accessor<T,T[4],0> x,r,s;
+            detail::scalar_accessor<T,T[4],1> y,g,t;
+            detail::scalar_accessor<T,T[4],2> z,b,p;
+            detail::scalar_accessor<T,T[4],3> w,a,q;
+        };
+        constexpr                   vec()                               : elems{} {}
+        constexpr                   vec(const vec & v)                  : elems{v[0], v[1], v[2], v[3]} {}
         constexpr                   vec(const T & x_, const T & y_,
-                                        const T & z_, const T & w_)     : x(x_), y(y_), z(z_), w(w_) {}
+                                        const T & z_, const T & w_)     : elems{x_, y_, z_, w_} {}
         constexpr                   vec(const vec<T,2> & xy, 
-                                        const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
+                                        const T & z_, const T & w_)     : elems{xy.x, xy.y, z_, w_} {}
         constexpr                   vec(const vec<T,3> & xyz,
-                                        const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-        constexpr                   vec(const std::array<T,4> & a)      : vec(a[0], a[1], a[2], a[3]) {}
-        constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
-        constexpr explicit          vec(const quat<T> & q)              : vec(q.x, q.y, q.z, q.w) {}
-        constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
+                                        const T & w_)                   : elems{xyz.x, xyz.y, xyz.z, w_} {}
+        constexpr                   vec(const std::array<T,4> & a)      : elems{a[0], a[1], a[2], a[3]} {}
+        constexpr explicit          vec(const T & s)                    : elems{s, s, s, s} {}
+        constexpr explicit          vec(const quat<T> & q)              : elems{q.x, q.y, q.z, q.w} {}
+        constexpr explicit          vec(const T * p)                    : elems{p[0], p[1], p[2], p[3]} {}
         template<class U> 
-        constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.e[i]); }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.e[i]); }
-        constexpr vec<T,3>          xyz() const                         { return {x,y,z}; }
-        constexpr vec<T,2>          xy() const                          { return {x,y}; }
+        constexpr explicit          vec(const vec<U,4> & v)             : elems{static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)} {}
+        constexpr const T &         operator[] (int i) const            { return elems[i]; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return elems[i]; }
+        constexpr vec<T,3>          xyz() const                         { return {elems[0],elems[1],elems[2]}; }
+        constexpr vec<T,2>          xy() const                          { return {elems[0],elems[1]}; }
     };
 
     ////////////////////////////////////////////////////////////////
@@ -352,9 +381,9 @@ namespace linalg
     template<class A> constexpr auto operator <= (const A & a, const A & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
     template<class A> constexpr auto operator >= (const A & a, const A & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
 
-    template<class T> constexpr detail::ord<T> compare(const vec<T,2> & a, const vec<T,2> & b) { return !(a.x==b.x) ? detail::ord<T>{a.x,b.x} : detail::ord<T>{a.y,b.y}; }
-    template<class T> constexpr detail::ord<T> compare(const vec<T,3> & a, const vec<T,3> & b) { return !(a.x==b.x) ? detail::ord<T>{a.x,b.x} : !(a.y==b.y) ? detail::ord<T>{a.y,b.y} : detail::ord<T>{a.z,b.z}; }
-    template<class T> constexpr detail::ord<T> compare(const vec<T,4> & a, const vec<T,4> & b) { return !(a.x==b.x) ? detail::ord<T>{a.x,b.x} : !(a.y==b.y) ? detail::ord<T>{a.y,b.y} : !(a.z==b.z) ? detail::ord<T>{a.z,b.z} : detail::ord<T>{a.w,b.w}; }
+    template<class T> constexpr detail::ord<T> compare(const vec<T,2> & a, const vec<T,2> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : detail::ord<T>{a[1],b[1]}; }
+    template<class T> constexpr detail::ord<T> compare(const vec<T,3> & a, const vec<T,3> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? detail::ord<T>{a[1],b[1]} : detail::ord<T>{a[2],b[2]}; }
+    template<class T> constexpr detail::ord<T> compare(const vec<T,4> & a, const vec<T,4> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? detail::ord<T>{a[1],b[1]} : !(a[2]==b[2]) ? detail::ord<T>{a[2],b[2]} : detail::ord<T>{a[3],b[3]}; }
 
     template<class T, int M> constexpr detail::ord<T> compare(const mat<T,M,2> & a, const mat<T,M,2> & b) { return a[0]!=b[0] ? compare(a[0],b[0]) : compare(a[1],b[1]); }
     template<class T, int M> constexpr detail::ord<T> compare(const mat<T,M,3> & a, const mat<T,M,3> & b) { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : compare(a[2],b[2]); }
@@ -362,14 +391,28 @@ namespace linalg
 
     template<class T> constexpr detail::ord<T> compare(const quat<T> & a, const quat<T> & b) { return !(a.x==b.x) ? detail::ord<T>{a.x,b.x} : !(a.y==b.y) ? detail::ord<T>{a.y,b.y} : !(a.z==b.z) ? detail::ord<T>{a.z,b.z} : detail::ord<T>{a.w,b.w}; }
 
+    ///////////////////
+    // Range support //
+    ///////////////////
+
+    template<class T, int M> constexpr const T * begin(const vec<T,M> & a) { return a.elems; }
+    template<class T, int M> constexpr const T * end  (const vec<T,M> & a) { return a.elems + M; }
+    template<class T, int M, int N> constexpr const vec<T,M> * begin(const mat<T,M,N> & a) { return a.cols; }
+    template<class T, int M, int N> constexpr const vec<T,M> * end  (const mat<T,M,N> & a) { return a.cols + N; }
+
+    template<class T, int M> constexpr T * begin(vec<T,M> & a) { return a.elems; }
+    template<class T, int M> constexpr T * end  (vec<T,M> & a) { return a.elems + M; }
+    template<class T, int M, int N> constexpr vec<T,M> * begin(mat<T,M,N> & a) { return a.cols; }
+    template<class T, int M, int N> constexpr vec<T,M> * end  (mat<T,M,N> & a) { return a.cols + N; }
+
     ////////////////////////////
     // Higher-order functions //
     ////////////////////////////
 
     // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
-    template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a.x,a.y); }
-    template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a.x,a.y),a.z); }
-    template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
+    template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a[0],a[1]); }
+    template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a[0],a[1]),a[2]); }
+    template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a[0],a[1]),a[2]),a[3]); }
 
     template<class T, int M, class F> constexpr T fold(const mat<T,M,2> & a, F f) { return f(fold(a[0],f),fold(a[1],f)); }
     template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)); }
@@ -378,13 +421,13 @@ namespace linalg
     template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
 
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
-    template<class F, class... A> using apply_t = typename detail::any_apply<F,A...>::type;
-    template<class F, class... A> using vec_apply_t = typename detail::vec_apply<F,void,A...>::type;
-    template<class F, class... A> using mat_apply_t = typename detail::mat_apply<F,void,A...>::type;
-    template<class F, class... A> using quat_apply_t = typename detail::quat_apply<F,void,A...>::type;
+    template<class F, class... A> using apply_t = typename detail::any_apply<F,detail::unpack_t<A>...>::type;
+    template<class F, class... A> using vec_apply_t = typename detail::vec_apply<F,void,detail::unpack_t<A>...>::type;
+    template<class F, class... A> using mat_apply_t = typename detail::mat_apply<F,void,detail::unpack_t<A>...>::type;
+    template<class F, class... A> using quat_apply_t = typename detail::quat_apply<F,void,detail::unpack_t<A>...>::type;
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
-    template<class F, class... A> constexpr apply_t<F,A...> apply(F func, const A & ... args) { return detail::any_apply<F,A...>::impl(detail::make_seq<detail::any_apply<F,A...>::size>{}, func, args...); }
+    template<class F, class... A> constexpr apply_t<F,A...> apply(F func, const A & ... args) { return detail::any_apply<F,detail::unpack_t<A>...>::impl(detail::make_seq<detail::any_apply<F,detail::unpack_t<A>...>::size>{}, func, args...); }
 
     // map(a,f) is equivalent to apply(f,a)
     template<class A, class F> constexpr apply_t<F,A> map(const A & a, F func) { return apply(func, a); }
@@ -618,16 +661,6 @@ namespace linalg
     ///////////////////////////////////////////////////////////////////////////
     // Chopping block - Functions in this section may be reworked or removed //
     ///////////////////////////////////////////////////////////////////////////
-
-    // Vectors and matrices can be used as ranges
-    template<class T, int M>       T * begin(      vec<T,M> & a) { return &a[0]; } // Undefined behavior when used as iterator
-    template<class T, int M> const T * begin(const vec<T,M> & a) { return &a[0]; } // Undefined behavior when used as iterator
-    template<class T, int M>       T * end  (      vec<T,M> & a) { return begin(a) + M; } // Undefined behavior
-    template<class T, int M> const T * end  (const vec<T,M> & a) { return begin(a) + M; } // Undefined behavior
-    template<class T, int M, int N>       vec<T,M> * begin(      mat<T,M,N> & a) { return a.cols; }
-    template<class T, int M, int N> const vec<T,M> * begin(const mat<T,M,N> & a) { return a.cols; }
-    template<class T, int M, int N>       vec<T,M> * end  (      mat<T,M,N> & a) { return a.cols + N; }
-    template<class T, int M, int N> const vec<T,M> * end  (const mat<T,M,N> & a) { return a.cols + N; }
 
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
     enum fwd_axis { neg_z, pos_z };                 // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
