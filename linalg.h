@@ -51,7 +51,8 @@
 #include <cstdlib>      // For std::abs
 #include <cstddef>      // For std::nullptr_t
 #include <cstdint>      // For std::uint8_t, std::uint16_t, std::int16_t, etc.
-#include <array>        // For std::array
+#include <type_traits>  // For std::is_arithmetic, std::is_same, std::enable_if, std::conditional
+#include <functional>   // For std::hash
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
 #if _MSC_VER <= 1900
@@ -78,6 +79,14 @@ namespace linalg
     // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
     template<class T, class U> struct converter {};
 
+    // Define a type which will convert to the multiplicative identity of any given algebraic object
+    struct identity_t { constexpr explicit identity_t(int) {} };
+    template<class T> struct converter<mat<T,2,2>, identity_t> { mat<T,2,2> operator() (identity_t) const { return {{1,0},{0,1}}; } };
+    template<class T> struct converter<mat<T,3,3>, identity_t> { mat<T,3,3> operator() (identity_t) const { return {{1,0,0},{0,1,0},{0,0,1}}; } };
+    template<class T> struct converter<mat<T,4,4>, identity_t> { mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
+    template<class T> struct converter<quat<T>, identity_t> { quat<T> operator() (identity_t) const { return {0,0,0,1}; } };
+    constexpr identity_t identity {1};
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Implementation details. Do not make use of the contents of this namespace from outside the library. //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,9 +110,6 @@ namespace linalg
         template<class T> struct unpack { using type=T; };
         template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
         template<class T> using unpack_t = typename unpack<T>::type;
-
-        // Type with an implicit conversion to the multiplicative identity of any given algebraic object
-        struct identity_t { constexpr identity_t(int) {}; };
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
         template<class T> struct ord { T a,b; };
@@ -238,10 +244,8 @@ namespace linalg
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
-        constexpr                            vec(const std::array<T,2> & a)                              : elems{a[0], a[1]} {}
         constexpr                            vec(const T & e0, const T & e1)                             : elems{e0, e1} {}
         constexpr explicit                   vec(const T & s)                                            : elems{s, s} {}
-        constexpr explicit                   vec(const T * p)                                            : elems{p[0], p[1]} {}
         template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
@@ -262,11 +266,9 @@ namespace linalg
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
-        constexpr                            vec(const std::array<T,3> & a)                              : elems{a[0], a[1], a[2]} {}
         constexpr                            vec(const T & e0, const T & e1, const T & e2)               : elems{e0, e1, e2} {}
         constexpr                            vec(const vec<T,2> & e01, const T & e2)                     : elems{e01[0], e01[1], e2} {}
         constexpr explicit                   vec(const T & s)                                            : elems{s, s, s} {}
-        constexpr explicit                   vec(const T * p)                                            : elems{p[0], p[1], p[2]} {}
         template<class U> constexpr explicit vec(const vec<U,3> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2])} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
@@ -289,12 +291,10 @@ namespace linalg
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
-        constexpr                            vec(const std::array<T,4> & a)                              : elems{a[0], a[1], a[2], a[3]} {}
         constexpr                            vec(const T & e0, const T & e1, const T & e2, const T & e3) : elems{e0, e1, e2, e3} {}
         constexpr                            vec(const vec<T,2> & e01, const T & e2, const T & e3)       : elems{e01[0], e01[1], e2, e3} {}
         constexpr                            vec(const vec<T,3> & e012, const T & e3)                    : elems{e012[0], e012[1], e012[2], e3} {}
         constexpr explicit                   vec(const T & s)                                            : elems{s, s, s, s} {}
-        constexpr explicit                   vec(const T * p)                                            : elems{p[0], p[1], p[2], p[3]} {}
         template<class U> constexpr explicit vec(const vec<U,4> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2]), static_cast<T>(v[3])} {}
         constexpr explicit                   vec(const quat<T> & q)                                      : elems{q.x, q.y, q.z, q.w} {}
         constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
@@ -317,10 +317,8 @@ namespace linalg
         using V=vec<T,M>;
         V                                       cols[2];
         constexpr                               mat()                                                    : cols{} {}
-        constexpr                               mat(detail::identity_t)                                  : cols{{1,0},{0,1}} {}
         constexpr                               mat(const V & x_, const V & y_)                          : cols{x_, y_} {}
         constexpr explicit                      mat(const T & s)                                         : cols{V(s), V(s)} {}
-        constexpr explicit                      mat(const T * p)                                         : cols{V(p+M*0), V(p+M*1)} {}
         template<class U> constexpr explicit    mat(const mat<U,M,2> & m)                                : cols{V(m[0]), V(m[1])} {}
         constexpr const V &                     operator[] (int j) const                                 { return cols[j]; }
         LINALG_CONSTEXPR14 V &                  operator[] (int j)                                       { return cols[j]; }
@@ -334,10 +332,8 @@ namespace linalg
         using V=vec<T,M>;
         V                                    cols[3];
         constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(detail::identity_t)                                     : cols{{1,0,0},{0,1,0},{0,0,1}} {}
         constexpr                            mat(const V & x_, const V & y_, const V & z_)               : cols{x_, y_, z_} {}
         constexpr explicit                   mat(const T & s)                                            : cols{V(s), V(s), V(s)} {}
-        constexpr explicit                   mat(const T * p)                                            : cols{V(p+M*0), V(p+M*1), V(p+M*2)} {}
         template<class U> constexpr explicit mat(const mat<U,M,3> & m)                                   : cols{V(m[0]), V(m[1]), V(m[2])} {}
         constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
@@ -351,10 +347,8 @@ namespace linalg
         using V=vec<T,M>;
         V                                    cols[4];
         constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(detail::identity_t)                                     : cols{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}} {}
         constexpr                            mat(const V & x_, const V & y_, const V & z_, const V & w_) : cols{x_, y_, z_, w_} {}
         constexpr explicit                   mat(const T & s)                                            : cols{V(s), V(s), V(s), V(s)} {}
-        constexpr explicit                   mat(const T * p)                                            : cols{V(p+M*0), V(p+M*1), V(p+M*2), V(p+M*3)} {}
         template<class U> constexpr explicit mat(const mat<U,M,4> & m)                                   : cols{V(m[0]), V(m[1]), V(m[2]), V(m[3])} {}
         constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
@@ -372,24 +366,15 @@ namespace linalg
     {
         T x,y,z,w;
         constexpr                            quat()                                                       : x(), y(), z(), w() {}
-        constexpr                            quat(detail::identity_t)                                     : quat(0,0,0,1) {}
         constexpr                            quat(const T & x_, const T & y_, const T & z_, const T & w_) : x(x_), y(y_), z(z_), w(w_) {}
         constexpr                            quat(const vec<T,3> & xyz, const T & w_)                     : quat(xyz[0], xyz[1], xyz[2], w_) {}
         constexpr explicit                   quat(const vec<T,4> & xyzw)                                  : quat(xyzw[0], xyzw[1], xyzw[2], xyzw[3]) {}
-        constexpr explicit                   quat(const std::array<T,4> & a)                              : quat(a[0], a[1], a[2], a[3]) {}
         template<class U> constexpr explicit quat(const quat<U> & q)                                      : quat(static_cast<T>(q.x), static_cast<T>(q.y), static_cast<T>(q.z), static_cast<T>(q.w)) {}
         constexpr vec<T,3>                   xyz() const                                                  { return {x,y,z}; }
 
         template<class U, class=detail::conv_t<quat,U>> constexpr quat(const U & u)                       : quat(detail::convert<quat>(u)) {}
         template<class U, class=detail::conv_t<U,quat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
     };
-
-    ///////////////
-    // Constants //
-    ///////////////
-
-    // Converts implicity to the multiplicative identity of any given algebraic object 
-    constexpr detail::identity_t identity {1};
 
     //////////////////////////
     // Relational operators //

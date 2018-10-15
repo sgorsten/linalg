@@ -25,6 +25,7 @@
     <ClCompile Include="..\test-quaternions.cpp" />
     <ClCompile Include="..\test-linalg.cpp" />
     <ClCompile Include="..\test-scalar-accessors.cpp" />
+    <ClCompile Include="..\test-user-defined-conversions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />

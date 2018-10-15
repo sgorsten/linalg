@@ -397,47 +397,6 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to t
     }
 }
 
-////////////////////////////////////////////
-// Test semantics of pointer constructors //
-////////////////////////////////////////////
-
-TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, arithmetic_types) 
-{
-    random_number_generator rng;
-    for(int i=0; i<reps; ++i)
-    {
-        const T a[4] {rng, rng, rng, rng};
-        const T * const p = a;
-        CHECK(linalg::vec<T,2>(p) == linalg::vec<T,2>(a[0], a[1]));
-        CHECK(linalg::vec<T,3>(p) == linalg::vec<T,3>(a[0], a[1], a[2]));
-        CHECK(linalg::vec<T,4>(p) == linalg::vec<T,4>(a[0], a[1], a[2], a[3]));
-    }
-}
-
-TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, arithmetic_types) 
-{
-    random_number_generator rng;
-    for(int i=0; i<reps; ++i)
-    {
-        const T a[16] {rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng, rng};
-        const T * const p = a;
-
-        CHECK(linalg::mat<T,2,2>(p) == linalg::mat<T,2,2>({a[0],a[1]}, {a[2],a[3]}));
-        CHECK(linalg::mat<T,2,3>(p) == linalg::mat<T,2,3>({a[0],a[1]}, {a[2],a[3]}, {a[4],a[5]}));
-        CHECK(linalg::mat<T,2,4>(p) == linalg::mat<T,2,4>({a[0],a[1]}, {a[2],a[3]}, {a[4],a[5]}, {a[6],a[7]}));
-
-        CHECK(linalg::mat<T,3,2>(p) == linalg::mat<T,3,2>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}));
-        CHECK(linalg::mat<T,3,3>(p) == linalg::mat<T,3,3>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}, {a[6],a[7],a[8]}));
-        CHECK(linalg::mat<T,3,4>(p) == linalg::mat<T,3,4>({a[0],a[1],a[2]}, {a[3],a[4],a[5]}, {a[6],a[7],a[8]}, {a[9],a[10],a[11]}));
-
-        CHECK(linalg::mat<T,4,2>(p) == linalg::mat<T,4,2>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}));
-        CHECK(linalg::mat<T,4,3>(p) == linalg::mat<T,4,3>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}, {a[8],a[9],a[10],a[11]}));
-        CHECK(linalg::mat<T,4,4>(p) == linalg::mat<T,4,4>({a[0],a[1],a[2],a[3]}, {a[4],a[5],a[6],a[7]}, {a[8],a[9],a[10],a[11]}, {a[12],a[13],a[14],a[15]}));
-    }
-}
-
-// TODO: Appending constructors
-
 //////////////////////////////////////////
 // Test semantics of operator overloads //
 //////////////////////////////////////////
@@ -969,13 +928,11 @@ TEST_CASE( "templates instantiate correctly" )
     // Declare some variables to test functions requiring an lvalue
     const float2 cf2; const float3 cf3; const float4 cf4;
     float2 f2; float3 f3; float4 f4; int2 i2; int3 i3; int4 i4;
-    float fs[] = {1,2,3,4};
 
     // Exercise vec<T,2>
     MATCH(float2, float2());
     MATCH(float2, float2(1,2) );
     MATCH(float2, float2(5) );
-    MATCH(float2, float2(fs) );
     MATCH(float2, float2(int2(3,4)) );
     MATCH(const float&, cf2[1] );
     MATCH(float&, f2[1] );
@@ -985,7 +942,6 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float3, float3(1,2,3) );
     MATCH(float3, float3(float2(),4) );
     MATCH(float3, float3(5) );
-    MATCH(float3, float3(fs) );
     MATCH(float3, float3(int3(3,4,5)) );
     MATCH(const float&, cf3[1] );
     MATCH(float&, f3[1] );
@@ -996,7 +952,6 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float4, float4(1,2,3,4) );
     MATCH(float4, float4(float3(),4) );
     MATCH(float4, float4(5) );
-    MATCH(float4, float4(fs) );
     MATCH(float4, float4(int4(3,4,5,6)) );
     MATCH(const float&, cf4[1] );
     MATCH(float&, f4[1] );

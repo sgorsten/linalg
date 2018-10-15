@@ -30,6 +30,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
 * User can specialize `converter<T,U>` to enable implicit conversions from `U` to `T`, if either type is a `vec`, `mat`, or `quat`
+  * `identity` is implemented using this facility to serve as an in-library example
 * No undefined behavior according to the C++11 standard
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
 * No lambdas are used in `linalg.h`, avoidng potential ODR violations
@@ -49,6 +50,10 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * However, componentwise operations can still be invoked manually with the `apply(...)` function
 * `vec<T,M>` and `mat<T,M,N>` are now defined in terms of arrays, instead of explicit fields `x`, `y`, `z`, `w`
   * However, `vec<T,M>` can still be accessed with `x`,`y`,`z`,`w` due to special scalar accessor types which should silently convert to `T` in most scenarios
+* Some constructors have been removed from `vec` and `mat`
+  * `vec<T,M>` no longer has an implicit constructor from `std::array<T,M>`
+  * `vec<T,M>` and `mat<T,M,N>` no longer have an explicit constructor from `const T *`
+  * These capabilities can be added by specializing `converter<T,U>`, as shown in [test-user-defined-conversions.cpp](tests/test-user-defined-conversions.cpp) 
 * `vec::xy()` and `vec::xyz()` can no longer be used as lvalues
   * The original behavior relied on `reinterpret_cast` operations which were undefined behavior in standard C++
   * `a.xyz() = {1,2,3}` can be rewritten as `a = {1,2,3,a.w};`
@@ -58,11 +63,11 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 
 This section has been removed pending a complete rewrite. Documentation needs to be provided for the following symbols.
 
-- [ ] `identity`
 - [ ] `struct vec<T,M>`: `elems`, accessors, constructors, `operator[]`, `xy`, `xyz`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 - [ ] user-defined conversions: `converter<T,U>`
+- [ ] `identity`
 - [ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
 - [ ] three-way comparison: `compare`
 - [ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
