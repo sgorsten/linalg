@@ -29,6 +29,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
 * `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
+* User can specialize `converter<T,U>` to enable implicit conversions from `U` to `T`, if either type is a `vec`, `mat`, or `quat`
 * No undefined behavior according to the C++11 standard
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
 * No lambdas are used in `linalg.h`, avoidng potential ODR violations
@@ -61,6 +62,7 @@ This section has been removed pending a complete rewrite. Documentation needs to
 - [ ] `struct vec<T,M>`: `elems`, accessors, constructors, `operator[]`, `xy`, `xyz`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
+- [ ] user-defined conversions: `converter<T,U>`
 - [ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
 - [ ] three-way comparison: `compare`
 - [ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
