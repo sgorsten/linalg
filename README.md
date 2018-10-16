@@ -29,6 +29,9 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
 * `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
+* Groups of `vec<T,M>` elements can be accessed via named swizzles, such as `xyz`, `bgr`, or `pq`
+  * For now, all permutations of elements are supported, but no duplicates are allowed (such as `xyzz`)
+  * This is to allow swizzles to be used as lvalues without introducing ambiguous meanings
 * User can specialize `converter<T,U>` to enable implicit conversions from `U` to `T`, if either type is a `vec`, `mat`, or `quat`
   * `identity` is implemented using this facility to serve as an in-library example
 * No undefined behavior according to the C++11 standard
@@ -54,16 +57,13 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * `vec<T,M>` no longer has an implicit constructor from `std::array<T,M>`
   * `vec<T,M>` and `mat<T,M,N>` no longer have an explicit constructor from `const T *`
   * These capabilities can be added by specializing `converter<T,U>`, as shown in [test-user-defined-conversions.cpp](tests/test-user-defined-conversions.cpp) 
-* `vec::xy()` and `vec::xyz()` can no longer be used as lvalues
-  * The original behavior relied on `reinterpret_cast` operations which were undefined behavior in standard C++
-  * `a.xyz() = {1,2,3}` can be rewritten as `a = {1,2,3,a.w};`
-  * `a.xyz()` is still usable as an rvalue, in expressions such as `a.xyz()/a.w`
+* The functions `vec::xy()` and `vec::xyz()` have been replaced by the swizzles `vec::xy` and `vec::xyz`
 
 # Documentation
 
 This section has been removed pending a complete rewrite. Documentation needs to be provided for the following symbols.
 
-- [ ] `struct vec<T,M>`: `elems`, accessors, constructors, `operator[]`, `xy`, `xyz`
+- [ ] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 - [ ] user-defined conversions: `converter<T,U>`

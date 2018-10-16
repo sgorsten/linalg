@@ -859,7 +859,7 @@ TEST_CASE( "special quaternion functions behave as expected" )
     require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
-float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = m*float4(p,1); return r.xyz()/r.w; }
+float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = m*float4(p,1); return r.xyz/r.w; }
 
 TEST_CASE( "Projection matrices behave as intended" )
 {
@@ -945,7 +945,6 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float3, float3(int3(3,4,5)) );
     MATCH(const float&, cf3[1] );
     MATCH(float&, f3[1] );
-    MATCH(float2, f3.xy() );
 
     // Exercise vec<T,4>
     MATCH(float4, float4() );
@@ -955,7 +954,6 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float4, float4(int4(3,4,5,6)) );
     MATCH(const float&, cf4[1] );
     MATCH(float&, f4[1] );
-    MATCH(float3, f4.xyz() );
 
     // TODO: Exercise mat<T,M,N> for N=2,3,4
 

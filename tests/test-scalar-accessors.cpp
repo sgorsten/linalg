@@ -128,3 +128,137 @@ TEST_CASE("Scalar accessors assign as scalars, not as vectors")
         CHECK(a[3] == 6);    
     }
 }
+
+TEST_CASE("Test swizzle reads")
+{
+    const float2 a {1,2};
+    CHECK(a.xy == float2{1,2});
+    CHECK(a.yx == float2{2,1});
+
+    const float3 b {3,4,5};
+    CHECK(b.xy == float2{3,4}); 
+    CHECK(b.xz == float2{3,5});
+    CHECK(b.yx == float2{4,3});
+    CHECK(b.yz == float2{4,5}); 
+    CHECK(b.zx == float2{5,3}); 
+    CHECK(b.zy == float2{5,4});
+    CHECK(b.xyz == float3{3,4,5});
+    CHECK(b.xzy == float3{3,5,4});
+    CHECK(b.yxz == float3{4,3,5});
+    CHECK(b.yzx == float3{4,5,3});
+    CHECK(b.zxy == float3{5,3,4});
+    CHECK(b.zyx == float3{5,4,3});
+
+    const float4 c {6,7,8,9};
+    CHECK(c.xy == float2{6,7});
+    CHECK(c.xz == float2{6,8});
+    CHECK(c.xw == float2{6,9});
+    CHECK(c.yx == float2{7,6});
+    CHECK(c.yz == float2{7,8});
+    CHECK(c.yw == float2{7,9});
+    CHECK(c.zx == float2{8,6});
+    CHECK(c.zy == float2{8,7});
+    CHECK(c.zw == float2{8,9});
+    CHECK(c.wx == float2{9,6});
+    CHECK(c.wy == float2{9,7});
+    CHECK(c.wz == float2{9,8});
+    CHECK(c.xyz == float3{6,7,8});
+    CHECK(c.xyw == float3{6,7,9});
+    CHECK(c.xzy == float3{6,8,7});
+    CHECK(c.xzw == float3{6,8,9});
+    CHECK(c.xwy == float3{6,9,7});
+    CHECK(c.xwz == float3{6,9,8});
+    CHECK(c.yxz == float3{7,6,8});
+    CHECK(c.yxw == float3{7,6,9});
+    CHECK(c.yzx == float3{7,8,6});
+    CHECK(c.yzw == float3{7,8,9});
+    CHECK(c.ywx == float3{7,9,6});
+    CHECK(c.ywz == float3{7,9,8});
+    CHECK(c.zxy == float3{8,6,7});
+    CHECK(c.zxw == float3{8,6,9});
+    CHECK(c.zyx == float3{8,7,6});
+    CHECK(c.zyw == float3{8,7,9});
+    CHECK(c.zwx == float3{8,9,6});
+    CHECK(c.zwy == float3{8,9,7});
+    CHECK(c.wxy == float3{9,6,7});
+    CHECK(c.wxz == float3{9,6,8});
+    CHECK(c.wyx == float3{9,7,6});
+    CHECK(c.wyz == float3{9,7,8});
+    CHECK(c.wzx == float3{9,8,6});
+    CHECK(c.wzy == float3{9,8,7});
+    CHECK(c.xyzw == float4{6,7,8,9});
+    CHECK(c.xywz == float4{6,7,9,8});
+    CHECK(c.xzyw == float4{6,8,7,9});
+    CHECK(c.xzwy == float4{6,8,9,7});
+    CHECK(c.xwyz == float4{6,9,7,8});
+    CHECK(c.xwzy == float4{6,9,8,7});
+    CHECK(c.yxzw == float4{7,6,8,9});
+    CHECK(c.yxwz == float4{7,6,9,8});
+    CHECK(c.yzxw == float4{7,8,6,9});
+    CHECK(c.yzwx == float4{7,8,9,6});
+    CHECK(c.ywxz == float4{7,9,6,8});
+    CHECK(c.ywzx == float4{7,9,8,6});
+    CHECK(c.zxyw == float4{8,6,7,9});
+    CHECK(c.zxwy == float4{8,6,9,7});
+    CHECK(c.zyxw == float4{8,7,6,9});
+    CHECK(c.zywx == float4{8,7,9,6});
+    CHECK(c.zwxy == float4{8,9,6,7});
+    CHECK(c.zwyx == float4{8,9,7,6});
+    CHECK(c.wxyz == float4{9,6,7,8});
+    CHECK(c.wxzy == float4{9,6,8,7});
+    CHECK(c.wyxz == float4{9,7,6,8});
+    CHECK(c.wyzx == float4{9,7,8,6});
+    CHECK(c.wzxy == float4{9,8,6,7});
+    CHECK(c.wzyx == float4{9,8,7,6});
+}
+
+TEST_CASE("Test swizzle writes")
+{
+    float4 a {1,2,3,4}, b {5,6,7,8};
+
+    SUBCASE("Can assign through swizzle with explicit type")
+    {
+        a.zy = float2{9,10};
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 10);
+        CHECK(a[2] == 9);
+        CHECK(a[3] == 4);
+    }
+
+    SUBCASE("Can assign through swizzle with braced list type")
+    {
+        a.zy = {9,10};
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 10);
+        CHECK(a[2] == 9);
+        CHECK(a[3] == 4);
+    }
+
+    SUBCASE("Can assign from same swizzle")
+    {
+        a.wz = b.wz;
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 2);
+        CHECK(a[2] == 7);
+        CHECK(a[3] == 8); 
+    }
+
+    SUBCASE("Can assign from different swizzle")
+    {
+        a.wz = b.xy;
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 2);
+        CHECK(a[2] == 6);
+        CHECK(a[3] == 5);    
+    }
+
+    SUBCASE("Swapping via self assignment has correct semantics")
+    {
+        a.xy = a.yx;
+        a.wz = a.zw;
+        CHECK(a[0] == 2);
+        CHECK(a[1] == 1);
+        CHECK(a[2] == 4);
+        CHECK(a[3] == 3);    
+    }
+}

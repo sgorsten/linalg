@@ -12,11 +12,6 @@ namespace
     constexpr int4x4 a4x4 {{1,2,4,8},{2,4,8,16},{4,8,16,32},{8,16,32,64}}, b4x4 {{2,3,5,7},{3,5,7,11},{5,7,11,13},{7,11,13,17}};
 }
 
-// Check swizzle functions
-static_assert(a3.xy() == a2, "linalg::vec<T,3>::xy() should be constexpr");
-static_assert(a4.xy() == a2, "linalg::vec<T,4>::xy() should be constexpr");
-static_assert(a4.xyz() == a3, "linalg::vec<T,4>::xyz() should be constexpr");
-
 // Check vec::operator[]
 static_assert(a2[0] == 1, "linalg::vec<T,2>::operator[] should be constexpr");
 static_assert(a2[1] == 2, "linalg::vec<T,2>::operator[] should be constexpr");
