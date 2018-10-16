@@ -86,3 +86,45 @@ TEST_CASE("Scalar accessors behave as intended")
     CHECK(i4[0] == 10);
     CHECK(i4[1] == i4[2]);
 }
+
+TEST_CASE("Scalar accessors assign as scalars, not as vectors")
+{
+    // Assigning via braced initializer list should assign one element, should not reassign entire vector
+    float4 a {1,2,3,4}, b {5,6,7,8};
+
+    SUBCASE("Assignment of number assigns as a scalar")
+    {
+        a.x = 9;
+        CHECK(a[0] == 9);
+        CHECK(a[1] == 2);
+        CHECK(a[2] == 3);
+        CHECK(a[3] == 4);    
+    }
+
+    SUBCASE("Assignment of braced number assigns as a scalar")
+    {
+        a.y = {9};
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 9);
+        CHECK(a[2] == 3);
+        CHECK(a[3] == 4);    
+    }
+
+    SUBCASE("Assignment from same accessor")
+    {
+        a.z = b.z;
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 2);
+        CHECK(a[2] == 7);
+        CHECK(a[3] == 4);    
+    }
+
+    SUBCASE("Assignment from different accessor")
+    {
+        a.w = b.y;
+        CHECK(a[0] == 1);
+        CHECK(a[1] == 2);
+        CHECK(a[2] == 3);
+        CHECK(a[3] == 6);    
+    }
+}
