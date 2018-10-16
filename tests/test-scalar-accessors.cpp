@@ -251,4 +251,14 @@ TEST_CASE("Test swizzle writes")
         CHECK(a[2] == 6);
         CHECK(a[3] == 5);    
     }
+
+    SUBCASE("Swapping via self assignment has correct semantics")
+    {
+        a.xy = a.yx;
+        a.wz = a.zw;
+        CHECK(a[0] == 2);
+        CHECK(a[1] == 1);
+        CHECK(a[2] == 4);
+        CHECK(a[3] == 3);    
+    }
 }

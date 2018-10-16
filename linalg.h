@@ -102,7 +102,8 @@ namespace linalg
     template<class T, class A, int I0, int I1> struct swizzle2
     {
         A                           e;
-        constexpr                   swizzle2(T e0, T e1)                    : e{} { e[I0]=e0; e[I1]=e1; } // Aggregate constructor (braced-initialization) has incorrect semantics
+        constexpr                   swizzle2()                              : e{} {} // This constructor makes swizzle2 a literal type, allowing it to live inside unions
+                                    swizzle2(T e0, T e1)                    { e[I0]=e0; e[I1]=e1; }
                                     swizzle2(const vec<T,2> & r)            : swizzle2(r[0], r[1]) {}
         template<class B, int... J> swizzle2(const swizzle2<T,B,J...> & r)  : swizzle2(vec<T,2>(r)) {}
                                     operator vec<T,2> () const              { return {e[I0], e[I1]}; }           
@@ -111,7 +112,8 @@ namespace linalg
     template<class T, class A, int I0, int I1, int I2> struct swizzle3
     {
         A                           e;
-        constexpr                   swizzle3(T e0, T e1, T e2)              : e{} { e[I0]=e0; e[I1]=e1; e[I2]=e2; } // Aggregate constructor (braced-initialization) has incorrect semantics
+        constexpr                   swizzle3()                              : e{} {} // This constructor makes swizzle3 a literal type, allowing it to live inside unions
+                                    swizzle3(T e0, T e1, T e2)              { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
                                     swizzle3(const vec<T,3> & r)            : swizzle3(r[0], r[1], r[2]) {}
         template<class B, int... J> swizzle3(const swizzle3<T,B,J...> & r)  : swizzle3(vec<T,3>(r)) {}
                                     operator vec<T,3> () const              { return {e[I0], e[I1], e[I2]}; }           
@@ -120,7 +122,8 @@ namespace linalg
     template<class T, class A, int I0, int I1, int I2, int I3> struct swizzle4
     {
         A                           e;
-        constexpr                   swizzle4(T e0, T e1, T e2, T e3)        : e{} { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; } // Aggregate constructor (braced-initialization) has incorrect semantics
+        constexpr                   swizzle4()                              : e{} {} // This constructor makes swizzle4 a literal type, allowing it to live inside unions
+                                    swizzle4(T e0, T e1, T e2, T e3)        { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
                                     swizzle4(const vec<T,4> & r)            : swizzle4(r[0], r[1], r[2], r[3]) {}
         template<class B, int... J> swizzle4(const swizzle4<T,B,J...> & r)  : swizzle4(vec<T,4>(r)) {}
                                     operator vec<T,4> () const              { return {e[I0], e[I1], e[I2], e[I3]}; }           
