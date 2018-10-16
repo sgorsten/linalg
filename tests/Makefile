@@ -1,4 +1,11 @@
-sources = test-linalg.cpp test-constant-expressions.cpp test-expression-validity.cpp test-higher-order-functions.cpp test-quaternions.cpp test-scalar-accessors.cpp test-user-defined-conversions.cpp
+sources := test-linalg.cpp 
+sources += test-constant-expressions.cpp 
+sources += test-expression-validity.cpp
+sources += test-higher-order-functions.cpp
+sources += test-ostream-overloads.cpp
+sources += test-quaternions.cpp 
+sources += test-scalar-accessors.cpp 
+sources += test-user-defined-conversions.cpp
 
 all: test-linalg
 

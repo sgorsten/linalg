@@ -51,8 +51,9 @@
 #include <cstdlib>      // For std::abs
 #include <cstddef>      // For std::nullptr_t
 #include <cstdint>      // For std::uint8_t, std::uint16_t, std::int16_t, etc.
-#include <type_traits>  // For std::is_arithmetic, std::is_same, std::enable_if, std::conditional
+#include <type_traits>  // For std::is_arithmetic, std::is_same, std::enable_if, std::conditional, std::remove_reference
 #include <functional>   // For std::hash
+#include <iosfwd>       // For std::basic_ostream
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
 #if _MSC_VER <= 1900
@@ -783,6 +784,23 @@ namespace linalg
         using bool4x3=mat<bool,4,3>; using int4x3=mat<int,4,3>; using float4x3=mat<float,4,3>; using double4x3=mat<double,4,3>;
         using bool4x4=mat<bool,4,4>; using int4x4=mat<int,4,4>; using float4x4=mat<float,4,4>; using double4x4=mat<double,4,4>;
         using quatf=quat<float>; using quatd=quat<double>;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Reasonable default printing behavior, can be brought in via using namespace linalg::ostream_overloads //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    namespace ostream_overloads
+    {
+        // These overloads stream out something that resembles an aggregate literal that could be used to construct the specified value
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,2> & v) { return out << '{' << v[0] << ',' << v[1] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,3> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,4> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << ',' << v[3] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,2> & m) { return out << '{' << m[0] << ',' << m[1] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,3> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,4> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << ',' << m[3] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const quat<T> & q) { return out << '{' << q.x << ',' << q.y << ',' << q.z << ',' << q.w << '}'; }
+        template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _swizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
     }
 
     ///////////////////////////////////////////////////////////////////////////
