@@ -811,8 +811,8 @@ namespace linalg
     template<class T> constexpr vec<T,3>   qzdir (const vec<T,4> & q)                          { return {(q.z*q.x+q.y*q.w)*2, (q.y*q.z-q.x*q.w)*2, q.w*q.w-q.x*q.x-q.y*q.y+q.z*q.z}; }
     template<class T> constexpr mat<T,3,3> qmat  (const vec<T,4> & q)                          { return {qxdir(q), qydir(q), qzdir(q)}; }
     template<class T> constexpr vec<T,3>   qrot  (const vec<T,4> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
-    template<class T> T                    qangle(const vec<T,4> & q)                          { return std::atan2(length(vec<T,3>{q.xyz}), q.w)*2; }
-    template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { return normalize(vec<T,3>{q.xyz}); }
+    template<class T> T                    qangle(const vec<T,4> & q)                          { const vec<T,3> v = q.xyz; return std::atan2(length(v), q.w)*2; }
+    template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { const vec<T,3> v = q.xyz; return normalize(v); }
     template<class T> vec<T,4>             qnlerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
