@@ -87,52 +87,13 @@ namespace linalg
     template<class T> struct converter<quat<T>, identity_t> { quat<T> operator() (identity_t) const { return {0,0,0,1}; } };
     constexpr identity_t identity {1};
 
-    // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor
-    template<class T, class A, int I> struct scalar_accessor 
-    { 
-        A elems;
-        scalar_accessor()                          = delete;
-        operator const T & () const                { return elems[I]; }
-        operator T & ()                            { return elems[I]; }
-        const T * operator & () const              { return &elems[I]; }
-        T * operator & ()                          { return &elems[I]; }
-        T & operator = (const T & value)           { return elems[I] = value; }
-        T & operator = (const scalar_accessor & r) { return elems[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
-    };
-    template<class T, class A, int I0, int I1> struct swizzle2
-    {
-        A                           e;
-        constexpr                   swizzle2()                              : e{} {} // This constructor makes swizzle2 a literal type, allowing it to live inside unions
-                                    swizzle2(T e0, T e1)                    { e[I0]=e0; e[I1]=e1; }
-                                    swizzle2(const vec<T,2> & r)            : swizzle2(r[0], r[1]) {}
-        template<class B, int... J> swizzle2(const swizzle2<T,B,J...> & r)  : swizzle2(vec<T,2>(r)) {}
-                                    operator vec<T,2> () const              { return {e[I0], e[I1]}; }           
-        swizzle2 &                  operator = (const swizzle2 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
-    };
-    template<class T, class A, int I0, int I1, int I2> struct swizzle3
-    {
-        A                           e;
-        constexpr                   swizzle3()                              : e{} {} // This constructor makes swizzle3 a literal type, allowing it to live inside unions
-                                    swizzle3(T e0, T e1, T e2)              { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
-                                    swizzle3(const vec<T,3> & r)            : swizzle3(r[0], r[1], r[2]) {}
-        template<class B, int... J> swizzle3(const swizzle3<T,B,J...> & r)  : swizzle3(vec<T,3>(r)) {}
-                                    operator vec<T,3> () const              { return {e[I0], e[I1], e[I2]}; }           
-        swizzle3 &                  operator = (const swizzle3 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
-    };
-    template<class T, class A, int I0, int I1, int I2, int I3> struct swizzle4
-    {
-        A                           e;
-        constexpr                   swizzle4()                              : e{} {} // This constructor makes swizzle4 a literal type, allowing it to live inside unions
-                                    swizzle4(T e0, T e1, T e2, T e3)        { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
-                                    swizzle4(const vec<T,4> & r)            : swizzle4(r[0], r[1], r[2], r[3]) {}
-        template<class B, int... J> swizzle4(const swizzle4<T,B,J...> & r)  : swizzle4(vec<T,4>(r)) {}
-                                    operator vec<T,4> () const              { return {e[I0], e[I1], e[I2], e[I3]}; }           
-        swizzle4 &                  operator = (const swizzle4 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
-    };
-
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Implementation details. Do not make use of the contents of this namespace from outside the library. //
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor, cannot live in detail namespace for ADL reasons, but should not be used by user code
+    template<class T, class A, int I> struct _scalar;
+    template<class T, class A, int... I> struct _swizzle;
 
     namespace detail
     {
@@ -142,12 +103,10 @@ namespace linalg
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type;
         template<class T, class U> constexpr T convert(const U & u) { return converter<T,U>()(u); }
 
-        // Helper which reduces scalar_accessor and swizzleN types to their intended targets
+        // Helper which reduces _scalar and _swizzleN types to their intended targets
         template<class T> struct unpack { using type=T; };
-        template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
-        template<class T, class A, int... I> struct unpack<swizzle2<T,A,I...>> { using type=vec<T,2>; };
-        template<class T, class A, int... I> struct unpack<swizzle3<T,A,I...>> { using type=vec<T,3>; };
-        template<class T, class A, int... I> struct unpack<swizzle4<T,A,I...>> { using type=vec<T,4>; };
+        template<class T, class A, int I> struct unpack<_scalar<T,A,I>> { using type=T; };
+        template<class T, class A, int... I> struct unpack<_swizzle<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
         template<class T> using unpack_t = typename unpack<T>::type;
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
@@ -279,6 +238,52 @@ namespace linalg
         struct std_copysign { template<class A, class B> auto operator() (A a, B b) const -> decltype(std::copysign(a, b)) { return std::copysign(a, b); } };
     }
 
+    //////////////////////////////////////////////
+    // Implementation of named scalar accessors //
+    //////////////////////////////////////////////
+
+    template<class T, class A, int I> struct _scalar 
+    { 
+        A elems;
+        _scalar()                          = delete;
+        operator const T & () const        { return elems[I]; }
+        operator T & ()                    { return elems[I]; }
+        const T * operator & () const      { return &elems[I]; }
+        T * operator & ()                  { return &elems[I]; }
+        T & operator = (const T & value)   { return elems[I] = value; }
+        T & operator = (const _scalar & r) { return elems[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
+    };
+    template<class T, class A, int I0, int I1> struct _swizzle<T,A,I0,I1>
+    {
+        A                           e;
+        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
+                                    _swizzle(T e0, T e1)                   { e[I0]=e0; e[I1]=e1; }
+                                    _swizzle(const vec<T,2> & r)           : _swizzle(r[0], r[1]) {}
+        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,2>(r)) {}
+                                    operator vec<T,2> () const             { return {e[I0], e[I1]}; }           
+        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
+    };
+    template<class T, class A, int I0, int I1, int I2> struct _swizzle<T,A,I0,I1,I2>
+    {
+        A                           e;
+        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
+                                    _swizzle(T e0, T e1, T e2)             { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
+                                    _swizzle(const vec<T,3> & r)           : _swizzle(r[0], r[1], r[2]) {}
+        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,3>(r)) {}
+                                    operator vec<T,3> () const             { return {e[I0], e[I1], e[I2]}; }           
+        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
+    };
+    template<class T, class A, int I0, int I1, int I2, int I3> struct _swizzle<T,A,I0,I1,I2,I3>
+    {
+        A                           e;
+        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
+                                    _swizzle(T e0, T e1, T e2, T e3)       { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
+                                    _swizzle(const vec<T,4> & r)           : _swizzle(r[0], r[1], r[2], r[3]) {}
+        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,4>(r)) {}
+                                    operator vec<T,4> () const             { return {e[I0], e[I1], e[I2], e[I3]}; }           
+        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
+    };
+
     //////////////////////////////////////////////////////////////
     // vec<T,M> specializations for 2, 3, and 4 element vectors //
     //////////////////////////////////////////////////////////////
@@ -288,10 +293,10 @@ namespace linalg
         union
         {
             detail::element_storage<T[2]> elems;
-            scalar_accessor<T,T[2],0> x, r, s;
-            scalar_accessor<T,T[2],1> y, g, t;
-            swizzle2<T,T[2],0,1> xy, rg, st;
-            swizzle2<T,T[2],1,0> yx, gr, ts;
+            _scalar<T,T[2],0> x, r, s;
+            _scalar<T,T[2],1> y, g, t;
+            _swizzle<T,T[2],0,1> xy, rg, st;
+            _swizzle<T,T[2],1,0> yx, gr, ts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
@@ -312,21 +317,21 @@ namespace linalg
         union
         {
             detail::element_storage<T[3]> elems;
-            scalar_accessor<T,T[3],0> x, r, s;
-            scalar_accessor<T,T[3],1> y, g, t;
-            scalar_accessor<T,T[3],2> z, b, p;
-            swizzle2<T,T[3],0,1> xy, rg, st;
-            swizzle2<T,T[3],0,2> xz, rb, sp;
-            swizzle2<T,T[3],1,0> yx, gr, ts;
-            swizzle2<T,T[3],1,2> yz, gb, tp;
-            swizzle2<T,T[3],2,0> zx, br, ps;
-            swizzle2<T,T[3],2,1> zy, bg, pt;
-            swizzle3<T,T[3],0,1,2> xyz, rgb, stp;
-            swizzle3<T,T[3],0,2,1> xzy, rbg, spt;
-            swizzle3<T,T[3],1,0,2> yxz, grb, tsp;
-            swizzle3<T,T[3],1,2,0> yzx, gbr, tps;
-            swizzle3<T,T[3],2,0,1> zxy, brg, pst;
-            swizzle3<T,T[3],2,1,0> zyx, bgr, pts;
+            _scalar<T,T[3],0> x, r, s;
+            _scalar<T,T[3],1> y, g, t;
+            _scalar<T,T[3],2> z, b, p;
+            _swizzle<T,T[3],0,1> xy, rg, st;
+            _swizzle<T,T[3],0,2> xz, rb, sp;
+            _swizzle<T,T[3],1,0> yx, gr, ts;
+            _swizzle<T,T[3],1,2> yz, gb, tp;
+            _swizzle<T,T[3],2,0> zx, br, ps;
+            _swizzle<T,T[3],2,1> zy, bg, pt;
+            _swizzle<T,T[3],0,1,2> xyz, rgb, stp;
+            _swizzle<T,T[3],0,2,1> xzy, rbg, spt;
+            _swizzle<T,T[3],1,0,2> yxz, grb, tsp;
+            _swizzle<T,T[3],1,2,0> yzx, gbr, tps;
+            _swizzle<T,T[3],2,0,1> zxy, brg, pst;
+            _swizzle<T,T[3],2,1,0> zyx, bgr, pts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
@@ -348,70 +353,70 @@ namespace linalg
         union
         {
             detail::element_storage<T[4]> elems;
-            scalar_accessor<T,T[4],0> x, r, s;
-            scalar_accessor<T,T[4],1> y, g, t;
-            scalar_accessor<T,T[4],2> z, b, p;
-            scalar_accessor<T,T[4],3> w, a, q;
-            swizzle2<T,T[4],0,1> xy, rg, st;
-            swizzle2<T,T[4],0,2> xz, rb, sp;
-            swizzle2<T,T[4],0,3> xw, ra, sq;
-            swizzle2<T,T[4],1,0> yx, gr, ts;
-            swizzle2<T,T[4],1,2> yz, gb, tp;
-            swizzle2<T,T[4],1,3> yw, ga, tq;
-            swizzle2<T,T[4],2,0> zx, br, ps;
-            swizzle2<T,T[4],2,1> zy, bg, pt;
-            swizzle2<T,T[4],2,3> zw, ba, pq;
-            swizzle2<T,T[4],3,0> wx, ar, qs;
-            swizzle2<T,T[4],3,1> wy, ag, qt;
-            swizzle2<T,T[4],3,2> wz, ab, qp;
-            swizzle3<T,T[4],0,1,2> xyz, rgb, stp;
-            swizzle3<T,T[4],0,1,3> xyw, rga, stq;
-            swizzle3<T,T[4],0,2,1> xzy, rbg, spt;
-            swizzle3<T,T[4],0,2,3> xzw, rba, spq;
-            swizzle3<T,T[4],0,3,1> xwy, rag, sqt;
-            swizzle3<T,T[4],0,3,2> xwz, rab, sqp;
-            swizzle3<T,T[4],1,0,2> yxz, grb, tsp;
-            swizzle3<T,T[4],1,0,3> yxw, gra, tsq;
-            swizzle3<T,T[4],1,2,0> yzx, gbr, tps;
-            swizzle3<T,T[4],1,2,3> yzw, gba, tpq;
-            swizzle3<T,T[4],1,3,0> ywx, gar, tqs;
-            swizzle3<T,T[4],1,3,2> ywz, gab, tqp;
-            swizzle3<T,T[4],2,0,1> zxy, brg, pst;
-            swizzle3<T,T[4],2,0,3> zxw, bra, psq;
-            swizzle3<T,T[4],2,1,0> zyx, bgr, pts;
-            swizzle3<T,T[4],2,1,3> zyw, bga, ptq;
-            swizzle3<T,T[4],2,3,0> zwx, bar, pqs;
-            swizzle3<T,T[4],2,3,1> zwy, bag, pqt;
-            swizzle3<T,T[4],3,0,1> wxy, arg, qst;
-            swizzle3<T,T[4],3,0,2> wxz, arb, qsp;
-            swizzle3<T,T[4],3,1,0> wyx, agr, qts;
-            swizzle3<T,T[4],3,1,2> wyz, agb, qtp;
-            swizzle3<T,T[4],3,2,0> wzx, abr, qps;
-            swizzle3<T,T[4],3,2,1> wzy, abg, qpt;
-            swizzle4<T,T[4],0,1,2,3> xyzw, rgba, stpq;
-            swizzle4<T,T[4],0,1,3,2> xywz, rgab, stqp;
-            swizzle4<T,T[4],0,2,1,3> xzyw, rbga, sptq;
-            swizzle4<T,T[4],0,2,3,1> xzwy, rbag, spqt;
-            swizzle4<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
-            swizzle4<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
-            swizzle4<T,T[4],1,0,2,3> yxzw, grba, tspq;
-            swizzle4<T,T[4],1,0,3,2> yxwz, grab, tsqp;
-            swizzle4<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
-            swizzle4<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
-            swizzle4<T,T[4],1,3,0,2> ywxz, garb, tqsp;
-            swizzle4<T,T[4],1,3,2,0> ywzx, gabr, tqps;
-            swizzle4<T,T[4],2,0,1,3> zxyw, brga, pstq;
-            swizzle4<T,T[4],2,0,3,1> zxwy, brag, psqt;
-            swizzle4<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
-            swizzle4<T,T[4],2,1,3,0> zywx, bgar, ptqs;
-            swizzle4<T,T[4],2,3,0,1> zwxy, barg, pqst;
-            swizzle4<T,T[4],2,3,1,0> zwyx, bagr, pqts;
-            swizzle4<T,T[4],3,0,1,2> wxyz, argb, qstp;
-            swizzle4<T,T[4],3,0,2,1> wxzy, arbg, qspt;
-            swizzle4<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
-            swizzle4<T,T[4],3,1,2,0> wyzx, agbr, qtps;
-            swizzle4<T,T[4],3,2,0,1> wzxy, abrg, qpst;
-            swizzle4<T,T[4],3,2,1,0> wzyx, abgr, qpts;
+            _scalar<T,T[4],0> x, r, s;
+            _scalar<T,T[4],1> y, g, t;
+            _scalar<T,T[4],2> z, b, p;
+            _scalar<T,T[4],3> w, a, q;
+            _swizzle<T,T[4],0,1> xy, rg, st;
+            _swizzle<T,T[4],0,2> xz, rb, sp;
+            _swizzle<T,T[4],0,3> xw, ra, sq;
+            _swizzle<T,T[4],1,0> yx, gr, ts;
+            _swizzle<T,T[4],1,2> yz, gb, tp;
+            _swizzle<T,T[4],1,3> yw, ga, tq;
+            _swizzle<T,T[4],2,0> zx, br, ps;
+            _swizzle<T,T[4],2,1> zy, bg, pt;
+            _swizzle<T,T[4],2,3> zw, ba, pq;
+            _swizzle<T,T[4],3,0> wx, ar, qs;
+            _swizzle<T,T[4],3,1> wy, ag, qt;
+            _swizzle<T,T[4],3,2> wz, ab, qp;
+            _swizzle<T,T[4],0,1,2> xyz, rgb, stp;
+            _swizzle<T,T[4],0,1,3> xyw, rga, stq;
+            _swizzle<T,T[4],0,2,1> xzy, rbg, spt;
+            _swizzle<T,T[4],0,2,3> xzw, rba, spq;
+            _swizzle<T,T[4],0,3,1> xwy, rag, sqt;
+            _swizzle<T,T[4],0,3,2> xwz, rab, sqp;
+            _swizzle<T,T[4],1,0,2> yxz, grb, tsp;
+            _swizzle<T,T[4],1,0,3> yxw, gra, tsq;
+            _swizzle<T,T[4],1,2,0> yzx, gbr, tps;
+            _swizzle<T,T[4],1,2,3> yzw, gba, tpq;
+            _swizzle<T,T[4],1,3,0> ywx, gar, tqs;
+            _swizzle<T,T[4],1,3,2> ywz, gab, tqp;
+            _swizzle<T,T[4],2,0,1> zxy, brg, pst;
+            _swizzle<T,T[4],2,0,3> zxw, bra, psq;
+            _swizzle<T,T[4],2,1,0> zyx, bgr, pts;
+            _swizzle<T,T[4],2,1,3> zyw, bga, ptq;
+            _swizzle<T,T[4],2,3,0> zwx, bar, pqs;
+            _swizzle<T,T[4],2,3,1> zwy, bag, pqt;
+            _swizzle<T,T[4],3,0,1> wxy, arg, qst;
+            _swizzle<T,T[4],3,0,2> wxz, arb, qsp;
+            _swizzle<T,T[4],3,1,0> wyx, agr, qts;
+            _swizzle<T,T[4],3,1,2> wyz, agb, qtp;
+            _swizzle<T,T[4],3,2,0> wzx, abr, qps;
+            _swizzle<T,T[4],3,2,1> wzy, abg, qpt;
+            _swizzle<T,T[4],0,1,2,3> xyzw, rgba, stpq;
+            _swizzle<T,T[4],0,1,3,2> xywz, rgab, stqp;
+            _swizzle<T,T[4],0,2,1,3> xzyw, rbga, sptq;
+            _swizzle<T,T[4],0,2,3,1> xzwy, rbag, spqt;
+            _swizzle<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
+            _swizzle<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
+            _swizzle<T,T[4],1,0,2,3> yxzw, grba, tspq;
+            _swizzle<T,T[4],1,0,3,2> yxwz, grab, tsqp;
+            _swizzle<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
+            _swizzle<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
+            _swizzle<T,T[4],1,3,0,2> ywxz, garb, tqsp;
+            _swizzle<T,T[4],1,3,2,0> ywzx, gabr, tqps;
+            _swizzle<T,T[4],2,0,1,3> zxyw, brga, pstq;
+            _swizzle<T,T[4],2,0,3,1> zxwy, brag, psqt;
+            _swizzle<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
+            _swizzle<T,T[4],2,1,3,0> zywx, bgar, ptqs;
+            _swizzle<T,T[4],2,3,0,1> zwxy, barg, pqst;
+            _swizzle<T,T[4],2,3,1,0> zwyx, bagr, pqts;
+            _swizzle<T,T[4],3,0,1,2> wxyz, argb, qstp;
+            _swizzle<T,T[4],3,0,2,1> wxzy, arbg, qspt;
+            _swizzle<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
+            _swizzle<T,T[4],3,1,2,0> wyzx, agbr, qtps;
+            _swizzle<T,T[4],3,2,0,1> wzxy, abrg, qpst;
+            _swizzle<T,T[4],3,2,1,0> wzyx, abgr, qpts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
