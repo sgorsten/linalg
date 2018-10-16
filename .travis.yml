@@ -43,4 +43,4 @@ install:
 script: 
   cd tests;
   make;
-  ./test-linalg;
+  ./tests;

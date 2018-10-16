@@ -1,16 +1,19 @@
-sources := test-linalg.cpp 
-sources += test-constant-expressions.cpp 
-sources += test-expression-validity.cpp
-sources += test-higher-order-functions.cpp
-sources += test-ostream-overloads.cpp
-sources += test-quaternions.cpp 
-sources += test-scalar-accessors.cpp 
-sources += test-user-defined-conversions.cpp
+sources:=test-linalg.cpp 
+sources+=test-constant-expressions.cpp 
+sources+=test-expression-validity.cpp
+sources+=test-higher-order-functions.cpp
+sources+=test-ostream-overloads.cpp
+sources+=test-quaternions.cpp 
+sources+=test-scalar-accessors.cpp 
+sources+=test-user-defined-conversions.cpp
 
-all: test-linalg
+all: time tests
 
-test-linalg: $(sources) ../linalg.h
+time:
+	time --format="  Including linalg.h in an otherwise empty file took %es" $(CXX) include-linalg.cpp -std=c++11 $(CXXLIBRARY) -c
+
+tests: $(sources) ../linalg.h
 	$(CXX) $(sources) -std=c++11 $(CXXLIBRARY) -o $@
 
 clean:
-	rm -f test-linalg
+	rm -f tests include-linalg.o
