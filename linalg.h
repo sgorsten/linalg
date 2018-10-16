@@ -91,26 +91,40 @@ namespace linalg
     template<class T, class A, int I> struct scalar_accessor 
     { 
         A elems;
-        scalar_accessor()                = delete;
-        operator const T & () const      { return elems[I]; }
-        operator T & ()                  { return elems[I]; }
-        const T * operator & () const    { return &elems[I]; }
-        T * operator & ()                { return &elems[I]; }
-        T & operator = (const T & value) { return elems[I] = value; }
+        scalar_accessor()                          = delete;
+        operator const T & () const                { return elems[I]; }
+        operator T & ()                            { return elems[I]; }
+        const T * operator & () const              { return &elems[I]; }
+        T * operator & ()                          { return &elems[I]; }
+        T & operator = (const T & value)           { return elems[I] = value; }
+        T & operator = (const scalar_accessor & r) { return elems[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
     };
-    template<class T, class A, int... I> struct swizzle_accessor
+    template<class T, class A, int I0, int I1> struct swizzle2
     {
-        A elems;
-        swizzle_accessor() = delete;
-        operator vec<T,sizeof...(I)> () const { return {elems[I]...}; }
-        void operator = (const vec<T,sizeof...(I)> & value) 
-        { 
-            int i[] {I...}; 
-            for(int j=0; j<sizeof...(I); ++j)
-            {
-                elems[i[j]] = value[j];
-            }
-        }
+        A                           e;
+        constexpr                   swizzle2(T e0, T e1)                    : e{} { e[I0]=e0; e[I1]=e1; } // Aggregate constructor (braced-initialization) has incorrect semantics
+                                    swizzle2(const vec<T,2> & r)            : swizzle2(r[0], r[1]) {}
+        template<class B, int... J> swizzle2(const swizzle2<T,B,J...> & r)  : swizzle2(vec<T,2>(r)) {}
+                                    operator vec<T,2> () const              { return {e[I0], e[I1]}; }           
+        swizzle2 &                  operator = (const swizzle2 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
+    };
+    template<class T, class A, int I0, int I1, int I2> struct swizzle3
+    {
+        A                           e;
+        constexpr                   swizzle3(T e0, T e1, T e2)              : e{} { e[I0]=e0; e[I1]=e1; e[I2]=e2; } // Aggregate constructor (braced-initialization) has incorrect semantics
+                                    swizzle3(const vec<T,3> & r)            : swizzle3(r[0], r[1], r[2]) {}
+        template<class B, int... J> swizzle3(const swizzle3<T,B,J...> & r)  : swizzle3(vec<T,3>(r)) {}
+                                    operator vec<T,3> () const              { return {e[I0], e[I1], e[I2]}; }           
+        swizzle3 &                  operator = (const swizzle3 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
+    };
+    template<class T, class A, int I0, int I1, int I2, int I3> struct swizzle4
+    {
+        A                           e;
+        constexpr                   swizzle4(T e0, T e1, T e2, T e3)        : e{} { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; } // Aggregate constructor (braced-initialization) has incorrect semantics
+                                    swizzle4(const vec<T,4> & r)            : swizzle4(r[0], r[1], r[2], r[3]) {}
+        template<class B, int... J> swizzle4(const swizzle4<T,B,J...> & r)  : swizzle4(vec<T,4>(r)) {}
+                                    operator vec<T,4> () const              { return {e[I0], e[I1], e[I2], e[I3]}; }           
+        swizzle4 &                  operator = (const swizzle4 & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
     };
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,13 +133,18 @@ namespace linalg
 
     namespace detail
     {
+        template<class A> struct element_storage { A elems; };
+
         // Support for user defined conversions
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type;
         template<class T, class U> constexpr T convert(const U & u) { return converter<T,U>()(u); }
 
+        // Helper which reduces scalar_accessor and swizzleN types to their intended targets
         template<class T> struct unpack { using type=T; };
         template<class T, class A, int I> struct unpack<scalar_accessor<T,A,I>> { using type=T; };
-        template<class T, class A, int... I> struct unpack<swizzle_accessor<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
+        template<class T, class A, int... I> struct unpack<swizzle2<T,A,I...>> { using type=vec<T,2>; };
+        template<class T, class A, int... I> struct unpack<swizzle3<T,A,I...>> { using type=vec<T,3>; };
+        template<class T, class A, int... I> struct unpack<swizzle4<T,A,I...>> { using type=vec<T,4>; };
         template<class T> using unpack_t = typename unpack<T>::type;
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
@@ -136,6 +155,16 @@ namespace linalg
         template<class T> constexpr bool operator > (const ord<T> & o, std::nullptr_t) { return o.b < o.a; }
         template<class T> constexpr bool operator <= (const ord<T> & o, std::nullptr_t) { return !(o.b < o.a); }
         template<class T> constexpr bool operator >= (const ord<T> & o, std::nullptr_t) { return !(o.a < o.b); }
+
+        // Patterns which can be used with the compare(...) function
+        template<class A, class B> struct any_compare {};
+        template<class T> struct any_compare<vec<T,2>,vec<T,2>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,2> & a, const vec<T,2> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : ord<T>{a[1],b[1]}; } };
+        template<class T> struct any_compare<vec<T,3>,vec<T,3>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,3> & a, const vec<T,3> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : ord<T>{a[2],b[2]}; } };
+        template<class T> struct any_compare<vec<T,4>,vec<T,4>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,4> & a, const vec<T,4> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : !(a[2]==b[2]) ? ord<T>{a[2],b[2]} : ord<T>{a[3],b[3]}; } };
+        template<class T, int M> struct any_compare<mat<T,M,2>,mat<T,M,2>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,2> & a, const mat<T,M,2> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : compare(a[1],b[1]); } };
+        template<class T, int M> struct any_compare<mat<T,M,3>,mat<T,M,3>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,3> & a, const mat<T,M,3> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : compare(a[2],b[2]); } };
+        template<class T, int M> struct any_compare<mat<T,M,4>,mat<T,M,4>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,4> & a, const mat<T,M,4> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : a[2]!=b[2] ? compare(a[2],b[2]) : compare(a[3],b[3]); } };
+        template<class T> struct any_compare<quat<T>,quat<T>> { using type=ord<T>; constexpr ord<T> operator() (const quat<T> & a, const quat<T> & b) const { return !(a.x==b.x) ? ord<T>{a.x,b.x} : !(a.y==b.y) ? ord<T>{a.y,b.y} : !(a.z==b.z) ? ord<T>{a.z,b.z} : ord<T>{a.w,b.w}; } };
 
         // Stand-in for std::integer_sequence/std::make_integer_sequence
         template<int... I> struct seq {};
@@ -255,21 +284,22 @@ namespace linalg
     {
         union
         {
-            T elems[2];
+            detail::element_storage<T[2]> elems;
             scalar_accessor<T,T[2],0> x, r, s;
             scalar_accessor<T,T[2],1> y, g, t;
-            swizzle_accessor<T,T[2],0,1> xy, rg, st;
-            swizzle_accessor<T,T[2],1,0> yx, gr, ts;
+            swizzle2<T,T[2],0,1> xy, rg, st;
+            swizzle2<T,T[2],1,0> yx, gr, ts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
         constexpr                            vec(const T & e0, const T & e1)                             : elems{e0, e1} {}
         constexpr explicit                   vec(const T & s)                                            : elems{s, s} {}
         template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
-        constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
-        constexpr const T *                  data() const                                                { return elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
+        constexpr const T *                  data() const                                                { return elems.elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -278,22 +308,22 @@ namespace linalg
     {
         union
         {
-            T elems[3];
+            detail::element_storage<T[3]> elems;
             scalar_accessor<T,T[3],0> x, r, s;
             scalar_accessor<T,T[3],1> y, g, t;
             scalar_accessor<T,T[3],2> z, b, p;
-            swizzle_accessor<T,T[3],0,1> xy, rg, st;
-            swizzle_accessor<T,T[3],0,2> xz, rb, sp;
-            swizzle_accessor<T,T[3],1,0> yx, gr, ts;
-            swizzle_accessor<T,T[3],1,2> yz, gb, tp;
-            swizzle_accessor<T,T[3],2,0> zx, br, ps;
-            swizzle_accessor<T,T[3],2,1> zy, bg, pt;
-            swizzle_accessor<T,T[3],0,1,2> xyz, rgb, stp;
-            swizzle_accessor<T,T[3],0,2,1> xzy, rbg, spt;
-            swizzle_accessor<T,T[3],1,0,2> yxz, grb, tsp;
-            swizzle_accessor<T,T[3],1,2,0> yzx, gbr, tps;
-            swizzle_accessor<T,T[3],2,0,1> zxy, brg, pst;
-            swizzle_accessor<T,T[3],2,1,0> zyx, bgr, pts;
+            swizzle2<T,T[3],0,1> xy, rg, st;
+            swizzle2<T,T[3],0,2> xz, rb, sp;
+            swizzle2<T,T[3],1,0> yx, gr, ts;
+            swizzle2<T,T[3],1,2> yz, gb, tp;
+            swizzle2<T,T[3],2,0> zx, br, ps;
+            swizzle2<T,T[3],2,1> zy, bg, pt;
+            swizzle3<T,T[3],0,1,2> xyz, rgb, stp;
+            swizzle3<T,T[3],0,2,1> xzy, rbg, spt;
+            swizzle3<T,T[3],1,0,2> yxz, grb, tsp;
+            swizzle3<T,T[3],1,2,0> yzx, gbr, tps;
+            swizzle3<T,T[3],2,0,1> zxy, brg, pst;
+            swizzle3<T,T[3],2,1,0> zyx, bgr, pts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
@@ -301,10 +331,11 @@ namespace linalg
         constexpr                            vec(const vec<T,2> & e01, const T & e2)                     : elems{e01[0], e01[1], e2} {}
         constexpr explicit                   vec(const T & s)                                            : elems{s, s, s} {}
         template<class U> constexpr explicit vec(const vec<U,3> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2])} {}
-        constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
-        constexpr const T *                  data() const                                                { return elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
+        constexpr const T *                  data() const                                                { return elems.elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -313,71 +344,71 @@ namespace linalg
     {
         union
         {
-            T elems[4];
+            detail::element_storage<T[4]> elems;
             scalar_accessor<T,T[4],0> x, r, s;
             scalar_accessor<T,T[4],1> y, g, t;
             scalar_accessor<T,T[4],2> z, b, p;
             scalar_accessor<T,T[4],3> w, a, q;
-            swizzle_accessor<T,T[4],0,1> xy, rg, st;
-            swizzle_accessor<T,T[4],0,2> xz, rb, sp;
-            swizzle_accessor<T,T[4],0,3> xw, ra, sq;
-            swizzle_accessor<T,T[4],1,0> yx, gr, ts;
-            swizzle_accessor<T,T[4],1,2> yz, gb, tp;
-            swizzle_accessor<T,T[4],1,3> yw, ga, tq;
-            swizzle_accessor<T,T[4],2,0> zx, br, ps;
-            swizzle_accessor<T,T[4],2,1> zy, bg, pt;
-            swizzle_accessor<T,T[4],2,3> zw, ba, pq;
-            swizzle_accessor<T,T[4],3,0> wx, ar, qs;
-            swizzle_accessor<T,T[4],3,1> wy, ag, qt;
-            swizzle_accessor<T,T[4],3,2> wz, ab, qp;
-            swizzle_accessor<T,T[4],0,1,2> xyz, rgb, stp;
-            swizzle_accessor<T,T[4],0,1,3> xyw, rga, stq;
-            swizzle_accessor<T,T[4],0,2,1> xzy, rbg, spt;
-            swizzle_accessor<T,T[4],0,2,3> xzw, rba, spq;
-            swizzle_accessor<T,T[4],0,3,1> xwy, rag, sqt;
-            swizzle_accessor<T,T[4],0,3,2> xwz, rab, sqp;
-            swizzle_accessor<T,T[4],1,0,2> yxz, grb, tsp;
-            swizzle_accessor<T,T[4],1,0,3> yxw, gra, tsq;
-            swizzle_accessor<T,T[4],1,2,0> yzx, gbr, tps;
-            swizzle_accessor<T,T[4],1,2,3> yzw, gba, tpq;
-            swizzle_accessor<T,T[4],1,3,0> ywx, gar, tqs;
-            swizzle_accessor<T,T[4],1,3,2> ywz, gab, tqp;
-            swizzle_accessor<T,T[4],2,0,1> zxy, brg, pst;
-            swizzle_accessor<T,T[4],2,0,3> zxw, bra, psq;
-            swizzle_accessor<T,T[4],2,1,0> zyx, bgr, pts;
-            swizzle_accessor<T,T[4],2,1,3> zyw, bga, ptq;
-            swizzle_accessor<T,T[4],2,3,0> zwx, bar, pqs;
-            swizzle_accessor<T,T[4],2,3,1> zwy, bag, pqt;
-            swizzle_accessor<T,T[4],3,0,1> wxy, arg, qst;
-            swizzle_accessor<T,T[4],3,0,2> wxz, arb, qsp;
-            swizzle_accessor<T,T[4],3,1,0> wyx, agr, qts;
-            swizzle_accessor<T,T[4],3,1,2> wyz, agb, qtp;
-            swizzle_accessor<T,T[4],3,2,0> wzx, abr, qps;
-            swizzle_accessor<T,T[4],3,2,1> wzy, abg, qpt;
-            swizzle_accessor<T,T[4],0,1,2,3> xyzw, rgba, stpq;
-            swizzle_accessor<T,T[4],0,1,3,2> xywz, rgab, stqp;
-            swizzle_accessor<T,T[4],0,2,1,3> xzyw, rbga, sptq;
-            swizzle_accessor<T,T[4],0,2,3,1> xzwy, rbag, spqt;
-            swizzle_accessor<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
-            swizzle_accessor<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
-            swizzle_accessor<T,T[4],1,0,2,3> yxzw, grba, tspq;
-            swizzle_accessor<T,T[4],1,0,3,2> yxwz, grab, tsqp;
-            swizzle_accessor<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
-            swizzle_accessor<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
-            swizzle_accessor<T,T[4],1,3,0,2> ywxz, garb, tqsp;
-            swizzle_accessor<T,T[4],1,3,2,0> ywzx, gabr, tqps;
-            swizzle_accessor<T,T[4],2,0,1,3> zxyw, brga, pstq;
-            swizzle_accessor<T,T[4],2,0,3,1> zxwy, brag, psqt;
-            swizzle_accessor<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
-            swizzle_accessor<T,T[4],2,1,3,0> zywx, bgar, ptqs;
-            swizzle_accessor<T,T[4],2,3,0,1> zwxy, barg, pqst;
-            swizzle_accessor<T,T[4],2,3,1,0> zwyx, bagr, pqts;
-            swizzle_accessor<T,T[4],3,0,1,2> wxyz, argb, qstp;
-            swizzle_accessor<T,T[4],3,0,2,1> wxzy, arbg, qspt;
-            swizzle_accessor<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
-            swizzle_accessor<T,T[4],3,1,2,0> wyzx, agbr, qtps;
-            swizzle_accessor<T,T[4],3,2,0,1> wzxy, abrg, qpst;
-            swizzle_accessor<T,T[4],3,2,1,0> wzyx, abgr, qpts;
+            swizzle2<T,T[4],0,1> xy, rg, st;
+            swizzle2<T,T[4],0,2> xz, rb, sp;
+            swizzle2<T,T[4],0,3> xw, ra, sq;
+            swizzle2<T,T[4],1,0> yx, gr, ts;
+            swizzle2<T,T[4],1,2> yz, gb, tp;
+            swizzle2<T,T[4],1,3> yw, ga, tq;
+            swizzle2<T,T[4],2,0> zx, br, ps;
+            swizzle2<T,T[4],2,1> zy, bg, pt;
+            swizzle2<T,T[4],2,3> zw, ba, pq;
+            swizzle2<T,T[4],3,0> wx, ar, qs;
+            swizzle2<T,T[4],3,1> wy, ag, qt;
+            swizzle2<T,T[4],3,2> wz, ab, qp;
+            swizzle3<T,T[4],0,1,2> xyz, rgb, stp;
+            swizzle3<T,T[4],0,1,3> xyw, rga, stq;
+            swizzle3<T,T[4],0,2,1> xzy, rbg, spt;
+            swizzle3<T,T[4],0,2,3> xzw, rba, spq;
+            swizzle3<T,T[4],0,3,1> xwy, rag, sqt;
+            swizzle3<T,T[4],0,3,2> xwz, rab, sqp;
+            swizzle3<T,T[4],1,0,2> yxz, grb, tsp;
+            swizzle3<T,T[4],1,0,3> yxw, gra, tsq;
+            swizzle3<T,T[4],1,2,0> yzx, gbr, tps;
+            swizzle3<T,T[4],1,2,3> yzw, gba, tpq;
+            swizzle3<T,T[4],1,3,0> ywx, gar, tqs;
+            swizzle3<T,T[4],1,3,2> ywz, gab, tqp;
+            swizzle3<T,T[4],2,0,1> zxy, brg, pst;
+            swizzle3<T,T[4],2,0,3> zxw, bra, psq;
+            swizzle3<T,T[4],2,1,0> zyx, bgr, pts;
+            swizzle3<T,T[4],2,1,3> zyw, bga, ptq;
+            swizzle3<T,T[4],2,3,0> zwx, bar, pqs;
+            swizzle3<T,T[4],2,3,1> zwy, bag, pqt;
+            swizzle3<T,T[4],3,0,1> wxy, arg, qst;
+            swizzle3<T,T[4],3,0,2> wxz, arb, qsp;
+            swizzle3<T,T[4],3,1,0> wyx, agr, qts;
+            swizzle3<T,T[4],3,1,2> wyz, agb, qtp;
+            swizzle3<T,T[4],3,2,0> wzx, abr, qps;
+            swizzle3<T,T[4],3,2,1> wzy, abg, qpt;
+            swizzle4<T,T[4],0,1,2,3> xyzw, rgba, stpq;
+            swizzle4<T,T[4],0,1,3,2> xywz, rgab, stqp;
+            swizzle4<T,T[4],0,2,1,3> xzyw, rbga, sptq;
+            swizzle4<T,T[4],0,2,3,1> xzwy, rbag, spqt;
+            swizzle4<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
+            swizzle4<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
+            swizzle4<T,T[4],1,0,2,3> yxzw, grba, tspq;
+            swizzle4<T,T[4],1,0,3,2> yxwz, grab, tsqp;
+            swizzle4<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
+            swizzle4<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
+            swizzle4<T,T[4],1,3,0,2> ywxz, garb, tqsp;
+            swizzle4<T,T[4],1,3,2,0> ywzx, gabr, tqps;
+            swizzle4<T,T[4],2,0,1,3> zxyw, brga, pstq;
+            swizzle4<T,T[4],2,0,3,1> zxwy, brag, psqt;
+            swizzle4<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
+            swizzle4<T,T[4],2,1,3,0> zywx, bgar, ptqs;
+            swizzle4<T,T[4],2,3,0,1> zwxy, barg, pqst;
+            swizzle4<T,T[4],2,3,1,0> zwyx, bagr, pqts;
+            swizzle4<T,T[4],3,0,1,2> wxyz, argb, qstp;
+            swizzle4<T,T[4],3,0,2,1> wxzy, arbg, qspt;
+            swizzle4<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
+            swizzle4<T,T[4],3,1,2,0> wyzx, agbr, qtps;
+            swizzle4<T,T[4],3,2,0,1> wzxy, abrg, qpst;
+            swizzle4<T,T[4],3,2,1,0> wzyx, abgr, qpts;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
@@ -387,10 +418,11 @@ namespace linalg
         constexpr explicit                   vec(const T & s)                                            : elems{s, s, s, s} {}
         template<class U> constexpr explicit vec(const vec<U,4> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2]), static_cast<T>(v[3])} {}
         constexpr explicit                   vec(const quat<T> & q)                                      : elems{q.x, q.y, q.z, q.w} {}
-        constexpr const T &                  operator[] (int i) const                                    { return elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems[i]; }
-        constexpr const T *                  data() const                                                { return elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
+        constexpr const T *                  data() const                                                { return elems.elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -468,22 +500,15 @@ namespace linalg
     // Relational operators //
     //////////////////////////
 
-    template<class A> constexpr auto operator == (const A & a, const A & b) -> decltype(compare(a,b) == 0) { return compare(a,b) == 0; }
-    template<class A> constexpr auto operator != (const A & a, const A & b) -> decltype(compare(a,b) != 0) { return compare(a,b) != 0; }
-    template<class A> constexpr auto operator <  (const A & a, const A & b) -> decltype(compare(a,b) <  0) { return compare(a,b) <  0; }
-    template<class A> constexpr auto operator >  (const A & a, const A & b) -> decltype(compare(a,b) >  0) { return compare(a,b) >  0; }
-    template<class A> constexpr auto operator <= (const A & a, const A & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
-    template<class A> constexpr auto operator >= (const A & a, const A & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
+    template<class A, class B> using compare_t = typename detail::any_compare<detail::unpack_t<A>, detail::unpack_t<B>>::type;
+    template<class A, class B> constexpr compare_t<A,B> compare(const A & a, const B & b) { return detail::any_compare<detail::unpack_t<A>, detail::unpack_t<B>>()(a,b); }
 
-    template<class T> constexpr detail::ord<T> compare(const vec<T,2> & a, const vec<T,2> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : detail::ord<T>{a[1],b[1]}; }
-    template<class T> constexpr detail::ord<T> compare(const vec<T,3> & a, const vec<T,3> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? detail::ord<T>{a[1],b[1]} : detail::ord<T>{a[2],b[2]}; }
-    template<class T> constexpr detail::ord<T> compare(const vec<T,4> & a, const vec<T,4> & b) { return !(a[0]==b[0]) ? detail::ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? detail::ord<T>{a[1],b[1]} : !(a[2]==b[2]) ? detail::ord<T>{a[2],b[2]} : detail::ord<T>{a[3],b[3]}; }
-
-    template<class T, int M> constexpr detail::ord<T> compare(const mat<T,M,2> & a, const mat<T,M,2> & b) { return a[0]!=b[0] ? compare(a[0],b[0]) : compare(a[1],b[1]); }
-    template<class T, int M> constexpr detail::ord<T> compare(const mat<T,M,3> & a, const mat<T,M,3> & b) { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : compare(a[2],b[2]); }
-    template<class T, int M> constexpr detail::ord<T> compare(const mat<T,M,4> & a, const mat<T,M,4> & b) { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : a[2]!=b[2] ? compare(a[2],b[2]) : compare(a[3],b[3]); }
-
-    template<class T> constexpr detail::ord<T> compare(const quat<T> & a, const quat<T> & b) { return !(a.x==b.x) ? detail::ord<T>{a.x,b.x} : !(a.y==b.y) ? detail::ord<T>{a.y,b.y} : !(a.z==b.z) ? detail::ord<T>{a.z,b.z} : detail::ord<T>{a.w,b.w}; }
+    template<class A, class B> constexpr auto operator == (const A & a, const B & b) -> decltype(compare(a,b) == 0) { return compare(a,b) == 0; }
+    template<class A, class B> constexpr auto operator != (const A & a, const B & b) -> decltype(compare(a,b) != 0) { return compare(a,b) != 0; }
+    template<class A, class B> constexpr auto operator <  (const A & a, const B & b) -> decltype(compare(a,b) <  0) { return compare(a,b) <  0; }
+    template<class A, class B> constexpr auto operator >  (const A & a, const B & b) -> decltype(compare(a,b) >  0) { return compare(a,b) >  0; }
+    template<class A, class B> constexpr auto operator <= (const A & a, const B & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
+    template<class A, class B> constexpr auto operator >= (const A & a, const B & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
 
     ///////////////////
     // Range support //
