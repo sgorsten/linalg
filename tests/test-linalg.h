@@ -51,22 +51,27 @@ class random_number_generator
     std::uniform_int_distribution<unsigned short> dist_ushort;
 public:
     random_number_generator() : dist_int(-1000, 1000), dist_short(-100, 100), dist_uint(0, 1000), dist_ushort(0, 100) {}
+    
+    template<class T> T get() { return get((T*)nullptr); }
 
-    operator double () { return dist_double(rng); }
-    operator float () { return dist_float(rng); }
-    operator int () { return dist_int(rng); }
-    operator short () { return dist_short(rng); }
-    operator unsigned int () { return dist_uint(rng); }
-    operator unsigned short () { return dist_ushort(rng); }
-    template<class T> operator linalg::vec<T,1> () { return linalg::vec<T,1>((T)*this); }
-    template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, (T)*this); }
-    template<class T, int M> operator linalg::mat<T,M,1> () { return linalg::mat<T,M,1>((linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T> operator linalg::quat<T> () { return linalg::quat<T>((T)*this, (T)*this, (T)*this, (T)*this); }
+    double get(double *) { return dist_double(rng); }
+    float get(float *) { return dist_float(rng); }
+    int get(int *) { return dist_int(rng); }
+    short get(short *) { return dist_short(rng); }
+    unsigned int get(unsigned int *) { return dist_uint(rng); }
+    unsigned short get(unsigned short *) { return dist_ushort(rng); }
+
+    template<class T> linalg::vec<T,1> get(linalg::vec<T,1> *) { return linalg::vec<T,1>(get<T>()); }
+    template<class T> linalg::vec<T,2> get(linalg::vec<T,2> *) { return linalg::vec<T,2>(get<T>(), get<T>()); }
+    template<class T> linalg::vec<T,3> get(linalg::vec<T,3> *) { return linalg::vec<T,3>(get<T>(), get<T>(), get<T>()); }
+    template<class T> linalg::vec<T,4> get(linalg::vec<T,4> *) { return linalg::vec<T,4>(get<T>(), get<T>(), get<T>(), get<T>()); }
+    template<class T, int M> linalg::mat<T,M,1> get(linalg::mat<T,M,1> *) { return linalg::mat<T,M,1>(get<linalg::vec<T,M>>()); }
+    template<class T, int M> linalg::mat<T,M,2> get(linalg::mat<T,M,2> *) { return linalg::mat<T,M,2>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
+    template<class T, int M> linalg::mat<T,M,3> get(linalg::mat<T,M,3> *) { return linalg::mat<T,M,3>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
+    template<class T, int M> linalg::mat<T,M,4> get(linalg::mat<T,M,4> *) { return linalg::mat<T,M,4>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
+    template<class T> linalg::quat<T> get(linalg::quat<T> *) { return linalg::quat<T>(get<T>(), get<T>(), get<T>(), get<T>()); }
+
+    template<class T> operator T () { return get<T>(); }
 };
 
 template<class T, int M> void check_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) CHECK( a[j] == doctest::Approx(b[j]) ); }

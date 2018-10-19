@@ -60,7 +60,7 @@ TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, signed_types )
     {
         for(int i=0; i<reps; ++i)
         {
-            const linalg::mat<T,1,1> mat = rng;
+            const auto mat = rng.get<linalg::mat<T,1,1>>();
             CHECK(diagonal(mat) == linalg::vec<T,1>{mat[0][0]});
             CHECK(trace(mat) == mat[0][0]);
         }
@@ -70,7 +70,7 @@ TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, signed_types )
     {
         for(int i=0; i<reps; ++i)
         {
-            const linalg::mat<T,2,2> mat = rng;
+            const auto mat = rng.get<linalg::mat<T,2,2>>();
             CHECK(diagonal(mat) == linalg::vec<T,2>{mat[0][0], mat[1][1]});
             CHECK(trace(mat) == mat[0][0] + mat[1][1]);
         }
@@ -80,7 +80,7 @@ TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, signed_types )
     {
         for(int i=0; i<reps; ++i)
         {
-            const linalg::mat<T,3,3> mat = rng;
+            const auto mat = rng.get<linalg::mat<T,3,3>>();
             CHECK(diagonal(mat) == linalg::vec<T,3>{mat[0][0], mat[1][1], mat[2][2]});
             CHECK(trace(mat) == mat[0][0] + mat[1][1] + mat[2][2]);
         }
@@ -90,7 +90,7 @@ TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, signed_types )
     {
         for(int i=0; i<reps; ++i)
         {
-            const linalg::mat<T,4,4> mat = rng;
+            const auto mat = rng.get<linalg::mat<T,4,4>>();
             CHECK(diagonal(mat) == linalg::vec<T,4>{mat[0][0], mat[1][1], mat[2][2], mat[3][3]});
             CHECK(trace(mat) == mat[0][0] + mat[1][1] + mat[2][2] + mat[3][3]);
         }
