@@ -24,14 +24,15 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * `apply(...)` can also be invoked exclusively with scalars, and supports arbitrary numbers of arguments
   * `apply(...)` supports mixed element types
   * Template type alias `apply_t<F,A...>` provides the return type of `apply(f,a...)`
+* `vec<T,1>` and `mat<T,M,1>` specializations are now provided
 * `compare(a,b)` provide three-way comparison between compatible types
 * `clamp(a,b,c)` can be invoked with three distinct (but compatible) types
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
 * `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
 * Groups of `vec<T,M>` elements can be accessed via named swizzles, such as `xyz`, `bgr`, or `pq`
-  * For now, all permutations of elements are supported, but no duplicates are allowed (such as `xyzz`)
-  * This is to allow swizzles to be used as lvalues without introducing ambiguous meanings
+  * All swizzles can be used as rvalues
+  * Only permutation swizzles (where no accessor is repeated) can be used as lvalues
 * User can specialize `converter<T,U>` to enable implicit conversions from `U` to `T`, if either type is a `vec`, `mat`, or `quat`
   * `identity` is implemented using this facility to serve as an in-library example
 * No undefined behavior according to the C++11 standard
@@ -80,7 +81,7 @@ This section has been removed pending a complete rewrite. Documentation needs to
 - [ ] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
 - [ ] component-wise selection: `min`, `max`, `clamp`, `select`
 - [ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `rot`, `lerp`, `nlerp`, `slerp`
-- [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `inverse`
+- [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `trace`, `inverse`
 - [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
 - [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
 - [ ] transformations support: `rotation_quat`, `translation_matrix`, `rotation_matrix`, `scaling_matrix`, `pose_matrix`, `frustum_matrix`, `perspective_matrix`, `fwd_axis`, `z_range`
