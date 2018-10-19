@@ -58,16 +58,16 @@ public:
     operator short () { return dist_short(rng); }
     operator unsigned int () { return dist_uint(rng); }
     operator unsigned short () { return dist_ushort(rng); }
+    template<class T> operator linalg::vec<T,1> () { return linalg::vec<T,1>((T)*this); }
     template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
     template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
     template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, (T)*this); }
+    template<class T, int M> operator linalg::mat<T,M,1> () { return linalg::mat<T,M,1>((linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T> operator linalg::quat<T> () { return linalg::quat<T>((T)*this, (T)*this, (T)*this, (T)*this); }
 };
 
-template<class T, int M> void check_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) 
-{
-    for(int i=0; i<M; ++i) CHECK(a == Approx(b));
-}
+template<class T, int M> void check_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) CHECK( a[j] == doctest::Approx(b[j]) ); }
+template<class T, int M, int N> void check_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) check_approx_equal(a[i], b[i]); }

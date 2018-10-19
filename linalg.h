@@ -82,6 +82,7 @@ namespace linalg
 
     // Define a type which will convert to the multiplicative identity of any given algebraic object
     struct identity_t { constexpr explicit identity_t(int) {} };
+    template<class T> struct converter<mat<T,1,1>, identity_t> { mat<T,1,1> operator() (identity_t) const { return {{1}}; } };
     template<class T> struct converter<mat<T,2,2>, identity_t> { mat<T,2,2> operator() (identity_t) const { return {{1,0},{0,1}}; } };
     template<class T> struct converter<mat<T,3,3>, identity_t> { mat<T,3,3> operator() (identity_t) const { return {{1,0,0},{0,1,0},{0,0,1}}; } };
     template<class T> struct converter<mat<T,4,4>, identity_t> { mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
@@ -825,6 +826,7 @@ namespace linalg
     template<class T> constexpr T                 determinant (const mat<T,2,2> & a) { return a[0][0]*a[1][1] - a[0][1]*a[1][0]; }
     template<class T> constexpr T                 determinant (const mat<T,3,3> & a) { return a[0][0]*(a[1][1]*a[2][2] - a[2][1]*a[1][2]) + a[0][1]*(a[1][2]*a[2][0] - a[2][2]*a[1][0]) + a[0][2]*(a[1][0]*a[2][1] - a[2][0]*a[1][1]); }
     template<class T> constexpr T                 determinant (const mat<T,4,4> & a);
+    template<class T, int N> constexpr T          trace       (const mat<T,N,N> & a) { return sum(diagonal(a)); }
     template<class T, int N> constexpr mat<T,N,N> inverse     (const mat<T,N,N> & a) { return adjugate(a)/determinant(a); }
 
     ////////////////////////////////////////

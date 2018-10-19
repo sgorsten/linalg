@@ -2,6 +2,7 @@ sources:=test-linalg.cpp
 sources+=test-constant-expressions.cpp 
 sources+=test-expression-validity.cpp
 sources+=test-higher-order-functions.cpp
+sources+=test-matrices.cpp 
 sources+=test-ostream-overloads.cpp
 sources+=test-quaternions.cpp 
 sources+=test-scalar-accessors.cpp 

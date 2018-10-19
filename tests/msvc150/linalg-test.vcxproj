@@ -22,6 +22,7 @@
     <ClCompile Include="..\test-constant-expressions.cpp" />
     <ClCompile Include="..\test-expression-validity.cpp" />
     <ClCompile Include="..\test-higher-order-functions.cpp" />
+    <ClCompile Include="..\test-matrices.cpp" />
     <ClCompile Include="..\test-ostream-overloads.cpp" />
     <ClCompile Include="..\test-quaternions.cpp" />
     <ClCompile Include="..\test-linalg.cpp" />

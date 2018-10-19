@@ -550,9 +550,6 @@ TEST_CASE_TEMPLATE("vec<T,M> does not have unintended argument dependent lookup 
 
 /////////////////////
 
-template<class T, int M> void require_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) REQUIRE( a[j] == doctest::Approx(b[j]) ); }
-template<class T, int M, int N> void require_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) require_approx_equal(a[i], b[i]); }
-
 TEST_CASE( "elementwise comparison functions produce correct results" )
 {
     REQUIRE( equal  (float3(1,2,3), float3(4,-2,3)) == bool3(false, false, true ) );
@@ -639,108 +636,6 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 }
 
-TEST_CASE( "matrix multiplication produces correct result dimensions" )
-{
-    REQUIRE( float2x2() * float2() == float2() );
-    REQUIRE( float2x3() * float3() == float2() );
-    REQUIRE( float2x4() * float4() == float2() );
-    REQUIRE( float3x2() * float2() == float3() );
-    REQUIRE( float3x3() * float3() == float3() );
-    REQUIRE( float3x4() * float4() == float3() );
-    REQUIRE( float4x2() * float2() == float4() );
-    REQUIRE( float4x3() * float3() == float4() );
-    REQUIRE( float4x4() * float4() == float4() );
-
-    REQUIRE( float2x2() * float2x2() == float2x2() );
-    REQUIRE( float2x3() * float3x2() == float2x2() );
-    REQUIRE( float2x4() * float4x2() == float2x2() );
-    REQUIRE( float2x2() * float2x3() == float2x3() );
-    REQUIRE( float2x3() * float3x3() == float2x3() );
-    REQUIRE( float2x4() * float4x3() == float2x3() );
-    REQUIRE( float2x2() * float2x4() == float2x4() );
-    REQUIRE( float2x3() * float3x4() == float2x4() );
-    REQUIRE( float2x4() * float4x4() == float2x4() );
-    REQUIRE( float3x2() * float2x2() == float3x2() );
-    REQUIRE( float3x3() * float3x2() == float3x2() );
-    REQUIRE( float3x4() * float4x2() == float3x2() );
-    REQUIRE( float3x2() * float2x3() == float3x3() );
-    REQUIRE( float3x3() * float3x3() == float3x3() );
-    REQUIRE( float3x4() * float4x3() == float3x3() );
-    REQUIRE( float3x2() * float2x4() == float3x4() );
-    REQUIRE( float3x3() * float3x4() == float3x4() );
-    REQUIRE( float3x4() * float4x4() == float3x4() );
-    REQUIRE( float4x2() * float2x2() == float4x2() );
-    REQUIRE( float4x3() * float3x2() == float4x2() );
-    REQUIRE( float4x4() * float4x2() == float4x2() );
-    REQUIRE( float4x2() * float2x3() == float4x3() );
-    REQUIRE( float4x3() * float3x3() == float4x3() );
-    REQUIRE( float4x4() * float4x3() == float4x3() );
-    REQUIRE( float4x2() * float2x4() == float4x4() );
-    REQUIRE( float4x3() * float3x4() == float4x4() );
-    REQUIRE( float4x4() * float4x4() == float4x4() );
-
-    // Outer product of vec<T,M> and vec<T,N> is equivalent to product of Mx1 and 1xN matrices
-    REQUIRE( outerprod(float2(), float2()) == float2x2() );
-    REQUIRE( outerprod(float2(), float3()) == float2x3() );
-    REQUIRE( outerprod(float2(), float4()) == float2x4() );
-    REQUIRE( outerprod(float3(), float2()) == float3x2() );
-    REQUIRE( outerprod(float3(), float3()) == float3x3() );
-    REQUIRE( outerprod(float3(), float4()) == float3x4() );
-    REQUIRE( outerprod(float4(), float2()) == float4x2() );
-    REQUIRE( outerprod(float4(), float3()) == float4x3() );
-    REQUIRE( outerprod(float4(), float4()) == float4x4() );
-}
-
-TEST_CASE( "matrix inverse is correct for trivial cases" )
-{
-    const float2x2 id2 {{1,0},{0,1}};
-    const float3x3 id3 {{1,0,0},{0,1,0},{0,0,1}};
-    const float4x4 id4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
-    REQUIRE( diagonal(id2) == float2(1,1) );
-    REQUIRE( diagonal(id3) == float3(1,1,1) );
-    REQUIRE( diagonal(id4) == float4(1,1,1,1) );
-    REQUIRE( transpose(id2) == id2 );
-    REQUIRE( transpose(id3) == id3 );
-    REQUIRE( transpose(id4) == id4 );
-    REQUIRE( inverse(id2) == id2 );
-    REQUIRE( inverse(id3) == id3 );
-    REQUIRE( inverse(id4) == id4 );
-    REQUIRE( adjugate(id2) == id2 );
-    REQUIRE( adjugate(id3) == id3 );
-    REQUIRE( adjugate(id4) == id4 );
-    REQUIRE( determinant(id2) == 1.0f );
-    REQUIRE( determinant(id3) == 1.0f );
-    REQUIRE( determinant(id4) == 1.0f );
-}
-
-TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_point_types )
-{
-    const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
-    const linalg::mat<T,4,4> inv = inverse(mat);
-    const linalg::mat<T,4,4> id = mat * inv;
-    for(int j=0; j<4; ++j)
-    {
-        for(int i=0; i<4; ++i)
-        {
-            if(i == j) REQUIRE( id[j][i] == doctest::Approx(1.0f) );
-            else REQUIRE( id[j][i] == doctest::Approx(0.0f) );
-        }
-    }
-}
-
-TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
-{
-    const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
-    const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
-    const linalg::mat<T,4,4> a4 {linalg::identity}, b4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}, c4 {};
-
-    REQUIRE(a2 == b2);
-    REQUIRE(a3 == b3);
-    REQUIRE(a4 == b4);
-    REQUIRE(a2 != c2);
-    REQUIRE(a3 != c3);
-    REQUIRE(a4 != c4);
-}
 
 TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, floating_point_types )
 {
@@ -798,7 +693,7 @@ TEST_CASE( "90 degree rotation matrices round trip with rotation quaternions" )
     };
     for(auto & m : matrices)
     {
-        require_approx_equal(m, qmat(rotation_quat(m)));
+        check_approx_equal(m, qmat(rotation_quat(m)));
     }
 }
 
@@ -832,92 +727,31 @@ TEST_CASE( "hashing works as expected" )
 TEST_CASE( "special quaternion functions behave as expected" )
 {
     // qexp of a scalar should simply be the exp of that scalar
-    require_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
+    check_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
 
     // e^(tau*i) == 1
-    require_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
+    check_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
 
     // e^(tau*j) == 1
-    require_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
+    check_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
 
     // qlog of a scalar should simply be the log of that scalar
-    require_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
+    check_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
 
     // qexp(qlog(q)) == q
-    require_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
+    check_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
 
     // qpow of a scalar should simply be the pow of that scalar
-    require_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
+    check_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
 
     // qpow(q,2) == qmul(q,q)
-    require_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
+    check_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
 
     // qpow(q,3) == qmul(q,q,q)
-    require_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
+    check_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
 
     // qpow(qpow(q,2),3) == qpow(q,2*3)
-    require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
-}
-
-float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = m*float4(p,1); return r.xyz/r.w; }
-
-TEST_CASE( "Projection matrices behave as intended" )
-{
-    const float n = 0.1f, f = 10.0f;
-    const float nx0 = -0.9f*n, ny0 = -0.6f*n, nx1 = 0.8f*n, ny1 = 0.7f*n, ncx = (nx0+nx1)/2, ncy = (ny0+ny1)/2;
-    const float fx0 = -0.9f*f, fy0 = -0.6f*f, fx1 = 0.8f*f, fy1 = 0.7f*f, fcx = (fx0+fx1)/2, fcy = (fy0+fy1)/2;
-
-    // Right handed OpenGL convention, x-right, y-up, z-back
-    const float4x4 gl_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::neg_one_to_one); 
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ncy, -n)), float3( 0,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ny0, -n)), float3( 0, -1, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ny1, -n)), float3( 0, +1, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(nx0, ncy, -n)), float3(-1,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(nx1, ncy, -n)), float3(+1,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fcy, -f)), float3( 0,  0, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fy0, -f)), float3( 0, -1, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fy1, -f)), float3( 0, +1, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fx0, fcy, -f)), float3(-1,  0, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fx1, fcy, -f)), float3(+1,  0, +1) );
-
-    // Left handed OpenGL convention, x-right, y-up, z-forward
-    const float4x4 gl_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::neg_one_to_one);
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ncy, +n)), float3( 0,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ny0, +n)), float3( 0, -1, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ny1, +n)), float3( 0, +1, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(nx0, ncy, +n)), float3(-1,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(nx1, ncy, +n)), float3(+1,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fcy, +f)), float3( 0,  0, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fy0, +f)), float3( 0, -1, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fy1, +f)), float3( 0, +1, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fx0, fcy, +f)), float3(-1,  0, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fx1, fcy, +f)), float3(+1,  0, +1) );
-
-    // Right handed Vulkan convention, x-right, y-down, z-forward
-    const float4x4 vk_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::zero_to_one);
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ncy, +n)), float3( 0,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ny0, +n)), float3( 0, -1, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ny1, +n)), float3( 0, +1, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(nx0, ncy, +n)), float3(-1,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(nx1, ncy, +n)), float3(+1,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fcy, +f)), float3( 0,  0, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fy0, +f)), float3( 0, -1, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fy1, +f)), float3( 0, +1, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fx0, fcy, +f)), float3(-1,  0, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fx1, fcy, +f)), float3(+1,  0, 1) );
-
-    // Left handed Vulkan convention, x-right, y-down, z-back
-    const float4x4 vk_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::zero_to_one); 
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ncy, -n)), float3( 0,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ny0, -n)), float3( 0, -1, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ny1, -n)), float3( 0, +1, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(nx0, ncy, -n)), float3(-1,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(nx1, ncy, -n)), float3(+1,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fcy, -f)), float3( 0,  0, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fy0, -f)), float3( 0, -1, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fy1, -f)), float3( 0, +1, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fx0, fcy, -f)), float3(-1,  0, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fx1, fcy, -f)), float3(+1,  0, 1) );
+    check_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
 template<class T> void take(const T &) {}
