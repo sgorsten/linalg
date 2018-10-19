@@ -94,7 +94,8 @@ namespace linalg
 
     // Support for named scalar types, as in https://t0rakka.silvrback.com/simd-scalar-accessor, cannot live in detail namespace for ADL reasons, but should not be used by user code
     template<class T, class A, int I> struct _scalar;
-    template<class T, class A, int... I> struct _swizzle;
+    template<class T, class A, int... I> struct _lswizzle;
+    template<class T, class A, int... I> struct _rswizzle;
 
     namespace detail
     {
@@ -104,10 +105,11 @@ namespace linalg
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type;
         template<class T, class U> constexpr T convert(const U & u) { return converter<T,U>()(u); }
 
-        // Helper which reduces _scalar and _swizzleN types to their intended targets
+        // Helper which reduces _scalar, _lswizzleN, _rswizzleN types to their intended targets
         template<class T> struct unpack { using type=T; };
         template<class T, class A, int I> struct unpack<_scalar<T,A,I>> { using type=T; };
-        template<class T, class A, int... I> struct unpack<_swizzle<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
+        template<class T, class A, int... I> struct unpack<_lswizzle<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
+        template<class T, class A, int... I> struct unpack<_rswizzle<T,A,I...>> { using type=vec<T,sizeof...(I)>; };
         template<class T> using unpack_t = typename unpack<T>::type;
 
         // Type returned by the compare(...) function which supports all six comparison operators against 0
@@ -121,9 +123,11 @@ namespace linalg
 
         // Patterns which can be used with the compare(...) function
         template<class A, class B> struct any_compare {};
+        template<class T> struct any_compare<vec<T,1>,vec<T,1>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,1> & a, const vec<T,1> & b) const { return ord<T>{a[0],b[0]}; } };
         template<class T> struct any_compare<vec<T,2>,vec<T,2>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,2> & a, const vec<T,2> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : ord<T>{a[1],b[1]}; } };
         template<class T> struct any_compare<vec<T,3>,vec<T,3>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,3> & a, const vec<T,3> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : ord<T>{a[2],b[2]}; } };
         template<class T> struct any_compare<vec<T,4>,vec<T,4>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,4> & a, const vec<T,4> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : !(a[2]==b[2]) ? ord<T>{a[2],b[2]} : ord<T>{a[3],b[3]}; } };
+        template<class T, int M> struct any_compare<mat<T,M,1>,mat<T,M,1>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,1> & a, const mat<T,M,1> & b) const { return compare(a[0],b[0]); } };
         template<class T, int M> struct any_compare<mat<T,M,2>,mat<T,M,2>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,2> & a, const mat<T,M,2> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : compare(a[1],b[1]); } };
         template<class T, int M> struct any_compare<mat<T,M,3>,mat<T,M,3>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,3> & a, const mat<T,M,3> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : compare(a[2],b[2]); } };
         template<class T, int M> struct any_compare<mat<T,M,4>,mat<T,M,4>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,4> & a, const mat<T,M,4> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : a[2]!=b[2] ? compare(a[2],b[2]) : compare(a[3],b[3]); } };
@@ -254,50 +258,90 @@ namespace linalg
         T & operator = (const T & value)   { return elems[I] = value; }
         T & operator = (const _scalar & r) { return elems[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
     };
-    template<class T, class A, int I0, int I1> struct _swizzle<T,A,I0,I1>
+    template<class T, class A, int I0, int I1> struct _lswizzle<T,A,I0,I1>
     {
         A                           e;
-        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
-                                    _swizzle(T e0, T e1)                   { e[I0]=e0; e[I1]=e1; }
-                                    _swizzle(const vec<T,2> & r)           : _swizzle(r[0], r[1]) {}
-        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,2>(r)) {}
-                                    operator vec<T,2> () const             { return {e[I0], e[I1]}; }           
-        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
+        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1)                    { e[I0]=e0; e[I1]=e1; }
+                                    _lswizzle(const vec<T,2> & r)            : _lswizzle(r[0], r[1]) {}
+        template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,2>(r)) {}
+                                    operator vec<T,2> () const               { return {e[I0], e[I1]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
     };
-    template<class T, class A, int I0, int I1, int I2> struct _swizzle<T,A,I0,I1,I2>
+    template<class T, class A, int I0, int I1, int I2> struct _lswizzle<T,A,I0,I1,I2>
     {
         A                           e;
-        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
-                                    _swizzle(T e0, T e1, T e2)             { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
-                                    _swizzle(const vec<T,3> & r)           : _swizzle(r[0], r[1], r[2]) {}
-        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,3>(r)) {}
-                                    operator vec<T,3> () const             { return {e[I0], e[I1], e[I2]}; }           
-        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
+        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1, T e2)              { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
+                                    _lswizzle(const vec<T,3> & r)            : _lswizzle(r[0], r[1], r[2]) {}
+        template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,3>(r)) {}
+                                    operator vec<T,3> () const               { return {e[I0], e[I1], e[I2]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
     };
-    template<class T, class A, int I0, int I1, int I2, int I3> struct _swizzle<T,A,I0,I1,I2,I3>
+    template<class T, class A, int I0, int I1, int I2, int I3> struct _lswizzle<T,A,I0,I1,I2,I3>
     {
         A                           e;
-        constexpr                   _swizzle()                             : e{} {} // This constructor makes _swizzle a literal type, allowing it to live inside unions
-                                    _swizzle(T e0, T e1, T e2, T e3)       { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
-                                    _swizzle(const vec<T,4> & r)           : _swizzle(r[0], r[1], r[2], r[3]) {}
-        template<class B, int... J> _swizzle(const _swizzle<T,B,J...> & r) : _swizzle(vec<T,4>(r)) {}
-                                    operator vec<T,4> () const             { return {e[I0], e[I1], e[I2], e[I3]}; }           
-        _swizzle &                  operator = (const _swizzle & r)        { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
+        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1, T e2, T e3)        { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
+                                    _lswizzle(const vec<T,4> & r)            : _lswizzle(r[0], r[1], r[2], r[3]) {}
+        template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,4>(r)) {}
+                                    operator vec<T,4> () const               { return {e[I0], e[I1], e[I2], e[I3]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
+    };
+    template<class T, class A, int... I> struct _rswizzle
+    {
+        A                           e;
+                                    operator vec<T,sizeof...(I)> () const    { return {e[I]...}; }
+        _rswizzle &                 operator = (const _rswizzle & r)         = delete;
     };
 
-    //////////////////////////////////////////////////////////////
-    // vec<T,M> specializations for 2, 3, and 4 element vectors //
-    //////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // vec<T,M> specializations for 1, 2, 3, and 4 element vectors //
+    /////////////////////////////////////////////////////////////////
 
+    template<class T> struct vec<T,1>
+    {
+        union
+        {
+            detail::element_storage<T[1]> elems;
+            _scalar<T,T[1],0> x,r,s;
+            _rswizzle<T,T[1],0,0> xx,rr,ss;
+            _rswizzle<T,T[1],0,0,0> xxx,rrr,sss;
+            _rswizzle<T,T[1],0,0,0,0> xxxx,rrrr,ssss;
+        };
+        constexpr                            vec()                                                       : elems{} {}
+        constexpr                            vec(const vec & v)                                          : elems{v[0]} {}
+        constexpr                            vec(const T & e0)                                           : elems{e0} {}
+        template<class U> constexpr explicit vec(const vec<U,1> & v)                                     : elems{static_cast<T>(v[0])} {}
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
+        constexpr const T *                  data() const                                                { return elems.elems; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+
+        template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
+        template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
+    };
     template<class T> struct vec<T,2>
     {
         union
         {
             detail::element_storage<T[2]> elems;
-            _scalar<T,T[2],0> x, r, s;
-            _scalar<T,T[2],1> y, g, t;
-            _swizzle<T,T[2],0,1> xy, rg, st;
-            _swizzle<T,T[2],1,0> yx, gr, ts;
+            _scalar<T,T[2],0> x,r,s; _scalar<T,T[2],1> y,g,t;
+            _rswizzle<T,T[2],0,0> xx,rr,ss; _lswizzle<T,T[2],0,1> xy,rg,st;
+            _lswizzle<T,T[2],1,0> yx,gr,ts; _rswizzle<T,T[2],1,1> yy,gg,tt;
+            _rswizzle<T,T[2],0,0,0> xxx,rrr,sss; _rswizzle<T,T[2],0,0,1> xxy,rrg,sst;
+            _rswizzle<T,T[2],0,1,0> xyx,rgr,sts; _rswizzle<T,T[2],0,1,1> xyy,rgg,stt;
+            _rswizzle<T,T[2],1,0,0> yxx,grr,tss; _rswizzle<T,T[2],1,0,1> yxy,grg,tst;
+            _rswizzle<T,T[2],1,1,0> yyx,ggr,tts; _rswizzle<T,T[2],1,1,1> yyy,ggg,ttt;
+            _rswizzle<T,T[2],0,0,0,0> xxxx,rrrr,ssss; _rswizzle<T,T[2],0,0,0,1> xxxy,rrrg,ssst;
+            _rswizzle<T,T[2],0,0,1,0> xxyx,rrgr,ssts; _rswizzle<T,T[2],0,0,1,1> xxyy,rrgg,sstt;
+            _rswizzle<T,T[2],0,1,0,0> xyxx,rgrr,stss; _rswizzle<T,T[2],0,1,0,1> xyxy,rgrg,stst;
+            _rswizzle<T,T[2],0,1,1,0> xyyx,rggr,stts; _rswizzle<T,T[2],0,1,1,1> xyyy,rggg,sttt;
+            _rswizzle<T,T[2],1,0,0,0> yxxx,grrr,tsss; _rswizzle<T,T[2],1,0,0,1> yxxy,grrg,tsst;
+            _rswizzle<T,T[2],1,0,1,0> yxyx,grgr,tsts; _rswizzle<T,T[2],1,0,1,1> yxyy,grgg,tstt;
+            _rswizzle<T,T[2],1,1,0,0> yyxx,ggrr,ttss; _rswizzle<T,T[2],1,1,0,1> yyxy,ggrg,ttst;
+            _rswizzle<T,T[2],1,1,1,0> yyyx,gggr,ttts; _rswizzle<T,T[2],1,1,1,1> yyyy,gggg,tttt;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
@@ -318,21 +362,46 @@ namespace linalg
         union
         {
             detail::element_storage<T[3]> elems;
-            _scalar<T,T[3],0> x, r, s;
-            _scalar<T,T[3],1> y, g, t;
-            _scalar<T,T[3],2> z, b, p;
-            _swizzle<T,T[3],0,1> xy, rg, st;
-            _swizzle<T,T[3],0,2> xz, rb, sp;
-            _swizzle<T,T[3],1,0> yx, gr, ts;
-            _swizzle<T,T[3],1,2> yz, gb, tp;
-            _swizzle<T,T[3],2,0> zx, br, ps;
-            _swizzle<T,T[3],2,1> zy, bg, pt;
-            _swizzle<T,T[3],0,1,2> xyz, rgb, stp;
-            _swizzle<T,T[3],0,2,1> xzy, rbg, spt;
-            _swizzle<T,T[3],1,0,2> yxz, grb, tsp;
-            _swizzle<T,T[3],1,2,0> yzx, gbr, tps;
-            _swizzle<T,T[3],2,0,1> zxy, brg, pst;
-            _swizzle<T,T[3],2,1,0> zyx, bgr, pts;
+            _scalar<T,T[3],0> x,r,s; _scalar<T,T[3],1> y,g,t; _scalar<T,T[3],2> z,b,p;
+            _rswizzle<T,T[3],0,0> xx,rr,ss; _lswizzle<T,T[3],0,1> xy,rg,st; _lswizzle<T,T[3],0,2> xz,rb,sp;
+            _lswizzle<T,T[3],1,0> yx,gr,ts; _rswizzle<T,T[3],1,1> yy,gg,tt; _lswizzle<T,T[3],1,2> yz,gb,tp;
+            _lswizzle<T,T[3],2,0> zx,br,ps; _lswizzle<T,T[3],2,1> zy,bg,pt; _rswizzle<T,T[3],2,2> zz,bb,pp;
+            _rswizzle<T,T[3],0,0,0> xxx,rrr,sss; _rswizzle<T,T[3],0,0,1> xxy,rrg,sst; _rswizzle<T,T[3],0,0,2> xxz,rrb,ssp;
+            _rswizzle<T,T[3],0,1,0> xyx,rgr,sts; _rswizzle<T,T[3],0,1,1> xyy,rgg,stt; _lswizzle<T,T[3],0,1,2> xyz,rgb,stp;
+            _rswizzle<T,T[3],0,2,0> xzx,rbr,sps; _lswizzle<T,T[3],0,2,1> xzy,rbg,spt; _rswizzle<T,T[3],0,2,2> xzz,rbb,spp;
+            _rswizzle<T,T[3],1,0,0> yxx,grr,tss; _rswizzle<T,T[3],1,0,1> yxy,grg,tst; _lswizzle<T,T[3],1,0,2> yxz,grb,tsp;
+            _rswizzle<T,T[3],1,1,0> yyx,ggr,tts; _rswizzle<T,T[3],1,1,1> yyy,ggg,ttt; _rswizzle<T,T[3],1,1,2> yyz,ggb,ttp;
+            _lswizzle<T,T[3],1,2,0> yzx,gbr,tps; _rswizzle<T,T[3],1,2,1> yzy,gbg,tpt; _rswizzle<T,T[3],1,2,2> yzz,gbb,tpp;
+            _rswizzle<T,T[3],2,0,0> zxx,brr,pss; _lswizzle<T,T[3],2,0,1> zxy,brg,pst; _rswizzle<T,T[3],2,0,2> zxz,brb,psp;
+            _lswizzle<T,T[3],2,1,0> zyx,bgr,pts; _rswizzle<T,T[3],2,1,1> zyy,bgg,ptt; _rswizzle<T,T[3],2,1,2> zyz,bgb,ptp;
+            _rswizzle<T,T[3],2,2,0> zzx,bbr,pps; _rswizzle<T,T[3],2,2,1> zzy,bbg,ppt; _rswizzle<T,T[3],2,2,2> zzz,bbb,ppp;
+            _rswizzle<T,T[3],0,0,0,0> xxxx,rrrr,ssss; _rswizzle<T,T[3],0,0,0,1> xxxy,rrrg,ssst; _rswizzle<T,T[3],0,0,0,2> xxxz,rrrb,sssp;
+            _rswizzle<T,T[3],0,0,1,0> xxyx,rrgr,ssts; _rswizzle<T,T[3],0,0,1,1> xxyy,rrgg,sstt; _rswizzle<T,T[3],0,0,1,2> xxyz,rrgb,sstp;
+            _rswizzle<T,T[3],0,0,2,0> xxzx,rrbr,ssps; _rswizzle<T,T[3],0,0,2,1> xxzy,rrbg,sspt; _rswizzle<T,T[3],0,0,2,2> xxzz,rrbb,sspp;
+            _rswizzle<T,T[3],0,1,0,0> xyxx,rgrr,stss; _rswizzle<T,T[3],0,1,0,1> xyxy,rgrg,stst; _rswizzle<T,T[3],0,1,0,2> xyxz,rgrb,stsp;
+            _rswizzle<T,T[3],0,1,1,0> xyyx,rggr,stts; _rswizzle<T,T[3],0,1,1,1> xyyy,rggg,sttt; _rswizzle<T,T[3],0,1,1,2> xyyz,rggb,sttp;
+            _rswizzle<T,T[3],0,1,2,0> xyzx,rgbr,stps; _rswizzle<T,T[3],0,1,2,1> xyzy,rgbg,stpt; _rswizzle<T,T[3],0,1,2,2> xyzz,rgbb,stpp;
+            _rswizzle<T,T[3],0,2,0,0> xzxx,rbrr,spss; _rswizzle<T,T[3],0,2,0,1> xzxy,rbrg,spst; _rswizzle<T,T[3],0,2,0,2> xzxz,rbrb,spsp;
+            _rswizzle<T,T[3],0,2,1,0> xzyx,rbgr,spts; _rswizzle<T,T[3],0,2,1,1> xzyy,rbgg,sptt; _rswizzle<T,T[3],0,2,1,2> xzyz,rbgb,sptp;
+            _rswizzle<T,T[3],0,2,2,0> xzzx,rbbr,spps; _rswizzle<T,T[3],0,2,2,1> xzzy,rbbg,sppt; _rswizzle<T,T[3],0,2,2,2> xzzz,rbbb,sppp;
+            _rswizzle<T,T[3],1,0,0,0> yxxx,grrr,tsss; _rswizzle<T,T[3],1,0,0,1> yxxy,grrg,tsst; _rswizzle<T,T[3],1,0,0,2> yxxz,grrb,tssp;
+            _rswizzle<T,T[3],1,0,1,0> yxyx,grgr,tsts; _rswizzle<T,T[3],1,0,1,1> yxyy,grgg,tstt; _rswizzle<T,T[3],1,0,1,2> yxyz,grgb,tstp;
+            _rswizzle<T,T[3],1,0,2,0> yxzx,grbr,tsps; _rswizzle<T,T[3],1,0,2,1> yxzy,grbg,tspt; _rswizzle<T,T[3],1,0,2,2> yxzz,grbb,tspp;
+            _rswizzle<T,T[3],1,1,0,0> yyxx,ggrr,ttss; _rswizzle<T,T[3],1,1,0,1> yyxy,ggrg,ttst; _rswizzle<T,T[3],1,1,0,2> yyxz,ggrb,ttsp;
+            _rswizzle<T,T[3],1,1,1,0> yyyx,gggr,ttts; _rswizzle<T,T[3],1,1,1,1> yyyy,gggg,tttt; _rswizzle<T,T[3],1,1,1,2> yyyz,gggb,tttp;
+            _rswizzle<T,T[3],1,1,2,0> yyzx,ggbr,ttps; _rswizzle<T,T[3],1,1,2,1> yyzy,ggbg,ttpt; _rswizzle<T,T[3],1,1,2,2> yyzz,ggbb,ttpp;
+            _rswizzle<T,T[3],1,2,0,0> yzxx,gbrr,tpss; _rswizzle<T,T[3],1,2,0,1> yzxy,gbrg,tpst; _rswizzle<T,T[3],1,2,0,2> yzxz,gbrb,tpsp;
+            _rswizzle<T,T[3],1,2,1,0> yzyx,gbgr,tpts; _rswizzle<T,T[3],1,2,1,1> yzyy,gbgg,tptt; _rswizzle<T,T[3],1,2,1,2> yzyz,gbgb,tptp;
+            _rswizzle<T,T[3],1,2,2,0> yzzx,gbbr,tpps; _rswizzle<T,T[3],1,2,2,1> yzzy,gbbg,tppt; _rswizzle<T,T[3],1,2,2,2> yzzz,gbbb,tppp;
+            _rswizzle<T,T[3],2,0,0,0> zxxx,brrr,psss; _rswizzle<T,T[3],2,0,0,1> zxxy,brrg,psst; _rswizzle<T,T[3],2,0,0,2> zxxz,brrb,pssp;
+            _rswizzle<T,T[3],2,0,1,0> zxyx,brgr,psts; _rswizzle<T,T[3],2,0,1,1> zxyy,brgg,pstt; _rswizzle<T,T[3],2,0,1,2> zxyz,brgb,pstp;
+            _rswizzle<T,T[3],2,0,2,0> zxzx,brbr,psps; _rswizzle<T,T[3],2,0,2,1> zxzy,brbg,pspt; _rswizzle<T,T[3],2,0,2,2> zxzz,brbb,pspp;
+            _rswizzle<T,T[3],2,1,0,0> zyxx,bgrr,ptss; _rswizzle<T,T[3],2,1,0,1> zyxy,bgrg,ptst; _rswizzle<T,T[3],2,1,0,2> zyxz,bgrb,ptsp;
+            _rswizzle<T,T[3],2,1,1,0> zyyx,bggr,ptts; _rswizzle<T,T[3],2,1,1,1> zyyy,bggg,pttt; _rswizzle<T,T[3],2,1,1,2> zyyz,bggb,pttp;
+            _rswizzle<T,T[3],2,1,2,0> zyzx,bgbr,ptps; _rswizzle<T,T[3],2,1,2,1> zyzy,bgbg,ptpt; _rswizzle<T,T[3],2,1,2,2> zyzz,bgbb,ptpp;
+            _rswizzle<T,T[3],2,2,0,0> zzxx,bbrr,ppss; _rswizzle<T,T[3],2,2,0,1> zzxy,bbrg,ppst; _rswizzle<T,T[3],2,2,0,2> zzxz,bbrb,ppsp;
+            _rswizzle<T,T[3],2,2,1,0> zzyx,bbgr,ppts; _rswizzle<T,T[3],2,2,1,1> zzyy,bbgg,pptt; _rswizzle<T,T[3],2,2,1,2> zzyz,bbgb,pptp;
+            _rswizzle<T,T[3],2,2,2,0> zzzx,bbbr,ppps; _rswizzle<T,T[3],2,2,2,1> zzzy,bbbg,pppt; _rswizzle<T,T[3],2,2,2,2> zzzz,bbbb,pppp;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
@@ -354,70 +423,91 @@ namespace linalg
         union
         {
             detail::element_storage<T[4]> elems;
-            _scalar<T,T[4],0> x, r, s;
-            _scalar<T,T[4],1> y, g, t;
-            _scalar<T,T[4],2> z, b, p;
-            _scalar<T,T[4],3> w, a, q;
-            _swizzle<T,T[4],0,1> xy, rg, st;
-            _swizzle<T,T[4],0,2> xz, rb, sp;
-            _swizzle<T,T[4],0,3> xw, ra, sq;
-            _swizzle<T,T[4],1,0> yx, gr, ts;
-            _swizzle<T,T[4],1,2> yz, gb, tp;
-            _swizzle<T,T[4],1,3> yw, ga, tq;
-            _swizzle<T,T[4],2,0> zx, br, ps;
-            _swizzle<T,T[4],2,1> zy, bg, pt;
-            _swizzle<T,T[4],2,3> zw, ba, pq;
-            _swizzle<T,T[4],3,0> wx, ar, qs;
-            _swizzle<T,T[4],3,1> wy, ag, qt;
-            _swizzle<T,T[4],3,2> wz, ab, qp;
-            _swizzle<T,T[4],0,1,2> xyz, rgb, stp;
-            _swizzle<T,T[4],0,1,3> xyw, rga, stq;
-            _swizzle<T,T[4],0,2,1> xzy, rbg, spt;
-            _swizzle<T,T[4],0,2,3> xzw, rba, spq;
-            _swizzle<T,T[4],0,3,1> xwy, rag, sqt;
-            _swizzle<T,T[4],0,3,2> xwz, rab, sqp;
-            _swizzle<T,T[4],1,0,2> yxz, grb, tsp;
-            _swizzle<T,T[4],1,0,3> yxw, gra, tsq;
-            _swizzle<T,T[4],1,2,0> yzx, gbr, tps;
-            _swizzle<T,T[4],1,2,3> yzw, gba, tpq;
-            _swizzle<T,T[4],1,3,0> ywx, gar, tqs;
-            _swizzle<T,T[4],1,3,2> ywz, gab, tqp;
-            _swizzle<T,T[4],2,0,1> zxy, brg, pst;
-            _swizzle<T,T[4],2,0,3> zxw, bra, psq;
-            _swizzle<T,T[4],2,1,0> zyx, bgr, pts;
-            _swizzle<T,T[4],2,1,3> zyw, bga, ptq;
-            _swizzle<T,T[4],2,3,0> zwx, bar, pqs;
-            _swizzle<T,T[4],2,3,1> zwy, bag, pqt;
-            _swizzle<T,T[4],3,0,1> wxy, arg, qst;
-            _swizzle<T,T[4],3,0,2> wxz, arb, qsp;
-            _swizzle<T,T[4],3,1,0> wyx, agr, qts;
-            _swizzle<T,T[4],3,1,2> wyz, agb, qtp;
-            _swizzle<T,T[4],3,2,0> wzx, abr, qps;
-            _swizzle<T,T[4],3,2,1> wzy, abg, qpt;
-            _swizzle<T,T[4],0,1,2,3> xyzw, rgba, stpq;
-            _swizzle<T,T[4],0,1,3,2> xywz, rgab, stqp;
-            _swizzle<T,T[4],0,2,1,3> xzyw, rbga, sptq;
-            _swizzle<T,T[4],0,2,3,1> xzwy, rbag, spqt;
-            _swizzle<T,T[4],0,3,1,2> xwyz, ragb, sqtp;
-            _swizzle<T,T[4],0,3,2,1> xwzy, rabg, sqpt;
-            _swizzle<T,T[4],1,0,2,3> yxzw, grba, tspq;
-            _swizzle<T,T[4],1,0,3,2> yxwz, grab, tsqp;
-            _swizzle<T,T[4],1,2,0,3> yzxw, gbra, tpsq;
-            _swizzle<T,T[4],1,2,3,0> yzwx, gbar, tpqs;
-            _swizzle<T,T[4],1,3,0,2> ywxz, garb, tqsp;
-            _swizzle<T,T[4],1,3,2,0> ywzx, gabr, tqps;
-            _swizzle<T,T[4],2,0,1,3> zxyw, brga, pstq;
-            _swizzle<T,T[4],2,0,3,1> zxwy, brag, psqt;
-            _swizzle<T,T[4],2,1,0,3> zyxw, bgra, ptsq;
-            _swizzle<T,T[4],2,1,3,0> zywx, bgar, ptqs;
-            _swizzle<T,T[4],2,3,0,1> zwxy, barg, pqst;
-            _swizzle<T,T[4],2,3,1,0> zwyx, bagr, pqts;
-            _swizzle<T,T[4],3,0,1,2> wxyz, argb, qstp;
-            _swizzle<T,T[4],3,0,2,1> wxzy, arbg, qspt;
-            _swizzle<T,T[4],3,1,0,2> wyxz, agrb, qtsp;
-            _swizzle<T,T[4],3,1,2,0> wyzx, agbr, qtps;
-            _swizzle<T,T[4],3,2,0,1> wzxy, abrg, qpst;
-            _swizzle<T,T[4],3,2,1,0> wzyx, abgr, qpts;
+            _scalar<T,T[4],0> x,r,s; _scalar<T,T[4],1> y,g,t; _scalar<T,T[4],2> z,b,p; _scalar<T,T[4],3> w,a,q;
+            _rswizzle<T,T[4],0,0> xx,rr,ss; _lswizzle<T,T[4],0,1> xy,rg,st; _lswizzle<T,T[4],0,2> xz,rb,sp; _lswizzle<T,T[4],0,3> xw,ra,sq;
+            _lswizzle<T,T[4],1,0> yx,gr,ts; _rswizzle<T,T[4],1,1> yy,gg,tt; _lswizzle<T,T[4],1,2> yz,gb,tp; _lswizzle<T,T[4],1,3> yw,ga,tq;
+            _lswizzle<T,T[4],2,0> zx,br,ps; _lswizzle<T,T[4],2,1> zy,bg,pt; _rswizzle<T,T[4],2,2> zz,bb,pp; _lswizzle<T,T[4],2,3> zw,ba,pq;
+            _lswizzle<T,T[4],3,0> wx,ar,qs; _lswizzle<T,T[4],3,1> wy,ag,qt; _lswizzle<T,T[4],3,2> wz,ab,qp; _rswizzle<T,T[4],3,3> ww,aa,qq;
+            _rswizzle<T,T[4],0,0,0> xxx,rrr,sss; _rswizzle<T,T[4],0,0,1> xxy,rrg,sst; _rswizzle<T,T[4],0,0,2> xxz,rrb,ssp; _rswizzle<T,T[4],0,0,3> xxw,rra,ssq;
+            _rswizzle<T,T[4],0,1,0> xyx,rgr,sts; _rswizzle<T,T[4],0,1,1> xyy,rgg,stt; _lswizzle<T,T[4],0,1,2> xyz,rgb,stp; _lswizzle<T,T[4],0,1,3> xyw,rga,stq;
+            _rswizzle<T,T[4],0,2,0> xzx,rbr,sps; _lswizzle<T,T[4],0,2,1> xzy,rbg,spt; _rswizzle<T,T[4],0,2,2> xzz,rbb,spp; _lswizzle<T,T[4],0,2,3> xzw,rba,spq;
+            _rswizzle<T,T[4],0,3,0> xwx,rar,sqs; _lswizzle<T,T[4],0,3,1> xwy,rag,sqt; _lswizzle<T,T[4],0,3,2> xwz,rab,sqp; _rswizzle<T,T[4],0,3,3> xww,raa,sqq;
+            _rswizzle<T,T[4],1,0,0> yxx,grr,tss; _rswizzle<T,T[4],1,0,1> yxy,grg,tst; _lswizzle<T,T[4],1,0,2> yxz,grb,tsp; _lswizzle<T,T[4],1,0,3> yxw,gra,tsq;
+            _rswizzle<T,T[4],1,1,0> yyx,ggr,tts; _rswizzle<T,T[4],1,1,1> yyy,ggg,ttt; _rswizzle<T,T[4],1,1,2> yyz,ggb,ttp; _rswizzle<T,T[4],1,1,3> yyw,gga,ttq;
+            _lswizzle<T,T[4],1,2,0> yzx,gbr,tps; _rswizzle<T,T[4],1,2,1> yzy,gbg,tpt; _rswizzle<T,T[4],1,2,2> yzz,gbb,tpp; _lswizzle<T,T[4],1,2,3> yzw,gba,tpq;
+            _lswizzle<T,T[4],1,3,0> ywx,gar,tqs; _rswizzle<T,T[4],1,3,1> ywy,gag,tqt; _lswizzle<T,T[4],1,3,2> ywz,gab,tqp; _rswizzle<T,T[4],1,3,3> yww,gaa,tqq;
+            _rswizzle<T,T[4],2,0,0> zxx,brr,pss; _lswizzle<T,T[4],2,0,1> zxy,brg,pst; _rswizzle<T,T[4],2,0,2> zxz,brb,psp; _lswizzle<T,T[4],2,0,3> zxw,bra,psq;
+            _lswizzle<T,T[4],2,1,0> zyx,bgr,pts; _rswizzle<T,T[4],2,1,1> zyy,bgg,ptt; _rswizzle<T,T[4],2,1,2> zyz,bgb,ptp; _lswizzle<T,T[4],2,1,3> zyw,bga,ptq;
+            _rswizzle<T,T[4],2,2,0> zzx,bbr,pps; _rswizzle<T,T[4],2,2,1> zzy,bbg,ppt; _rswizzle<T,T[4],2,2,2> zzz,bbb,ppp; _rswizzle<T,T[4],2,2,3> zzw,bba,ppq;
+            _lswizzle<T,T[4],2,3,0> zwx,bar,pqs; _lswizzle<T,T[4],2,3,1> zwy,bag,pqt; _rswizzle<T,T[4],2,3,2> zwz,bab,pqp; _rswizzle<T,T[4],2,3,3> zww,baa,pqq;
+            _rswizzle<T,T[4],3,0,0> wxx,arr,qss; _lswizzle<T,T[4],3,0,1> wxy,arg,qst; _lswizzle<T,T[4],3,0,2> wxz,arb,qsp; _rswizzle<T,T[4],3,0,3> wxw,ara,qsq;
+            _lswizzle<T,T[4],3,1,0> wyx,agr,qts; _rswizzle<T,T[4],3,1,1> wyy,agg,qtt; _lswizzle<T,T[4],3,1,2> wyz,agb,qtp; _rswizzle<T,T[4],3,1,3> wyw,aga,qtq;
+            _lswizzle<T,T[4],3,2,0> wzx,abr,qps; _lswizzle<T,T[4],3,2,1> wzy,abg,qpt; _rswizzle<T,T[4],3,2,2> wzz,abb,qpp; _rswizzle<T,T[4],3,2,3> wzw,aba,qpq;
+            _rswizzle<T,T[4],3,3,0> wwx,aar,qqs; _rswizzle<T,T[4],3,3,1> wwy,aag,qqt; _rswizzle<T,T[4],3,3,2> wwz,aab,qqp; _rswizzle<T,T[4],3,3,3> www,aaa,qqq;
+            _rswizzle<T,T[4],0,0,0,0> xxxx,rrrr,ssss; _rswizzle<T,T[4],0,0,0,1> xxxy,rrrg,ssst; _rswizzle<T,T[4],0,0,0,2> xxxz,rrrb,sssp; _rswizzle<T,T[4],0,0,0,3> xxxw,rrra,sssq;
+            _rswizzle<T,T[4],0,0,1,0> xxyx,rrgr,ssts; _rswizzle<T,T[4],0,0,1,1> xxyy,rrgg,sstt; _rswizzle<T,T[4],0,0,1,2> xxyz,rrgb,sstp; _rswizzle<T,T[4],0,0,1,3> xxyw,rrga,sstq;
+            _rswizzle<T,T[4],0,0,2,0> xxzx,rrbr,ssps; _rswizzle<T,T[4],0,0,2,1> xxzy,rrbg,sspt; _rswizzle<T,T[4],0,0,2,2> xxzz,rrbb,sspp; _rswizzle<T,T[4],0,0,2,3> xxzw,rrba,sspq;
+            _rswizzle<T,T[4],0,0,3,0> xxwx,rrar,ssqs; _rswizzle<T,T[4],0,0,3,1> xxwy,rrag,ssqt; _rswizzle<T,T[4],0,0,3,2> xxwz,rrab,ssqp; _rswizzle<T,T[4],0,0,3,3> xxww,rraa,ssqq;
+            _rswizzle<T,T[4],0,1,0,0> xyxx,rgrr,stss; _rswizzle<T,T[4],0,1,0,1> xyxy,rgrg,stst; _rswizzle<T,T[4],0,1,0,2> xyxz,rgrb,stsp; _rswizzle<T,T[4],0,1,0,3> xyxw,rgra,stsq;
+            _rswizzle<T,T[4],0,1,1,0> xyyx,rggr,stts; _rswizzle<T,T[4],0,1,1,1> xyyy,rggg,sttt; _rswizzle<T,T[4],0,1,1,2> xyyz,rggb,sttp; _rswizzle<T,T[4],0,1,1,3> xyyw,rgga,sttq;
+            _rswizzle<T,T[4],0,1,2,0> xyzx,rgbr,stps; _rswizzle<T,T[4],0,1,2,1> xyzy,rgbg,stpt; _rswizzle<T,T[4],0,1,2,2> xyzz,rgbb,stpp; _lswizzle<T,T[4],0,1,2,3> xyzw,rgba,stpq;
+            _rswizzle<T,T[4],0,1,3,0> xywx,rgar,stqs; _rswizzle<T,T[4],0,1,3,1> xywy,rgag,stqt; _lswizzle<T,T[4],0,1,3,2> xywz,rgab,stqp; _rswizzle<T,T[4],0,1,3,3> xyww,rgaa,stqq;
+            _rswizzle<T,T[4],0,2,0,0> xzxx,rbrr,spss; _rswizzle<T,T[4],0,2,0,1> xzxy,rbrg,spst; _rswizzle<T,T[4],0,2,0,2> xzxz,rbrb,spsp; _rswizzle<T,T[4],0,2,0,3> xzxw,rbra,spsq;
+            _rswizzle<T,T[4],0,2,1,0> xzyx,rbgr,spts; _rswizzle<T,T[4],0,2,1,1> xzyy,rbgg,sptt; _rswizzle<T,T[4],0,2,1,2> xzyz,rbgb,sptp; _lswizzle<T,T[4],0,2,1,3> xzyw,rbga,sptq;
+            _rswizzle<T,T[4],0,2,2,0> xzzx,rbbr,spps; _rswizzle<T,T[4],0,2,2,1> xzzy,rbbg,sppt; _rswizzle<T,T[4],0,2,2,2> xzzz,rbbb,sppp; _rswizzle<T,T[4],0,2,2,3> xzzw,rbba,sppq;
+            _rswizzle<T,T[4],0,2,3,0> xzwx,rbar,spqs; _lswizzle<T,T[4],0,2,3,1> xzwy,rbag,spqt; _rswizzle<T,T[4],0,2,3,2> xzwz,rbab,spqp; _rswizzle<T,T[4],0,2,3,3> xzww,rbaa,spqq;
+            _rswizzle<T,T[4],0,3,0,0> xwxx,rarr,sqss; _rswizzle<T,T[4],0,3,0,1> xwxy,rarg,sqst; _rswizzle<T,T[4],0,3,0,2> xwxz,rarb,sqsp; _rswizzle<T,T[4],0,3,0,3> xwxw,rara,sqsq;
+            _rswizzle<T,T[4],0,3,1,0> xwyx,ragr,sqts; _rswizzle<T,T[4],0,3,1,1> xwyy,ragg,sqtt; _lswizzle<T,T[4],0,3,1,2> xwyz,ragb,sqtp; _rswizzle<T,T[4],0,3,1,3> xwyw,raga,sqtq;
+            _rswizzle<T,T[4],0,3,2,0> xwzx,rabr,sqps; _lswizzle<T,T[4],0,3,2,1> xwzy,rabg,sqpt; _rswizzle<T,T[4],0,3,2,2> xwzz,rabb,sqpp; _rswizzle<T,T[4],0,3,2,3> xwzw,raba,sqpq;
+            _rswizzle<T,T[4],0,3,3,0> xwwx,raar,sqqs; _rswizzle<T,T[4],0,3,3,1> xwwy,raag,sqqt; _rswizzle<T,T[4],0,3,3,2> xwwz,raab,sqqp; _rswizzle<T,T[4],0,3,3,3> xwww,raaa,sqqq;
+            _rswizzle<T,T[4],1,0,0,0> yxxx,grrr,tsss; _rswizzle<T,T[4],1,0,0,1> yxxy,grrg,tsst; _rswizzle<T,T[4],1,0,0,2> yxxz,grrb,tssp; _rswizzle<T,T[4],1,0,0,3> yxxw,grra,tssq;
+            _rswizzle<T,T[4],1,0,1,0> yxyx,grgr,tsts; _rswizzle<T,T[4],1,0,1,1> yxyy,grgg,tstt; _rswizzle<T,T[4],1,0,1,2> yxyz,grgb,tstp; _rswizzle<T,T[4],1,0,1,3> yxyw,grga,tstq;
+            _rswizzle<T,T[4],1,0,2,0> yxzx,grbr,tsps; _rswizzle<T,T[4],1,0,2,1> yxzy,grbg,tspt; _rswizzle<T,T[4],1,0,2,2> yxzz,grbb,tspp; _lswizzle<T,T[4],1,0,2,3> yxzw,grba,tspq;
+            _rswizzle<T,T[4],1,0,3,0> yxwx,grar,tsqs; _rswizzle<T,T[4],1,0,3,1> yxwy,grag,tsqt; _lswizzle<T,T[4],1,0,3,2> yxwz,grab,tsqp; _rswizzle<T,T[4],1,0,3,3> yxww,graa,tsqq;
+            _rswizzle<T,T[4],1,1,0,0> yyxx,ggrr,ttss; _rswizzle<T,T[4],1,1,0,1> yyxy,ggrg,ttst; _rswizzle<T,T[4],1,1,0,2> yyxz,ggrb,ttsp; _rswizzle<T,T[4],1,1,0,3> yyxw,ggra,ttsq;
+            _rswizzle<T,T[4],1,1,1,0> yyyx,gggr,ttts; _rswizzle<T,T[4],1,1,1,1> yyyy,gggg,tttt; _rswizzle<T,T[4],1,1,1,2> yyyz,gggb,tttp; _rswizzle<T,T[4],1,1,1,3> yyyw,ggga,tttq;
+            _rswizzle<T,T[4],1,1,2,0> yyzx,ggbr,ttps; _rswizzle<T,T[4],1,1,2,1> yyzy,ggbg,ttpt; _rswizzle<T,T[4],1,1,2,2> yyzz,ggbb,ttpp; _rswizzle<T,T[4],1,1,2,3> yyzw,ggba,ttpq;
+            _rswizzle<T,T[4],1,1,3,0> yywx,ggar,ttqs; _rswizzle<T,T[4],1,1,3,1> yywy,ggag,ttqt; _rswizzle<T,T[4],1,1,3,2> yywz,ggab,ttqp; _rswizzle<T,T[4],1,1,3,3> yyww,ggaa,ttqq;
+            _rswizzle<T,T[4],1,2,0,0> yzxx,gbrr,tpss; _rswizzle<T,T[4],1,2,0,1> yzxy,gbrg,tpst; _rswizzle<T,T[4],1,2,0,2> yzxz,gbrb,tpsp; _lswizzle<T,T[4],1,2,0,3> yzxw,gbra,tpsq;
+            _rswizzle<T,T[4],1,2,1,0> yzyx,gbgr,tpts; _rswizzle<T,T[4],1,2,1,1> yzyy,gbgg,tptt; _rswizzle<T,T[4],1,2,1,2> yzyz,gbgb,tptp; _rswizzle<T,T[4],1,2,1,3> yzyw,gbga,tptq;
+            _rswizzle<T,T[4],1,2,2,0> yzzx,gbbr,tpps; _rswizzle<T,T[4],1,2,2,1> yzzy,gbbg,tppt; _rswizzle<T,T[4],1,2,2,2> yzzz,gbbb,tppp; _rswizzle<T,T[4],1,2,2,3> yzzw,gbba,tppq;
+            _lswizzle<T,T[4],1,2,3,0> yzwx,gbar,tpqs; _rswizzle<T,T[4],1,2,3,1> yzwy,gbag,tpqt; _rswizzle<T,T[4],1,2,3,2> yzwz,gbab,tpqp; _rswizzle<T,T[4],1,2,3,3> yzww,gbaa,tpqq;
+            _rswizzle<T,T[4],1,3,0,0> ywxx,garr,tqss; _rswizzle<T,T[4],1,3,0,1> ywxy,garg,tqst; _lswizzle<T,T[4],1,3,0,2> ywxz,garb,tqsp; _rswizzle<T,T[4],1,3,0,3> ywxw,gara,tqsq;
+            _rswizzle<T,T[4],1,3,1,0> ywyx,gagr,tqts; _rswizzle<T,T[4],1,3,1,1> ywyy,gagg,tqtt; _rswizzle<T,T[4],1,3,1,2> ywyz,gagb,tqtp; _rswizzle<T,T[4],1,3,1,3> ywyw,gaga,tqtq;
+            _lswizzle<T,T[4],1,3,2,0> ywzx,gabr,tqps; _rswizzle<T,T[4],1,3,2,1> ywzy,gabg,tqpt; _rswizzle<T,T[4],1,3,2,2> ywzz,gabb,tqpp; _rswizzle<T,T[4],1,3,2,3> ywzw,gaba,tqpq;
+            _rswizzle<T,T[4],1,3,3,0> ywwx,gaar,tqqs; _rswizzle<T,T[4],1,3,3,1> ywwy,gaag,tqqt; _rswizzle<T,T[4],1,3,3,2> ywwz,gaab,tqqp; _rswizzle<T,T[4],1,3,3,3> ywww,gaaa,tqqq;
+            _rswizzle<T,T[4],2,0,0,0> zxxx,brrr,psss; _rswizzle<T,T[4],2,0,0,1> zxxy,brrg,psst; _rswizzle<T,T[4],2,0,0,2> zxxz,brrb,pssp; _rswizzle<T,T[4],2,0,0,3> zxxw,brra,pssq;
+            _rswizzle<T,T[4],2,0,1,0> zxyx,brgr,psts; _rswizzle<T,T[4],2,0,1,1> zxyy,brgg,pstt; _rswizzle<T,T[4],2,0,1,2> zxyz,brgb,pstp; _lswizzle<T,T[4],2,0,1,3> zxyw,brga,pstq;
+            _rswizzle<T,T[4],2,0,2,0> zxzx,brbr,psps; _rswizzle<T,T[4],2,0,2,1> zxzy,brbg,pspt; _rswizzle<T,T[4],2,0,2,2> zxzz,brbb,pspp; _rswizzle<T,T[4],2,0,2,3> zxzw,brba,pspq;
+            _rswizzle<T,T[4],2,0,3,0> zxwx,brar,psqs; _lswizzle<T,T[4],2,0,3,1> zxwy,brag,psqt; _rswizzle<T,T[4],2,0,3,2> zxwz,brab,psqp; _rswizzle<T,T[4],2,0,3,3> zxww,braa,psqq;
+            _rswizzle<T,T[4],2,1,0,0> zyxx,bgrr,ptss; _rswizzle<T,T[4],2,1,0,1> zyxy,bgrg,ptst; _rswizzle<T,T[4],2,1,0,2> zyxz,bgrb,ptsp; _lswizzle<T,T[4],2,1,0,3> zyxw,bgra,ptsq;
+            _rswizzle<T,T[4],2,1,1,0> zyyx,bggr,ptts; _rswizzle<T,T[4],2,1,1,1> zyyy,bggg,pttt; _rswizzle<T,T[4],2,1,1,2> zyyz,bggb,pttp; _rswizzle<T,T[4],2,1,1,3> zyyw,bgga,pttq;
+            _rswizzle<T,T[4],2,1,2,0> zyzx,bgbr,ptps; _rswizzle<T,T[4],2,1,2,1> zyzy,bgbg,ptpt; _rswizzle<T,T[4],2,1,2,2> zyzz,bgbb,ptpp; _rswizzle<T,T[4],2,1,2,3> zyzw,bgba,ptpq;
+            _lswizzle<T,T[4],2,1,3,0> zywx,bgar,ptqs; _rswizzle<T,T[4],2,1,3,1> zywy,bgag,ptqt; _rswizzle<T,T[4],2,1,3,2> zywz,bgab,ptqp; _rswizzle<T,T[4],2,1,3,3> zyww,bgaa,ptqq;
+            _rswizzle<T,T[4],2,2,0,0> zzxx,bbrr,ppss; _rswizzle<T,T[4],2,2,0,1> zzxy,bbrg,ppst; _rswizzle<T,T[4],2,2,0,2> zzxz,bbrb,ppsp; _rswizzle<T,T[4],2,2,0,3> zzxw,bbra,ppsq;
+            _rswizzle<T,T[4],2,2,1,0> zzyx,bbgr,ppts; _rswizzle<T,T[4],2,2,1,1> zzyy,bbgg,pptt; _rswizzle<T,T[4],2,2,1,2> zzyz,bbgb,pptp; _rswizzle<T,T[4],2,2,1,3> zzyw,bbga,pptq;
+            _rswizzle<T,T[4],2,2,2,0> zzzx,bbbr,ppps; _rswizzle<T,T[4],2,2,2,1> zzzy,bbbg,pppt; _rswizzle<T,T[4],2,2,2,2> zzzz,bbbb,pppp; _rswizzle<T,T[4],2,2,2,3> zzzw,bbba,pppq;
+            _rswizzle<T,T[4],2,2,3,0> zzwx,bbar,ppqs; _rswizzle<T,T[4],2,2,3,1> zzwy,bbag,ppqt; _rswizzle<T,T[4],2,2,3,2> zzwz,bbab,ppqp; _rswizzle<T,T[4],2,2,3,3> zzww,bbaa,ppqq;
+            _rswizzle<T,T[4],2,3,0,0> zwxx,barr,pqss; _lswizzle<T,T[4],2,3,0,1> zwxy,barg,pqst; _rswizzle<T,T[4],2,3,0,2> zwxz,barb,pqsp; _rswizzle<T,T[4],2,3,0,3> zwxw,bara,pqsq;
+            _lswizzle<T,T[4],2,3,1,0> zwyx,bagr,pqts; _rswizzle<T,T[4],2,3,1,1> zwyy,bagg,pqtt; _rswizzle<T,T[4],2,3,1,2> zwyz,bagb,pqtp; _rswizzle<T,T[4],2,3,1,3> zwyw,baga,pqtq;
+            _rswizzle<T,T[4],2,3,2,0> zwzx,babr,pqps; _rswizzle<T,T[4],2,3,2,1> zwzy,babg,pqpt; _rswizzle<T,T[4],2,3,2,2> zwzz,babb,pqpp; _rswizzle<T,T[4],2,3,2,3> zwzw,baba,pqpq;
+            _rswizzle<T,T[4],2,3,3,0> zwwx,baar,pqqs; _rswizzle<T,T[4],2,3,3,1> zwwy,baag,pqqt; _rswizzle<T,T[4],2,3,3,2> zwwz,baab,pqqp; _rswizzle<T,T[4],2,3,3,3> zwww,baaa,pqqq;
+            _rswizzle<T,T[4],3,0,0,0> wxxx,arrr,qsss; _rswizzle<T,T[4],3,0,0,1> wxxy,arrg,qsst; _rswizzle<T,T[4],3,0,0,2> wxxz,arrb,qssp; _rswizzle<T,T[4],3,0,0,3> wxxw,arra,qssq;
+            _rswizzle<T,T[4],3,0,1,0> wxyx,argr,qsts; _rswizzle<T,T[4],3,0,1,1> wxyy,argg,qstt; _lswizzle<T,T[4],3,0,1,2> wxyz,argb,qstp; _rswizzle<T,T[4],3,0,1,3> wxyw,arga,qstq;
+            _rswizzle<T,T[4],3,0,2,0> wxzx,arbr,qsps; _lswizzle<T,T[4],3,0,2,1> wxzy,arbg,qspt; _rswizzle<T,T[4],3,0,2,2> wxzz,arbb,qspp; _rswizzle<T,T[4],3,0,2,3> wxzw,arba,qspq;
+            _rswizzle<T,T[4],3,0,3,0> wxwx,arar,qsqs; _rswizzle<T,T[4],3,0,3,1> wxwy,arag,qsqt; _rswizzle<T,T[4],3,0,3,2> wxwz,arab,qsqp; _rswizzle<T,T[4],3,0,3,3> wxww,araa,qsqq;
+            _rswizzle<T,T[4],3,1,0,0> wyxx,agrr,qtss; _rswizzle<T,T[4],3,1,0,1> wyxy,agrg,qtst; _lswizzle<T,T[4],3,1,0,2> wyxz,agrb,qtsp; _rswizzle<T,T[4],3,1,0,3> wyxw,agra,qtsq;
+            _rswizzle<T,T[4],3,1,1,0> wyyx,aggr,qtts; _rswizzle<T,T[4],3,1,1,1> wyyy,aggg,qttt; _rswizzle<T,T[4],3,1,1,2> wyyz,aggb,qttp; _rswizzle<T,T[4],3,1,1,3> wyyw,agga,qttq;
+            _lswizzle<T,T[4],3,1,2,0> wyzx,agbr,qtps; _rswizzle<T,T[4],3,1,2,1> wyzy,agbg,qtpt; _rswizzle<T,T[4],3,1,2,2> wyzz,agbb,qtpp; _rswizzle<T,T[4],3,1,2,3> wyzw,agba,qtpq;
+            _rswizzle<T,T[4],3,1,3,0> wywx,agar,qtqs; _rswizzle<T,T[4],3,1,3,1> wywy,agag,qtqt; _rswizzle<T,T[4],3,1,3,2> wywz,agab,qtqp; _rswizzle<T,T[4],3,1,3,3> wyww,agaa,qtqq;
+            _rswizzle<T,T[4],3,2,0,0> wzxx,abrr,qpss; _lswizzle<T,T[4],3,2,0,1> wzxy,abrg,qpst; _rswizzle<T,T[4],3,2,0,2> wzxz,abrb,qpsp; _rswizzle<T,T[4],3,2,0,3> wzxw,abra,qpsq;
+            _lswizzle<T,T[4],3,2,1,0> wzyx,abgr,qpts; _rswizzle<T,T[4],3,2,1,1> wzyy,abgg,qptt; _rswizzle<T,T[4],3,2,1,2> wzyz,abgb,qptp; _rswizzle<T,T[4],3,2,1,3> wzyw,abga,qptq;
+            _rswizzle<T,T[4],3,2,2,0> wzzx,abbr,qpps; _rswizzle<T,T[4],3,2,2,1> wzzy,abbg,qppt; _rswizzle<T,T[4],3,2,2,2> wzzz,abbb,qppp; _rswizzle<T,T[4],3,2,2,3> wzzw,abba,qppq;
+            _rswizzle<T,T[4],3,2,3,0> wzwx,abar,qpqs; _rswizzle<T,T[4],3,2,3,1> wzwy,abag,qpqt; _rswizzle<T,T[4],3,2,3,2> wzwz,abab,qpqp; _rswizzle<T,T[4],3,2,3,3> wzww,abaa,qpqq;
+            _rswizzle<T,T[4],3,3,0,0> wwxx,aarr,qqss; _rswizzle<T,T[4],3,3,0,1> wwxy,aarg,qqst; _rswizzle<T,T[4],3,3,0,2> wwxz,aarb,qqsp; _rswizzle<T,T[4],3,3,0,3> wwxw,aara,qqsq;
+            _rswizzle<T,T[4],3,3,1,0> wwyx,aagr,qqts; _rswizzle<T,T[4],3,3,1,1> wwyy,aagg,qqtt; _rswizzle<T,T[4],3,3,1,2> wwyz,aagb,qqtp; _rswizzle<T,T[4],3,3,1,3> wwyw,aaga,qqtq;
+            _rswizzle<T,T[4],3,3,2,0> wwzx,aabr,qqps; _rswizzle<T,T[4],3,3,2,1> wwzy,aabg,qqpt; _rswizzle<T,T[4],3,3,2,2> wwzz,aabb,qqpp; _rswizzle<T,T[4],3,3,2,3> wwzw,aaba,qqpq;
+            _rswizzle<T,T[4],3,3,3,0> wwwx,aaar,qqqs; _rswizzle<T,T[4],3,3,3,1> wwwy,aaag,qqqt; _rswizzle<T,T[4],3,3,3,2> wwwz,aaab,qqqp; _rswizzle<T,T[4],3,3,3,3> wwww,aaaa,qqqq;
         };
         constexpr                            vec()                                                       : elems{} {}
         constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
@@ -437,10 +527,25 @@ namespace linalg
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
     };
 
-    ////////////////////////////////////////////////////////////////
-    // mat<T,M,N> specializations for 2, 3, and 4 column matrices //
-    ////////////////////////////////////////////////////////////////
-    
+    ///////////////////////////////////////////////////////////////////
+    // mat<T,M,N> specializations for 1, 2, 3, and 4 column matrices //
+    ///////////////////////////////////////////////////////////////////
+   
+    template<class T, int M> struct mat<T,M,1>
+    {
+        using V=vec<T,M>;
+        V                                       cols[1];
+        constexpr                               mat()                                                    : cols{} {}
+        constexpr                               mat(const V & x_)                                        : cols{x_} {}
+        constexpr explicit                      mat(const T & s)                                         : cols{V(s)} {}
+        template<class U> constexpr explicit    mat(const mat<U,M,1> & m)                                : cols{V(m[0])} {}
+        constexpr const V &                     operator[] (int j) const                                 { return cols[j]; }
+        LINALG_CONSTEXPR14 V &                  operator[] (int j)                                       { return cols[j]; }
+        constexpr vec<T,1>                      row(int i) const                                         { return {cols[0][i]}; }
+
+        template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u)                        : mat(detail::convert<mat>(u)) {}
+        template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
+    };
     template<class T, int M> struct mat<T,M,2>
     {
         using V=vec<T,M>;
@@ -538,10 +643,12 @@ namespace linalg
     ////////////////////////////
 
     // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
+    template<class T, class F> constexpr T fold(const vec<T,1> & a, F f) { return a[0]; }
     template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a[0],a[1]); }
     template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a[0],a[1]),a[2]); }
     template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a[0],a[1]),a[2]),a[3]); }
 
+    template<class T, int M, class F> constexpr T fold(const mat<T,M,1> & a, F f) { return fold(a[0],f); }
     template<class T, int M, class F> constexpr T fold(const mat<T,M,2> & a, F f) { return f(fold(a[0],f),fold(a[1],f)); }
     template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)); }
     template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)),fold(a[3],f)); }   
@@ -577,7 +684,7 @@ namespace linalg
     template<class A, class B> constexpr vec_apply_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
-    template<class A, class B> vec_apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
+    template<class A, class B> constexpr vec_apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_xor, A, B> operator ^  (const A & a, const B & b) { return apply(detail::op_xor{}, a, b); }
@@ -674,6 +781,7 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a) { return apply(detail::op_neg{}, a); }
 
     // Binary operators: matrix $ vector
+    template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,1> & a, const vec<T,1> & b) { return a[0]*b[0]; }
     template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,2> & a, const vec<T,2> & b) { return a[0]*b[0] + a[1]*b[1]; }
     template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,3> & a, const vec<T,3> & b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
     template<class T, int M> constexpr vec<T,M> operator * (const mat<T,M,4> & a, const vec<T,4> & b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3]; }
@@ -681,6 +789,7 @@ namespace linalg
     // Binary operators: matrix $ matrix, matrix $ scalar, scalar $ matrix
     template<class T, int M, int N> constexpr mat<T,M,N> operator + (const mat<T,M,N> & a, const mat<T,M,N> & b) { return apply(detail::op_add{}, a, b); }
     template<class T, int M, int N> constexpr mat<T,M,N> operator - (const mat<T,M,N> & a, const mat<T,M,N> & b) { return apply(detail::op_sub{}, a, b); }
+    template<class T, int M, int N> constexpr mat<T,M,1> operator * (const mat<T,M,N> & a, const mat<T,N,1> & b) { return {a*b[0]}; }
     template<class T, int M, int N> constexpr mat<T,M,2> operator * (const mat<T,M,N> & a, const mat<T,N,2> & b) { return {a*b[0], a*b[1]}; }
     template<class T, int M, int N> constexpr mat<T,M,3> operator * (const mat<T,M,N> & a, const mat<T,N,3> & b) { return {a*b[0], a*b[1], a*b[2]}; }
     template<class T, int M, int N> constexpr mat<T,M,4> operator * (const mat<T,M,N> & a, const mat<T,N,4> & b) { return {a*b[0], a*b[1], a*b[2], a*b[3]}; }
@@ -696,18 +805,23 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,N> & operator /= (mat<T,M,N> & a, const T & b) { return a = a / b; }
 
     // Matrix algebra functions
+    template<class T> constexpr vec<T,1>          diagonal    (const mat<T,1,1> & a) { return {a[0][0]}; }
     template<class T> constexpr vec<T,2>          diagonal    (const mat<T,2,2> & a) { return {a[0][0], a[1][1]}; }
     template<class T> constexpr vec<T,3>          diagonal    (const mat<T,3,3> & a) { return {a[0][0], a[1][1], a[2][2]}; }
     template<class T> constexpr vec<T,4>          diagonal    (const mat<T,4,4> & a) { return {a[0][0], a[1][1], a[2][2], a[3][3]}; }
+    template<class T, int M> constexpr mat<T,M,1> outerprod   (const vec<T,M> & a, const vec<T,1> & b) { return {a*b[0]}; }
     template<class T, int M> constexpr mat<T,M,2> outerprod   (const vec<T,M> & a, const vec<T,2> & b) { return {a*b[0], a*b[1]}; }
     template<class T, int M> constexpr mat<T,M,3> outerprod   (const vec<T,M> & a, const vec<T,3> & b) { return {a*b[0], a*b[1], a*b[2]}; }
     template<class T, int M> constexpr mat<T,M,4> outerprod   (const vec<T,M> & a, const vec<T,4> & b) { return {a*b[0], a*b[1], a*b[2], a*b[3]}; }
+    template<class T, int M> constexpr mat<T,M,1> transpose   (const mat<T,1,M> & m) { return {m.row(0)}; }
     template<class T, int M> constexpr mat<T,M,2> transpose   (const mat<T,2,M> & m) { return {m.row(0), m.row(1)}; }
     template<class T, int M> constexpr mat<T,M,3> transpose   (const mat<T,3,M> & m) { return {m.row(0), m.row(1), m.row(2)}; }
     template<class T, int M> constexpr mat<T,M,4> transpose   (const mat<T,4,M> & m) { return {m.row(0), m.row(1), m.row(2), m.row(3)}; }
+    template<class T> constexpr mat<T,1,1>        adjugate    (const mat<T,1,1> & a) { return {{1}}; }
     template<class T> constexpr mat<T,2,2>        adjugate    (const mat<T,2,2> & a) { return {{a[1][1], -a[0][1]}, {-a[1][0], a[0][0]}}; }
     template<class T> constexpr mat<T,3,3>        adjugate    (const mat<T,3,3> & a);
     template<class T> constexpr mat<T,4,4>        adjugate    (const mat<T,4,4> & a);
+    template<class T> constexpr T                 determinant (const mat<T,1,1> & a) { return a[0][0]; }
     template<class T> constexpr T                 determinant (const mat<T,2,2> & a) { return a[0][0]*a[1][1] - a[0][1]*a[1][0]; }
     template<class T> constexpr T                 determinant (const mat<T,3,3> & a) { return a[0][0]*(a[1][1]*a[2][2] - a[2][1]*a[1][2]) + a[0][1]*(a[1][2]*a[2][0] - a[2][2]*a[1][0]) + a[0][2]*(a[1][0]*a[2][1] - a[2][0]*a[1][1]); }
     template<class T> constexpr T                 determinant (const mat<T,4,4> & a);
@@ -768,18 +882,27 @@ namespace linalg
 
     namespace aliases
     {
-        using bool2=vec<bool,2>; using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>; 
+        using bool1=vec<bool,1>; using byte1=vec<uint8_t,1>; using short1=vec<int16_t,1>; using ushort1=vec<uint16_t,1>;
+        using bool2=vec<bool,2>; using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>;
         using bool3=vec<bool,3>; using byte3=vec<uint8_t,3>; using short3=vec<int16_t,3>; using ushort3=vec<uint16_t,3>; 
         using bool4=vec<bool,4>; using byte4=vec<uint8_t,4>; using short4=vec<int16_t,4>; using ushort4=vec<uint16_t,4>;
+        using int1=vec<int,1>; using uint1=vec<unsigned,1>; using float1=vec<float,1>; using double1=vec<double,1>;
         using int2=vec<int,2>; using uint2=vec<unsigned,2>; using float2=vec<float,2>; using double2=vec<double,2>;
         using int3=vec<int,3>; using uint3=vec<unsigned,3>; using float3=vec<float,3>; using double3=vec<double,3>;
         using int4=vec<int,4>; using uint4=vec<unsigned,4>; using float4=vec<float,4>; using double4=vec<double,4>;
+        using bool1x1=mat<bool,1,1>; using int1x1=mat<int,1,1>; using float1x1=mat<float,1,1>; using double1x1=mat<double,1,1>;
+        using bool1x2=mat<bool,1,2>; using int1x2=mat<int,1,2>; using float1x2=mat<float,1,2>; using double1x2=mat<double,1,2>;
+        using bool1x3=mat<bool,1,3>; using int1x3=mat<int,1,3>; using float1x3=mat<float,1,3>; using double1x3=mat<double,1,3>;
+        using bool1x4=mat<bool,1,4>; using int1x4=mat<int,1,4>; using float1x4=mat<float,1,4>; using double1x4=mat<double,1,4>;
+        using bool2x1=mat<bool,2,1>; using int2x1=mat<int,2,1>; using float2x1=mat<float,2,1>; using double2x1=mat<double,2,1>;
         using bool2x2=mat<bool,2,2>; using int2x2=mat<int,2,2>; using float2x2=mat<float,2,2>; using double2x2=mat<double,2,2>;
         using bool2x3=mat<bool,2,3>; using int2x3=mat<int,2,3>; using float2x3=mat<float,2,3>; using double2x3=mat<double,2,3>;
         using bool2x4=mat<bool,2,4>; using int2x4=mat<int,2,4>; using float2x4=mat<float,2,4>; using double2x4=mat<double,2,4>;
+        using bool3x1=mat<bool,3,1>; using int3x1=mat<int,3,1>; using float3x1=mat<float,3,1>; using double3x1=mat<double,3,1>;
         using bool3x2=mat<bool,3,2>; using int3x2=mat<int,3,2>; using float3x2=mat<float,3,2>; using double3x2=mat<double,3,2>;
         using bool3x3=mat<bool,3,3>; using int3x3=mat<int,3,3>; using float3x3=mat<float,3,3>; using double3x3=mat<double,3,3>;
         using bool3x4=mat<bool,3,4>; using int3x4=mat<int,3,4>; using float3x4=mat<float,3,4>; using double3x4=mat<double,3,4>;
+        using bool4x1=mat<bool,4,1>; using int4x1=mat<int,4,1>; using float4x1=mat<float,4,1>; using double4x1=mat<double,4,1>;
         using bool4x2=mat<bool,4,2>; using int4x2=mat<int,4,2>; using float4x2=mat<float,4,2>; using double4x2=mat<double,4,2>;
         using bool4x3=mat<bool,4,3>; using int4x3=mat<int,4,3>; using float4x3=mat<float,4,3>; using double4x3=mat<double,4,3>;
         using bool4x4=mat<bool,4,4>; using int4x4=mat<int,4,4>; using float4x4=mat<float,4,4>; using double4x4=mat<double,4,4>;
@@ -793,14 +916,17 @@ namespace linalg
     namespace ostream_overloads
     {
         // These overloads stream out something that resembles an aggregate literal that could be used to construct the specified value
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,1> & v) { return out << '{' << v[0] << '}'; }
         template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,2> & v) { return out << '{' << v[0] << ',' << v[1] << '}'; }
         template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,3> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << '}'; }
         template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,4> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << ',' << v[3] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,1> & m) { return out << '{' << m[0] << '}'; }
         template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,2> & m) { return out << '{' << m[0] << ',' << m[1] << '}'; }
         template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,3> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << '}'; }
         template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,4> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << ',' << m[3] << '}'; }
         template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const quat<T> & q) { return out << '{' << q.x << ',' << q.y << ',' << q.z << ',' << q.w << '}'; }
-        template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _swizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
+        template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _lswizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
+        template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _rswizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
     }
 
     ///////////////////////////////////////////////////////////////////////////
