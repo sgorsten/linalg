@@ -12,7 +12,7 @@ Visual Studio 2015, 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status]
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 750 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/), [Boost.QVM](https://www.boost.org/doc/libs/1_66_0/libs/qvm/doc/index.html) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 1000 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/), [Boost.QVM](https://www.boost.org/doc/libs/1_66_0/libs/qvm/doc/index.html) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
 # Improvements in `v3.0`
 
@@ -30,6 +30,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * `select(a,b,c)` provides the a component-wise equivalent to `a ? b : c`
 * `lerp(a,b,t)` has been generalized to a component-wise operation where any of `a`, `b`, and `t` can be vectors or scalars
 * `vec<T,M>` elements can be referred to via `x`,`y`,`z`,`w` or `r`,`g`,`b`,`a` or `s`,`t`,`p`,`q`
+* `vec<T,M>` and `mat<T,M,N>` contain a member function `.data()` which returns a pointer to the elements
 * Groups of `vec<T,M>` elements can be accessed via named swizzles, such as `xyz`, `bgr`, or `pq`
   * All swizzles can be used as rvalues
   * Only permutation swizzles (where no accessor is repeated) can be used as lvalues
