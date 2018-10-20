@@ -1,4 +1,5 @@
-// linalg.h - v2.0 - Single-header public domain linear algebra library
+// linalg.h - v3.0 alpha - Single-header public domain linear algebra library
+// This is a prerelease version and should be considered unstable.
 //
 // The intent of this library is to provide the bulk of the functionality
 // you need to write programs that frequently use small, fixed-size vectors
