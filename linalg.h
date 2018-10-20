@@ -699,14 +699,14 @@ namespace linalg
     template<class A, class B> constexpr vec_apply_t<detail::op_lsh, A, B> operator << (const A & a, const B & b) { return apply(detail::op_lsh{}, a, b); }
     template<class A, class B> constexpr vec_apply_t<detail::op_rsh, A, B> operator >> (const A & a, const B & b) { return apply(detail::op_rsh{}, a, b); }
 
-    // Multiplication/division by a scalar is defined componentwise for matrix and quaternion types
+    // Addition, substraction, and multiplication-by-scalar are defined componentwise for matrix and quaternion types
     template<class A, class B> constexpr axa_apply_t<detail::op_add, A, B> operator + (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
     template<class A, class B> constexpr axa_apply_t<detail::op_sub, A, B> operator - (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
     template<class A, class B> constexpr axs_apply_t<detail::op_mul, A, B> operator * (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
     template<class A, class B> constexpr sxa_apply_t<detail::op_mul, A, B> operator * (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
     template<class A, class B> constexpr axs_apply_t<detail::op_div, A, B> operator / (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
 
-    // Binary assignment operators are defined any time the underlying operator is defined and the left-hand type is a linalg-defined lvalue
+    // Binary assignment operators a $= b is always defined as though it were explicitly written a = a $ b
     template<class A, class B> constexpr auto operator +=  (A & a, const B & b) -> decltype(a = a + b) { return a = a + b; }
     template<class A, class B> constexpr auto operator -=  (A & a, const B & b) -> decltype(a = a - b) { return a = a - b; }
     template<class A, class B> constexpr auto operator *=  (A & a, const B & b) -> decltype(a = a * b) { return a = a * b; }
