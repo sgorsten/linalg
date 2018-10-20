@@ -12,32 +12,14 @@ using floating_point_types = doctest::Types<double, float>;
 using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
 using signed_types = doctest::Types<double, float, int, short>;
 using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
+using non_promoting_integral_types = doctest::Types<int, unsigned int>;
+using non_promoting_types = doctest::Types<double, float, int, unsigned int>;
 
 // Template aliases to make it easier to use linalg types in templated test cases
 template<class T> using vec2 = linalg::vec<T,2>;
 template<class T> using vec3 = linalg::vec<T,3>;
 template<class T> using vec4 = linalg::vec<T,4>;
 template<class T> using quat = linalg::quat<T>;
-
-// SFINAE based expression validity helpers
-namespace detail
-{
-    // These function overloads exist if specific the expression T{} op U{} is valid, and return true_type
-    template<class T, class U> inline decltype(std::declval<T>() + std::declval<U>(), std::true_type{}) has_op_add(int) { return {}; }
-    template<class T, class U> inline decltype(std::declval<T>() - std::declval<U>(), std::true_type{}) has_op_sub(int) { return {}; }  
-    template<class T, class U> inline decltype(std::declval<T>() * std::declval<U>(), std::true_type{}) has_op_mul(int) { return {}; }
-    template<class T, class U> inline decltype(std::declval<T>() / std::declval<U>(), std::true_type{}) has_op_div(int) { return {}; }
-    
-    // These function overloads always exist, but have lowest selection priority, and return false_type
-    template<class T, class U> inline std::false_type has_op_add(...) { return {}; }
-    template<class T, class U> inline std::false_type has_op_sub(...) { return {}; } 
-    template<class T, class U> inline std::false_type has_op_mul(...) { return {}; }
-    template<class T, class U> inline std::false_type has_op_div(...) { return {}; }
-}
-template<class T, class U> struct has_op_add : decltype(detail::has_op_add<T,U>(0)) {};
-template<class T, class U> struct has_op_sub : decltype(detail::has_op_sub<T,U>(0)) {};
-template<class T, class U> struct has_op_mul : decltype(detail::has_op_mul<T,U>(0)) {};
-template<class T, class U> struct has_op_div : decltype(detail::has_op_div<T,U>(0)) {};
 
 // Facility for retrieving random numbers
 class random_number_generator
