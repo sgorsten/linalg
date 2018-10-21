@@ -2,7 +2,7 @@
 
 NOTE: This is the development branch for `linalg.h v3.0`. It should be considered **unstable** and breaking changes **will occur** until the `v3.0` tag is published. Furthermore, the documentation should be assumed to be out of date until this notice is removed. 
 
-[![Release is 3.0-alpha](http://img.shields.io/badge/version-3.0--alpha-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
+[![Release is 3.0-beta](https://img.shields.io/badge/version-3.0--beta-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
 [![License is Unlicense](http://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 
 Platform | Build Status |
@@ -12,7 +12,7 @@ Visual Studio 2015, 2017 | [AppVeyor](http://ci.appveyor.com/): [![Build status]
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (around 1000 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/), [Boost.QVM](https://www.boost.org/doc/libs/1_66_0/libs/qvm/doc/index.html) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than a thousand lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/), [Boost.QVM](https://www.boost.org/doc/libs/1_66_0/libs/qvm/doc/index.html) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
 # Improvements in `v3.0`
 

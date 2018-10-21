@@ -2,7 +2,7 @@
 #ifndef LINALG_H
 #define LINALG_H
 
-// linalg.h - v3.0 alpha - Single-header public domain linear algebra library
+// linalg.h - v3.0 beta - Single-header public domain linear algebra library
 // This is a prerelease version and should be considered unstable.
 //
 // The intent of this library is to provide the bulk of the functionality
