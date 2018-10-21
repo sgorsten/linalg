@@ -87,6 +87,17 @@ namespace linalg
         return quat<T>{copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)])};    
     }
 
+    // Produce a homogeneous transformation matrix that moves between two coordinate systems
+    template<class T> constexpr mat<T,4,4> coord_change_matrix(const coord_system & from, const coord_system & to)
+    { 
+        return {
+            {to(from.x_axis),0},
+            {to(from.y_axis),0},
+            {to(from.z_axis),0},
+            {0,1}
+        };
+    }
+
     // Produce a homogeneous transformation matrix representing a translation
     template<class T> constexpr mat<T,4,4> translation_matrix(const vec<T,3> & translation)
     { 
