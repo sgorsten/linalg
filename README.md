@@ -60,6 +60,8 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * These capabilities can be added by specializing `converter<T,U>`, as shown in [test-user-defined-conversions.cpp](tests/test-user-defined-conversions.cpp) 
 * The functions `vec::xy()` and `vec::xyz()` have been replaced by the swizzles `vec::xy` and `vec::xyz`
 * Some functionality has been moved from `linalg.h` to optional `linalgx.h` header
+  * quat/matrix factory functions for 3D transformations
+  * std::hash<...> specializations
 
 # Documentation
 
@@ -85,7 +87,5 @@ This section has been removed pending a complete rewrite. Documentation needs to
 - [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `trace`, `inverse`
 - [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
 - [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
-- [ ] transformations support: `rotation_quat`, `translation_matrix`, `rotation_matrix`, `scaling_matrix`, `pose_matrix`, `frustum_matrix`, `perspective_matrix`, `fwd_axis`, `z_range`
 - [ ] iterators and ranges: `begin`, `end`
-- [ ] `std::hash<...>` specializations
 - [ ] `namespace linalg::aliases`
