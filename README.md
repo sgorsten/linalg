@@ -1,5 +1,3 @@
-# linalg.h
-
 **NOTE: This is the development branch for `linalg.h v3.0`. Breaking changes may occur until the `v3.0` tag is published.**
 
 [![Release is 3.0-beta](https://img.shields.io/badge/version-3.0--beta-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
@@ -21,7 +19,82 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 }
 ```
 
-# Improvements in `v3.0`
+* [Data structures](#data-structures)
+  * [Vectors](#vectors)
+  * [Matrices](#matrices)
+  * [Quaternions](#quaternions)
+* [Function listing](#function-listing)
+  * [Vector algebra](#vector-algebra)
+  * [Matrix algebra](#matrix-algebra)
+  * [Quaternion algebra](#quaternion-algebra)
+  * [Component-wise operations](#component-wise-operations)
+  * [Reductions](#reductions)
+* [Optional features](#optional-features)
+  * [Type aliases](#type-aliases)
+  * [`ostream` overloads](#ostream-overloads)
+  * [User-defined conversions](#user-defined-conversions)
+  * [Extensions in `linalgx.h`](#extensions-in-linalgxh)
+* [Higher order functions](#higher-order-functions)
+* [Design rationale](#design-rationale)
+* [Changes from v2.1](#changes-from-v21)
+
+## Data structures
+
+#### Vectors
+
+TODO: Explain `linalg::vec<T,M>`
+
+#### Matrices
+
+TODO: Explain `linalg::mat<T,M,N>`
+
+#### Quaternions
+
+TODO: Explain `linalg::quat<T>`
+
+## Function listing
+
+#### Vector algebra
+
+#### Matrix algebra
+
+#### Quaternion algebra
+
+#### Component-wise operations
+
+#### Reductions
+
+## Optional features
+
+#### Type aliases
+
+TODO: Explain `namespace linalg::aliases`
+
+#### `ostream` overloads
+
+TODO: Explain `namespace linalg::ostream_overloads`
+
+#### User-defined conversions
+
+TODO: Explain `converter<T,U>`
+
+#### Extensions in `linalgx.h`
+
+A second header `linalgx.h` is under development, providing functionality that is not essential to the use of `linalg.h`. This header will be considered unstable even after the publication of `v3.0`, but should stabilize shortly thereafter.
+
+## Higher order functions
+
+TODO: Explain `apply` and `fold`
+
+## Design rationale
+
+This space exists for me to explain the design decisions that went into `linalg.h`.
+
+## Changes from `v2.1`
+
+TODO: Rework this to include a migration guide for users coming from previous versions of `linalg.h`.
+
+#### Improvements in `v3.0`
 
 * `mat<T,M,N>` now defines `operator *` as the matrix product
 * New type `quat<T>` models quaternions, and defines `operator *` as the quaternion product
@@ -47,7 +120,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
 * No lambdas are used in `linalg.h`, avoidng potential ODR violations
 
-# Breaking changes in `v3.0`
+#### Breaking changes in `v3.0`
 
 * `linalg.h` no longer supports Visual Studio 2013. However, it is known to work on GCC 4.9+, Clang 3.5+ in C++11 mode and Visual Studio 2015+.
 * `vec<T,M>` and `mat<T,M,N>` may only be used with a `T` which is an [arithmetic type](https://en.cppreference.com/w/c/language/arithmetic_types)
@@ -70,9 +143,9 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   * quat/matrix factory functions for 3D transformations
   * std::hash<...> specializations
 
-# Documentation
+## Documentation checklist
 
-This section has been removed pending a complete rewrite. Documentation needs to be provided for the following symbols.
+Documentation needs to be provided for the following symbols.
 
 - [ ] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
