@@ -7,13 +7,14 @@ sources+=test-ostream-overloads.cpp
 sources+=test-quaternions.cpp 
 sources+=test-scalar-accessors.cpp 
 sources+=test-user-defined-conversions.cpp
+sources+=test-linalgx.cpp
 
 all: time tests
 
 time:
 	time --format="  Including linalg.h in an otherwise empty file took %es" $(CXX) include-linalg.cpp -std=c++11 $(CXXLIBRARY) -c
 
-tests: $(sources) ../linalg.h
+tests: $(sources) ../linalg.h ../linalgx.h
 	$(CXX) $(sources) -std=c++11 $(CXXLIBRARY) -o $@
 
 generate-swizzles: generate-swizzles.cpp

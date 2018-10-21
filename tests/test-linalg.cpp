@@ -437,7 +437,7 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
+        T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
 
         CHECK(linalg::vec<T,2>(a,b    ) + linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a+e, b+f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) + linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a+e, b+f, c+g     ));
@@ -450,6 +450,12 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
         CHECK(linalg::vec<T,2>(a,b    ) * linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a*e, b*f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) * linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a*e, b*f, c*g     ));
         CHECK(linalg::vec<T,4>(a,b,c,d) * linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a*e, b*f, c*g, d*h));
+
+        // Ensure nonzero denominator
+        e = e ? e : 2;
+        f = f ? f : 2;
+        g = g ? g : 2;
+        h = h ? h : 2;
 
         CHECK(linalg::vec<T,2>(a,b    ) / linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a/e, b/f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) / linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a/e, b/f, c/g     ));
@@ -477,11 +483,7 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
-
-        CHECK( linalg::vec<T,2>(a,b    ) % linalg::vec<T,2>(e,f    )  == linalg::vec<U,2>(a%e, b%f          ));
-        CHECK( linalg::vec<T,3>(a,b,c  ) % linalg::vec<T,3>(e,f,g  )  == linalg::vec<U,3>(a%e, b%f, c%g     ));
-        CHECK( linalg::vec<T,4>(a,b,c,d) % linalg::vec<T,4>(e,f,g,h)  == linalg::vec<U,4>(a%e, b%f, c%g, d%h));
+        T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
 
         CHECK((linalg::vec<T,2>(a,b    ) | linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a|e, b|f          ));
         CHECK((linalg::vec<T,3>(a,b,c  ) | linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a|e, b|f, c|g     ));
@@ -502,6 +504,16 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
         CHECK((linalg::vec<T,2>(a,b    ) >> linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a>>e, b>>f            ));
         CHECK((linalg::vec<T,3>(a,b,c  ) >> linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a>>e, b>>f, c>>g      ));
         CHECK((linalg::vec<T,4>(a,b,c,d) >> linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a>>e, b>>f, c>>g, d>>h));
+
+        // Ensure nonzero denominator
+        e = e ? e : 2;
+        f = f ? f : 2;
+        g = g ? g : 2;
+        h = h ? h : 2;
+
+        CHECK( linalg::vec<T,2>(a,b    ) % linalg::vec<T,2>(e,f    )  == linalg::vec<U,2>(a%e, b%f          ));
+        CHECK( linalg::vec<T,3>(a,b,c  ) % linalg::vec<T,3>(e,f,g  )  == linalg::vec<U,3>(a%e, b%f, c%g     ));
+        CHECK( linalg::vec<T,4>(a,b,c,d) % linalg::vec<T,4>(e,f,g,h)  == linalg::vec<U,4>(a%e, b%f, c%g, d%h));
     }
 }
 
@@ -636,122 +648,33 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 }
 
-
-TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, float, double )
+TEST_CASE_TEMPLATE( "3D cross products behave as intended", T, float, double )
 {
-    std::mt19937 engine;
-    std::normal_distribution<T> dist;
-
-    for(int i=0; i<1000; ++i)
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
     {
-        linalg::vec<T,4> q = normalize(linalg::vec<T,4>(dist(engine), dist(engine), dist(engine), dist(engine)));
-        linalg::vec<T,4> q2 = rotation_quat(qmat(q));
-        if(dot(q, q2) > 0) // q2 should either equal q or -q
-        {
-            REQUIRE( std::abs(q.x - q2.x) < 0.0001 );
-            REQUIRE( std::abs(q.y - q2.y) < 0.0001 );
-            REQUIRE( std::abs(q.z - q2.z) < 0.0001 );
-            REQUIRE( std::abs(q.w - q2.w) < 0.0001 );
-        }
-        else
-        {
-            REQUIRE( std::abs(q.x + q2.x) < 0.0001 );
-            REQUIRE( std::abs(q.y + q2.y) < 0.0001 );
-            REQUIRE( std::abs(q.z + q2.z) < 0.0001 );
-            REQUIRE( std::abs(q.w + q2.w) < 0.0001 );        
-        }
+        const vec3<T> a = rng, b = rng;
+        check_approx_equal( cross(a,b), -cross(b,a) );
+        CHECK( dot(cross(a,b),a) == doctest::Approx(0) );
+        CHECK( dot(cross(a,b),b) == doctest::Approx(0) );
+        if(angle(a,b) > 0) CHECK( length2(cross(a,b)) > 0 );
     }
 }
 
-TEST_CASE( "90 degree rotation matrices round trip with rotation quaternions" )
+TEST_CASE_TEMPLATE( "2D cross products behave as intended", T, int, float, double )
 {
-    const float3x3 matrices[] {
-        {{+1,0,0},{0,+1,0},{0,0,+1}},
-        {{+1,0,0},{0,-1,0},{0,0,-1}},
-        {{+1,0,0},{0,0,+1},{0,-1,0}},
-        {{+1,0,0},{0,0,-1},{0,+1,0}},
-        {{-1,0,0},{0,+1,0},{0,0,-1}},
-        {{-1,0,0},{0,-1,0},{0,0,+1}},
-        {{-1,0,0},{0,0,+1},{0,+1,0}},
-        {{-1,0,0},{0,0,-1},{0,-1,0}},
-        {{0,+1,0},{+1,0,0},{0,0,-1}},
-        {{0,+1,0},{-1,0,0},{0,0,+1}},
-        {{0,+1,0},{0,0,+1},{+1,0,0}},
-        {{0,+1,0},{0,0,-1},{-1,0,0}},
-        {{0,-1,0},{+1,0,0},{0,0,+1}},
-        {{0,-1,0},{-1,0,0},{0,0,-1}},
-        {{0,-1,0},{0,0,+1},{-1,0,0}},
-        {{0,-1,0},{0,0,-1},{+1,0,0}},
-        {{0,0,+1},{+1,0,0},{0,+1,0}},
-        {{0,0,+1},{-1,0,0},{0,-1,0}},
-        {{0,0,+1},{0,+1,0},{-1,0,0}},
-        {{0,0,+1},{0,-1,0},{+1,0,0}},
-        {{0,0,-1},{+1,0,0},{0,-1,0}},
-        {{0,0,-1},{-1,0,0},{0,+1,0}},
-        {{0,0,-1},{0,+1,0},{+1,0,0}},
-        {{0,0,-1},{0,-1,0},{-1,0,0}},
-    };
-    for(auto & m : matrices)
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
     {
-        check_approx_equal(m, qmat(rotation_quat(m)));
+        vec2<T> a = rng, b = rng;
+        T c = rng;
+        CHECK( vec3<T>{0,0,cross(a,b)} == cross(vec3<T>{a,0}, vec3<T>{b,0}) );
+        CHECK( vec3<T>{0,0,cross(b,a)} == cross(vec3<T>{b,0}, vec3<T>{a,0}) );
+        CHECK( vec3<T>{cross(a,c),0} == cross(vec3<T>{a,0}, vec3<T>{0,0,c}) );
+        CHECK( vec3<T>{cross(b,c),0} == cross(vec3<T>{b,0}, vec3<T>{0,0,c}) );
+        CHECK( vec3<T>{cross(c,a),0} == cross(vec3<T>{0,0,c}, vec3<T>{a,0}) );
+        CHECK( vec3<T>{cross(c,b),0} == cross(vec3<T>{0,0,c}, vec3<T>{b,0}) );
     }
-}
-
-TEST_CASE( "hashing works as expected" )
-{
-    // std::hash specializations should take their specified type and return size_t
-    REQUIRE( typeid(std::hash<int2     >()(int2     {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<float3   >()(float3   {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<double4  >()(double4  {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<int2x4   >()(int2x4   {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<float3x2 >()(float3x2 {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<double4x3>()(double4x3{})) == typeid(size_t) );
-
-    // Small list of items which are known to have no duplicate hashes
-    const float3 points[] = {
-        {1,2,3}, {1,3,2}, {2,1,3}, {2,3,1}, {3,1,2}, {3,2,1},
-        {1,1,1}, {2,2,2}, {3,3,3}, {4,4,4}, {5,5,5}, {6,6,6},
-        {0,0,0}, {0,0,1}, {0,1,0}, {1,0,0}, {0,1,1}, {1,1,0}
-    };
-    const std::hash<float3> h = {};
-    for(auto & a : points)
-    {
-        for(auto & b : points)
-        {
-            if(a == b) REQUIRE( h(a) == h(b) );
-            else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
-        }
-    }
-}
-
-TEST_CASE( "special quaternion functions behave as expected" )
-{
-    // qexp of a scalar should simply be the exp of that scalar
-    check_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
-
-    // e^(tau*i) == 1
-    check_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
-
-    // e^(tau*j) == 1
-    check_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
-
-    // qlog of a scalar should simply be the log of that scalar
-    check_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
-
-    // qexp(qlog(q)) == q
-    check_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
-
-    // qpow of a scalar should simply be the pow of that scalar
-    check_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
-
-    // qpow(q,2) == qmul(q,q)
-    check_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(q,3) == qmul(q,q,q)
-    check_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(qpow(q,2),3) == qpow(q,2*3)
-    check_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
 template<class T> void take(const T &) {}
@@ -800,7 +723,7 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(bool, int2() == int2() );
     MATCH(bool, float3() == float3() );
     MATCH(bool, double4() == double4() );
-    MATCH(bool, short2() != short2() );
+    MATCH(bool, int2() != int2() );
     MATCH(bool, int2() < int2() );
     MATCH(bool, float3() < float3() );
     MATCH(bool, double4() < double4() );
@@ -815,8 +738,8 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double2() /  double2() );
     MATCH(int3   , int3   () %  int3   (1) );
     MATCH(int4   , int4   () |  int4   () );
-    MATCH(int2   , short2 () ^  short2 () );
-    MATCH(int3   , short3 () &  short3 () );
+    MATCH(int2   , int2   () ^  int2   () );
+    MATCH(int3   , int3   () &  int3   () );
     MATCH(int3   , int3   () << int3   () );
     MATCH(int4   , int4   () >> int4   () );
 
@@ -826,10 +749,10 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double2() /  double  () );
     MATCH(int3   , int3   () %  int     (1) );
     MATCH(int4   , int4   () |  int     () );
-    MATCH(int2   , short2 () ^  short   () );
-    MATCH(int3   , short3 () &  short   () );
+    MATCH(int2   , int2   () ^  short   () );
+    MATCH(int3   , int3   () &  short   () );
     MATCH(int3   , int3   () << int     () );
-    MATCH(uint4  , uint4  () >> unsigned() );
+    MATCH(int4   , int4   () >> unsigned() );
 
     MATCH(float2 , float   () +  float2 () );
     MATCH(float3 , float   () -  float3 () );
@@ -837,10 +760,10 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double  () /  double2() );
     MATCH(int3   , int     () %  int3   (1) );
     MATCH(int4   , int     () |  int4   () );
-    MATCH(int2   , short   () ^  short2 () );
-    MATCH(int3   , short   () &  short3 () );
+    MATCH(int2   , short   () ^  int2   () );
+    MATCH(int3   , short   () &  int3   () );
     MATCH(int3   , int     () << int3   () );
-    MATCH(uint4  , unsigned() >> uint4  () );
+    MATCH(int4   , int     () >> int4   () );
 
     MATCH(float2&, f2 += float2() );
     MATCH(float3&, f3 -= float3() );
@@ -905,24 +828,13 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float4, slerp(float4(), float4(), float()) );
 
     // Exercise quaternion algebra functions
-    MATCH(float4, qconj(float4()) );
-    MATCH(float4, qinv(float4()) );
-    MATCH(float4, qmul(float4(), float4()) );
-    MATCH(float3, qxdir(float4()) );
-    MATCH(float3, qydir(float4()) );
-    MATCH(float3, qzdir(float4()) );
-    MATCH(float3, qrot(float4(), float3()) );
-    MATCH(float , qangle(float4()) );
-    MATCH(float3, qaxis(float4()) );
-    MATCH(float4, qnlerp(float4(), float4(), float()) );
-    MATCH(float4, qslerp(float4(), float4(), float()) );
-
-    // Exercise factory functions
-    MATCH(float4, rotation_quat(float3(), float()) );
-    MATCH(float4x4, translation_matrix(float3()) );
-    MATCH(float4x4, rotation_matrix(float4()) );
-    MATCH(float4x4, scaling_matrix(float3()) );
-    MATCH(float4x4, pose_matrix(float4(), float3()) );
-    MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
-    MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
+    MATCH(quatf, conjugate(quatf()) );
+    MATCH(quatf, inverse(quatf()) );
+    MATCH(quatf, quatf() * quatf() );
+    MATCH(float3, qxdir(quatf()) );
+    MATCH(float3, qydir(quatf()) );
+    MATCH(float3, qzdir(quatf()) );
+    MATCH(float3, qrot(quatf(), float3()) );
+    MATCH(float , qangle(quatf()) );
+    MATCH(float3, qaxis(quatf()) );
 }
