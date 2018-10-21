@@ -1,6 +1,58 @@
 #include "test-linalg.h"
 #include "../linalgx.h"
 
+namespace linalg
+{
+    static_assert(coord_system{coord_axis::forward, coord_axis::left,    coord_axis::up     }.is_right_handed(), "forward-left-up coordinate system is right handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::left,    coord_axis::down   }.is_left_handed(),  "forward-left-down coordinate system is left handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::right,   coord_axis::up     }.is_left_handed(),  "forward-right-up coordinate system is left handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::right,   coord_axis::down   }.is_right_handed(), "forward-right-down coordinate system is right handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::up,      coord_axis::left   }.is_left_handed(),  "forward-up-left coordinate system is left handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::up,      coord_axis::right  }.is_right_handed(), "forward-up-right coordinate system is right handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::down,    coord_axis::left   }.is_right_handed(), "forward-down-left coordinate system is right handed");
+    static_assert(coord_system{coord_axis::forward, coord_axis::down,    coord_axis::right  }.is_left_handed(),  "forward-down-right coordinate system is left handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::left,    coord_axis::up     }.is_left_handed(),  "back-left-up coordinate system is left handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::left,    coord_axis::down   }.is_right_handed(), "back-left-down coordinate system is right handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::right,   coord_axis::up     }.is_right_handed(), "back-right-up coordinate system is right handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::right,   coord_axis::down   }.is_left_handed(),  "back-right-down coordinate system is left handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::up,      coord_axis::left   }.is_right_handed(), "back-up-left coordinate system is right handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::up,      coord_axis::right  }.is_left_handed(),  "back-up-right coordinate system is left handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::down,    coord_axis::left   }.is_left_handed(),  "back-down-left coordinate system is left handed");
+    static_assert(coord_system{coord_axis::back,    coord_axis::down,    coord_axis::right  }.is_right_handed(), "back-down-right coordinate system is right handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::forward, coord_axis::up     }.is_left_handed(),  "left-forward-up coordinate system is left handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::forward, coord_axis::down   }.is_right_handed(), "left-forward-down coordinate system is right handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::back,    coord_axis::up     }.is_right_handed(), "left-back-up coordinate system is right handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::back,    coord_axis::down   }.is_left_handed(),  "left-back-down coordinate system is left handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::up,      coord_axis::forward}.is_right_handed(), "left-up-forward coordinate system is right handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::up,      coord_axis::back   }.is_left_handed(),  "left-up-back coordinate system is left handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::down,    coord_axis::forward}.is_left_handed(),  "left-down-forward coordinate system is left handed");
+    static_assert(coord_system{coord_axis::left,    coord_axis::down,    coord_axis::back   }.is_right_handed(), "left-down-back coordinate system is right handed");                                                
+    static_assert(coord_system{coord_axis::right,   coord_axis::forward, coord_axis::up     }.is_right_handed(), "right-forward-up coordinate system is right handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::forward, coord_axis::down   }.is_left_handed(),  "right-forward-down coordinate system is left handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::back,    coord_axis::up     }.is_left_handed(),  "right-back-up coordinate system is left handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::back,    coord_axis::down   }.is_right_handed(), "right-back-down coordinate system is right handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::up,      coord_axis::forward}.is_left_handed(),  "right-up-forward coordinate system is left handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::up,      coord_axis::back   }.is_right_handed(), "right-up-back coordinate system is right handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::down,    coord_axis::forward}.is_right_handed(), "right-down-forward coordinate system is right handed");
+    static_assert(coord_system{coord_axis::right,   coord_axis::down,    coord_axis::back   }.is_left_handed(),  "right-down-back coordinate system is left handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::left,    coord_axis::forward}.is_left_handed(),  "up-left-forward coordinate system is left handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::left,    coord_axis::back   }.is_right_handed(), "up-left-back coordinate system is right handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::right,   coord_axis::forward}.is_right_handed(), "up-right-forward coordinate system is right handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::right,   coord_axis::back   }.is_left_handed(),  "up-right-back coordinate system is left handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::forward, coord_axis::left   }.is_right_handed(), "up-forward-left coordinate system is right handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::forward, coord_axis::right  }.is_left_handed(),  "up-forward-right coordinate system is left handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::back,    coord_axis::left   }.is_left_handed(),  "up-back-left coordinate system is left handed");
+    static_assert(coord_system{coord_axis::up,      coord_axis::back,    coord_axis::right  }.is_right_handed(), "up-back-right coordinate system is right handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::left,    coord_axis::forward}.is_right_handed(), "down-left-forward coordinate system is right handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::left,    coord_axis::back   }.is_left_handed(),  "down-left-back coordinate system is left handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::right,   coord_axis::forward}.is_left_handed(),  "down-right-forward coordinate system is left handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::right,   coord_axis::back   }.is_right_handed(), "down-right-back coordinate system is right handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::forward, coord_axis::left   }.is_left_handed(),  "down-forward-left coordinate system is left handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::forward, coord_axis::right  }.is_right_handed(), "down-forward-right coordinate system is right handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::back,    coord_axis::left   }.is_right_handed(), "down-back-left coordinate system is right handed");
+    static_assert(coord_system{coord_axis::down,    coord_axis::back,    coord_axis::right  }.is_left_handed(),  "down-back-right coordinate system is left handed");
+}
+
 TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, float, double )
 {
     random_number_generator rng;
