@@ -1,3 +1,7 @@
+#pragma once
+#ifndef LINALG_H
+#define LINALG_H
+
 // linalg.h - v3.0 alpha - Single-header public domain linear algebra library
 // This is a prerelease version and should be considered unstable.
 //
@@ -12,8 +16,8 @@
 // is appreciated, but not required.
 //
 // The author acknowledges significant insights and contributions by:
-//     Stan Melax <http://github.com/melax/>
 //     Dimitri Diakopoulos <http://github.com/ddiakopoulos/>
+//     Stan Melax <http://github.com/melax/>
 
 
 
@@ -44,16 +48,10 @@
 
 
 
-#pragma once
-#ifndef LINALG_H
-#define LINALG_H
-
 #include <cmath>        // For std::sqrt, std::sin, std::cos, etc.
 #include <cstdlib>      // For std::abs
 #include <cstddef>      // For std::nullptr_t
-#include <cstdint>      // For std::uint8_t, std::uint16_t, std::int16_t, etc.
 #include <type_traits>  // For std::is_arithmetic, std::is_same, std::enable_if, std::conditional, std::remove_reference
-#include <functional>   // For std::hash
 #include <iosfwd>       // For std::basic_ostream
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
@@ -865,31 +863,27 @@ namespace linalg
 
     namespace aliases
     {
-        using bool1=vec<bool,1>; using byte1=vec<uint8_t,1>; using short1=vec<int16_t,1>; using ushort1=vec<uint16_t,1>;
-        using bool2=vec<bool,2>; using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>;
-        using bool3=vec<bool,3>; using byte3=vec<uint8_t,3>; using short3=vec<int16_t,3>; using ushort3=vec<uint16_t,3>; 
-        using bool4=vec<bool,4>; using byte4=vec<uint8_t,4>; using short4=vec<int16_t,4>; using ushort4=vec<uint16_t,4>;
-        using int1=vec<int,1>; using uint1=vec<unsigned,1>; using float1=vec<float,1>; using double1=vec<double,1>;
-        using int2=vec<int,2>; using uint2=vec<unsigned,2>; using float2=vec<float,2>; using double2=vec<double,2>;
-        using int3=vec<int,3>; using uint3=vec<unsigned,3>; using float3=vec<float,3>; using double3=vec<double,3>;
-        using int4=vec<int,4>; using uint4=vec<unsigned,4>; using float4=vec<float,4>; using double4=vec<double,4>;
-        using bool1x1=mat<bool,1,1>; using int1x1=mat<int,1,1>; using float1x1=mat<float,1,1>; using double1x1=mat<double,1,1>;
-        using bool1x2=mat<bool,1,2>; using int1x2=mat<int,1,2>; using float1x2=mat<float,1,2>; using double1x2=mat<double,1,2>;
-        using bool1x3=mat<bool,1,3>; using int1x3=mat<int,1,3>; using float1x3=mat<float,1,3>; using double1x3=mat<double,1,3>;
-        using bool1x4=mat<bool,1,4>; using int1x4=mat<int,1,4>; using float1x4=mat<float,1,4>; using double1x4=mat<double,1,4>;
-        using bool2x1=mat<bool,2,1>; using int2x1=mat<int,2,1>; using float2x1=mat<float,2,1>; using double2x1=mat<double,2,1>;
-        using bool2x2=mat<bool,2,2>; using int2x2=mat<int,2,2>; using float2x2=mat<float,2,2>; using double2x2=mat<double,2,2>;
-        using bool2x3=mat<bool,2,3>; using int2x3=mat<int,2,3>; using float2x3=mat<float,2,3>; using double2x3=mat<double,2,3>;
-        using bool2x4=mat<bool,2,4>; using int2x4=mat<int,2,4>; using float2x4=mat<float,2,4>; using double2x4=mat<double,2,4>;
-        using bool3x1=mat<bool,3,1>; using int3x1=mat<int,3,1>; using float3x1=mat<float,3,1>; using double3x1=mat<double,3,1>;
-        using bool3x2=mat<bool,3,2>; using int3x2=mat<int,3,2>; using float3x2=mat<float,3,2>; using double3x2=mat<double,3,2>;
-        using bool3x3=mat<bool,3,3>; using int3x3=mat<int,3,3>; using float3x3=mat<float,3,3>; using double3x3=mat<double,3,3>;
-        using bool3x4=mat<bool,3,4>; using int3x4=mat<int,3,4>; using float3x4=mat<float,3,4>; using double3x4=mat<double,3,4>;
-        using bool4x1=mat<bool,4,1>; using int4x1=mat<int,4,1>; using float4x1=mat<float,4,1>; using double4x1=mat<double,4,1>;
-        using bool4x2=mat<bool,4,2>; using int4x2=mat<int,4,2>; using float4x2=mat<float,4,2>; using double4x2=mat<double,4,2>;
-        using bool4x3=mat<bool,4,3>; using int4x3=mat<int,4,3>; using float4x3=mat<float,4,3>; using double4x3=mat<double,4,3>;
-        using bool4x4=mat<bool,4,4>; using int4x4=mat<int,4,4>; using float4x4=mat<float,4,4>; using double4x4=mat<double,4,4>;
-        using quatf=quat<float>; using quatd=quat<double>;
+        using float1=vec<float,1>; using double1=vec<double,1>; using int1=vec<int,1>; using bool1=vec<bool,1>;
+        using float2=vec<float,2>; using double2=vec<double,2>; using int2=vec<int,2>; using bool2=vec<bool,2>;
+        using float3=vec<float,3>; using double3=vec<double,3>; using int3=vec<int,3>; using bool3=vec<bool,3>;
+        using float4=vec<float,4>; using double4=vec<double,4>; using int4=vec<int,4>; using bool4=vec<bool,4>;
+        using float1x1=mat<float,1,1>; using double1x1=mat<double,1,1>; using int1x1=mat<int,1,1>; 
+        using float1x2=mat<float,1,2>; using double1x2=mat<double,1,2>; using int1x2=mat<int,1,2>; 
+        using float1x3=mat<float,1,3>; using double1x3=mat<double,1,3>; using int1x3=mat<int,1,3>; 
+        using float1x4=mat<float,1,4>; using double1x4=mat<double,1,4>; using int1x4=mat<int,1,4>; 
+        using float2x1=mat<float,2,1>; using double2x1=mat<double,2,1>; using int2x1=mat<int,2,1>; 
+        using float2x2=mat<float,2,2>; using double2x2=mat<double,2,2>; using int2x2=mat<int,2,2>; 
+        using float2x3=mat<float,2,3>; using double2x3=mat<double,2,3>; using int2x3=mat<int,2,3>; 
+        using float2x4=mat<float,2,4>; using double2x4=mat<double,2,4>; using int2x4=mat<int,2,4>; 
+        using float3x1=mat<float,3,1>; using double3x1=mat<double,3,1>; using int3x1=mat<int,3,1>; 
+        using float3x2=mat<float,3,2>; using double3x2=mat<double,3,2>; using int3x2=mat<int,3,2>; 
+        using float3x3=mat<float,3,3>; using double3x3=mat<double,3,3>; using int3x3=mat<int,3,3>; 
+        using float3x4=mat<float,3,4>; using double3x4=mat<double,3,4>; using int3x4=mat<int,3,4>; 
+        using float4x1=mat<float,4,1>; using double4x1=mat<double,4,1>; using int4x1=mat<int,4,1>; 
+        using float4x2=mat<float,4,2>; using double4x2=mat<double,4,2>; using int4x2=mat<int,4,2>; 
+        using float4x3=mat<float,4,3>; using double4x3=mat<double,4,3>; using int4x3=mat<int,4,3>; 
+        using float4x4=mat<float,4,4>; using double4x4=mat<double,4,4>; using int4x4=mat<int,4,4>; 
+        using quatf=quat<float>; using quatd=quat<double>; using quati=quat<int>;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -911,38 +905,6 @@ namespace linalg
         template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _lswizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
         template<class C, class T, class A, int... I> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const _rswizzle<T,A,I...> & s) { vec<T,sizeof...(I)> v = s; return out << v; }
     }
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Chopping block - Functions in this section may be reworked or removed //
-    ///////////////////////////////////////////////////////////////////////////
-
-    // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
-    enum fwd_axis { neg_z, pos_z };                 // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
-    enum z_range { neg_one_to_one, zero_to_one };   // Should projection matrices map z into the range of [-1,1] or [0,1]?
-    template<class T> quat<T>              rotation_quat     (const vec<T,3> & axis, T angle)             { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
-    template<class T> quat<T>              rotation_quat     (const vec<T,3> & from, const vec<T,3> & to) { return rotation_quat(normalize(cross(from,to)), angle(from,to)); }
-    template<class T> quat<T>              rotation_quat     (const mat<T,3,3> & m);
-    template<class T> constexpr mat<T,4,4> translation_matrix(const vec<T,3> & translation)          { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
-    template<class T> constexpr mat<T,4,4> rotation_matrix   (const quat<T> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
-    template<class T> constexpr mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)              { return {{scaling[0],0,0,0}, {0,scaling[1],0,0}, {0,0,scaling[2],0}, {0,0,0,1}}; }
-    template<class T> constexpr mat<T,4,4> pose_matrix       (const quat<T> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
-    template<class T> constexpr mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { return {{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, vec<T,4>{-(x0+x1)/(x1-x0), -(y0+y1)/(y1-y0), (z == zero_to_one ? f : f+n)/(f-n), 1} * (a == pos_z ? T(1) : T(-1)), {0,0,(z == zero_to_one ? -1 : -2)*n*f/(f-n),0}}; }
-    template<class T> mat<T,4,4>           perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one)       { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
-}
-
-////////////////////////////////////////////////////////
-// Specializations of std::hash<...> for linalg types //
-////////////////////////////////////////////////////////
-
-namespace std 
-{ 
-    template<class T> struct hash<linalg::vec<T,2>> { std::size_t operator()(const linalg::vec<T,2> & v) const { std::hash<T> h; return h(v[0]) ^ (h(v[1]) << 1); } };
-    template<class T> struct hash<linalg::vec<T,3>> { std::size_t operator()(const linalg::vec<T,3> & v) const { std::hash<T> h; return h(v[0]) ^ (h(v[1]) << 1) ^ (h(v[2]) << 2); } };
-    template<class T> struct hash<linalg::vec<T,4>> { std::size_t operator()(const linalg::vec<T,4> & v) const { std::hash<T> h; return h(v[0]) ^ (h(v[1]) << 1) ^ (h(v[2]) << 2) ^ (h(v[3]) << 3); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,2>> { std::size_t operator()(const linalg::mat<T,M,2> & m) const { std::hash<linalg::vec<T,M>> h; return h(m[0]) ^ (h(m[1]) << M); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,3>> { std::size_t operator()(const linalg::mat<T,M,3> & m) const { std::hash<linalg::vec<T,M>> h; return h(m[0]) ^ (h(m[1]) << M) ^ (h(m[2]) << (M*2)); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,4>> { std::size_t operator()(const linalg::mat<T,M,4> & m) const { std::hash<linalg::vec<T,M>> h; return h(m[0]) ^ (h(m[1]) << M) ^ (h(m[2]) << (M*2)) ^ (h(m[3]) << (M*3)); } };
-    template<class T> struct hash<linalg::quat<T>> { std::size_t operator()(const linalg::quat<T> & q) const { std::hash<T> h; return h(q.x) ^ (h(q.y) << 1) ^ (h(q.z) << 2) ^ (h(q.w) << 3); } };
 }
 
 ////////////////////////////////////////////////////////////
@@ -982,16 +944,6 @@ template<class T> constexpr T linalg::determinant(const mat<T,4,4> & a)
          + a[0][1]*(a[1][2]*a[3][3]*a[2][0] + a[2][2]*a[1][3]*a[3][0] + a[3][2]*a[2][3]*a[1][0] - a[1][2]*a[2][3]*a[3][0] - a[3][2]*a[1][3]*a[2][0] - a[2][2]*a[3][3]*a[1][0])
          + a[0][2]*(a[1][3]*a[2][0]*a[3][1] + a[3][3]*a[1][0]*a[2][1] + a[2][3]*a[3][0]*a[1][1] - a[1][3]*a[3][0]*a[2][1] - a[2][3]*a[1][0]*a[3][1] - a[3][3]*a[2][0]*a[1][1])
          + a[0][3]*(a[1][0]*a[3][1]*a[2][2] + a[2][0]*a[1][1]*a[3][2] + a[3][0]*a[2][1]*a[1][2] - a[1][0]*a[2][1]*a[3][2] - a[3][0]*a[1][1]*a[2][2] - a[2][0]*a[3][1]*a[1][2]); 
-}
-
-template<class T> linalg::quat<T> linalg::rotation_quat(const mat<T,3,3> & m)
-{
-    const vec<T,4> q {m[0][0]-m[1][1]-m[2][2], m[1][1]-m[0][0]-m[2][2], m[2][2]-m[0][0]-m[1][1], m[0][0]+m[1][1]+m[2][2]}, s[] {
-        {1, m[0][1] + m[1][0], m[2][0] + m[0][2], m[1][2] - m[2][1]}, 
-        {m[0][1] + m[1][0], 1, m[1][2] + m[2][1], m[2][0] - m[0][2]},
-        {m[0][2] + m[2][0], m[1][2] + m[2][1], 1, m[0][1] - m[1][0]},
-        {m[1][2] - m[2][1], m[2][0] - m[0][2], m[0][1] - m[1][0], 1}};
-    return quat<T>{copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)])};
 }
 
 #endif

@@ -40,7 +40,6 @@ It is inspired by the syntax of popular shader languages and intended to serve a
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
 * No lambdas are used in `linalg.h`, avoidng potential ODR violations
 
-
 # Breaking changes in `v3.0`
 
 * `linalg.h` no longer supports Visual Studio 2013. However, it is known to work on GCC 4.9+, Clang 3.5+ in C++11 mode and Visual Studio 2015+.
@@ -60,6 +59,7 @@ It is inspired by the syntax of popular shader languages and intended to serve a
   * `vec<T,M>` and `mat<T,M,N>` no longer have an explicit constructor from `const T *`
   * These capabilities can be added by specializing `converter<T,U>`, as shown in [test-user-defined-conversions.cpp](tests/test-user-defined-conversions.cpp) 
 * The functions `vec::xy()` and `vec::xyz()` have been replaced by the swizzles `vec::xy` and `vec::xyz`
+* Some functionality has been moved from `linalg.h` to optional `linalgx.h` header
 
 # Documentation
 

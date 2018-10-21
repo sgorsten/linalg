@@ -648,33 +648,6 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 }
 
-TEST_CASE( "hashing works as expected" )
-{
-    // std::hash specializations should take their specified type and return size_t
-    REQUIRE( typeid(std::hash<int2     >()(int2     {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<float3   >()(float3   {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<double4  >()(double4  {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<int2x4   >()(int2x4   {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<float3x2 >()(float3x2 {})) == typeid(size_t) );
-    REQUIRE( typeid(std::hash<double4x3>()(double4x3{})) == typeid(size_t) );
-
-    // Small list of items which are known to have no duplicate hashes
-    const float3 points[] = {
-        {1,2,3}, {1,3,2}, {2,1,3}, {2,3,1}, {3,1,2}, {3,2,1},
-        {1,1,1}, {2,2,2}, {3,3,3}, {4,4,4}, {5,5,5}, {6,6,6},
-        {0,0,0}, {0,0,1}, {0,1,0}, {1,0,0}, {0,1,1}, {1,1,0}
-    };
-    const std::hash<float3> h = {};
-    for(auto & a : points)
-    {
-        for(auto & b : points)
-        {
-            if(a == b) REQUIRE( h(a) == h(b) );
-            else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
-        }
-    }
-}
-
 template<class T> void take(const T &) {}
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
 
@@ -721,7 +694,7 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(bool, int2() == int2() );
     MATCH(bool, float3() == float3() );
     MATCH(bool, double4() == double4() );
-    MATCH(bool, short2() != short2() );
+    MATCH(bool, int2() != int2() );
     MATCH(bool, int2() < int2() );
     MATCH(bool, float3() < float3() );
     MATCH(bool, double4() < double4() );
@@ -736,8 +709,8 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double2() /  double2() );
     MATCH(int3   , int3   () %  int3   (1) );
     MATCH(int4   , int4   () |  int4   () );
-    MATCH(int2   , short2 () ^  short2 () );
-    MATCH(int3   , short3 () &  short3 () );
+    MATCH(int2   , int2   () ^  int2   () );
+    MATCH(int3   , int3   () &  int3   () );
     MATCH(int3   , int3   () << int3   () );
     MATCH(int4   , int4   () >> int4   () );
 
@@ -747,10 +720,10 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double2() /  double  () );
     MATCH(int3   , int3   () %  int     (1) );
     MATCH(int4   , int4   () |  int     () );
-    MATCH(int2   , short2 () ^  short   () );
-    MATCH(int3   , short3 () &  short   () );
+    MATCH(int2   , int2   () ^  short   () );
+    MATCH(int3   , int3   () &  short   () );
     MATCH(int3   , int3   () << int     () );
-    MATCH(uint4  , uint4  () >> unsigned() );
+    MATCH(int4   , int4   () >> unsigned() );
 
     MATCH(float2 , float   () +  float2 () );
     MATCH(float3 , float   () -  float3 () );
@@ -758,10 +731,10 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(double2, double  () /  double2() );
     MATCH(int3   , int     () %  int3   (1) );
     MATCH(int4   , int     () |  int4   () );
-    MATCH(int2   , short   () ^  short2 () );
-    MATCH(int3   , short   () &  short3 () );
+    MATCH(int2   , short   () ^  int2   () );
+    MATCH(int3   , short   () &  int3   () );
     MATCH(int3   , int     () << int3   () );
-    MATCH(uint4  , unsigned() >> uint4  () );
+    MATCH(int4   , int     () >> int4   () );
 
     MATCH(float2&, f2 += float2() );
     MATCH(float3&, f3 -= float3() );
@@ -835,13 +808,4 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float3, qrot(quatf(), float3()) );
     MATCH(float , qangle(quatf()) );
     MATCH(float3, qaxis(quatf()) );
-
-    // Exercise factory functions
-    MATCH(quatf, rotation_quat(float3(), float()) );
-    MATCH(float4x4, translation_matrix(float3()) );
-    MATCH(float4x4, rotation_matrix(quatf()) );
-    MATCH(float4x4, scaling_matrix(float3()) );
-    MATCH(float4x4, pose_matrix(quatf(), float3()) );
-    MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
-    MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
 }
