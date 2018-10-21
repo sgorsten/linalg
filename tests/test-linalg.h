@@ -50,3 +50,10 @@ public:
 
 template<class T, int M> void check_approx_equal(const linalg::vec<T,M> & a, const linalg::vec<T,M> & b) { for(int j=0; j<M; ++j) CHECK( a[j] == doctest::Approx(b[j]) ); }
 template<class T, int M, int N> void check_approx_equal(const linalg::mat<T,M,N> & a, const linalg::mat<T,M,N> & b) { for(int i=0; i<N; ++i) check_approx_equal(a[i], b[i]); }
+template<class T> void check_approx_equal(const linalg::quat<T> & a, const linalg::quat<T> & b) 
+{ 
+    CHECK( a.x == doctest::Approx(b.x) ); 
+    CHECK( a.y == doctest::Approx(b.y) ); 
+    CHECK( a.z == doctest::Approx(b.z) ); 
+    CHECK( a.w == doctest::Approx(b.w) ); 
+}

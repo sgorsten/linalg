@@ -249,6 +249,7 @@ namespace linalg
     { 
         A elems;
         _scalar()                          = delete;
+        T operator () () const             { return elems[I]; }
         operator const T & () const        { return elems[I]; }
         operator T & ()                    { return elems[I]; }
         const T * operator & () const      { return &elems[I]; }
@@ -263,6 +264,7 @@ namespace linalg
                                     _lswizzle(T e0, T e1)                    { e[I0]=e0; e[I1]=e1; }
                                     _lswizzle(const vec<T,2> & r)            : _lswizzle(r[0], r[1]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,2>(r)) {}
+        vec<T,2>                    operator () () const                     { return {e[I0], e[I1]}; }
                                     operator vec<T,2> () const               { return {e[I0], e[I1]}; }           
         _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
     };
@@ -273,6 +275,7 @@ namespace linalg
                                     _lswizzle(T e0, T e1, T e2)              { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
                                     _lswizzle(const vec<T,3> & r)            : _lswizzle(r[0], r[1], r[2]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,3>(r)) {}
+        vec<T,3>                    operator () () const                     { return {e[I0], e[I1], e[I2]}; }
                                     operator vec<T,3> () const               { return {e[I0], e[I1], e[I2]}; }           
         _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
     };
@@ -283,6 +286,7 @@ namespace linalg
                                     _lswizzle(T e0, T e1, T e2, T e3)        { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
                                     _lswizzle(const vec<T,4> & r)            : _lswizzle(r[0], r[1], r[2], r[3]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,4>(r)) {}
+        vec<T,4>                    operator () () const                     { return {e[I0], e[I1], e[I2], e[I3]}; }
                                     operator vec<T,4> () const               { return {e[I0], e[I1], e[I2], e[I3]}; }           
         _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
     };
@@ -832,9 +836,9 @@ namespace linalg
     template<class T> constexpr quat<T> operator * (const quat<T> & a, const quat<T> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
 
     // Quaternion algebra functions
-    template<class T> quat<T>           qexp     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
+    template<class T> quat<T>           qexp     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w)*quat<T>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
     template<class T> quat<T>           qlog     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
-    template<class T> quat<T>           qpow     (const quat<T> & q, const T & p)            { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
+    template<class T> quat<T>           qpow     (const quat<T> & q, const T & p)            { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*quat<T>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
     template<class T> constexpr quat<T> conjugate(const quat<T> & a)                         { return {-a.x, -a.y, -a.z, a.w}; }
     template<class T> constexpr T       dot      (const quat<T> & a, const quat<T> & b)      { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
     template<class T> constexpr T       length2  (const quat<T> & a)                         { return dot(a,a); }
@@ -854,8 +858,6 @@ namespace linalg
     template<class T> constexpr vec<T,3>   qrot  (const quat<T> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
     template<class T> T                    qangle(const quat<T> & q)                          { return std::atan2(length(q.xyz()), q.w)*2; }
     template<class T> vec<T,3>             qaxis (const quat<T> & q)                          { return normalize(q.xyz()); }
-    template<class T> quat<T>              qnlerp(const quat<T> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
-    template<class T> quat<T>              qslerp(const quat<T> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
     //////////////////////////////////////////////////////////////////////////////////
     // Standard type aliases, can be brought in via using namespace linalg::aliases //
@@ -917,42 +919,15 @@ namespace linalg
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
     enum fwd_axis { neg_z, pos_z };                 // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
     enum z_range { neg_one_to_one, zero_to_one };   // Should projection matrices map z into the range of [-1,1] or [0,1]?
-    template<class T> vec<T,4>             rotation_quat     (const vec<T,3> & axis, T angle)         { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
-    template<class T> vec<T,4>             rotation_quat     (const mat<T,3,3> & m);
-    template<class T> constexpr mat<T,4,4> translation_matrix(const vec<T,3> & translation)           { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
-    template<class T> constexpr mat<T,4,4> rotation_matrix   (const vec<T,4> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
-    template<class T> constexpr mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)               { return {{scaling[0],0,0,0}, {0,scaling[1],0,0}, {0,0,scaling[2],0}, {0,0,0,1}}; }
-    template<class T> constexpr mat<T,4,4> pose_matrix       (const vec<T,4> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
+    template<class T> quat<T>              rotation_quat     (const vec<T,3> & axis, T angle)             { return {axis*std::sin(angle/2), std::cos(angle/2)}; }
+    template<class T> quat<T>              rotation_quat     (const vec<T,3> & from, const vec<T,3> & to) { return rotation_quat(normalize(cross(from,to)), angle(from,to)); }
+    template<class T> quat<T>              rotation_quat     (const mat<T,3,3> & m);
+    template<class T> constexpr mat<T,4,4> translation_matrix(const vec<T,3> & translation)          { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{translation,1}}; }
+    template<class T> constexpr mat<T,4,4> rotation_matrix   (const quat<T> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
+    template<class T> constexpr mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)              { return {{scaling[0],0,0,0}, {0,scaling[1],0,0}, {0,0,scaling[2],0}, {0,0,0,1}}; }
+    template<class T> constexpr mat<T,4,4> pose_matrix       (const quat<T> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
     template<class T> constexpr mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { return {{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, vec<T,4>{-(x0+x1)/(x1-x0), -(y0+y1)/(y1-y0), (z == zero_to_one ? f : f+n)/(f-n), 1} * (a == pos_z ? T(1) : T(-1)), {0,0,(z == zero_to_one ? -1 : -2)*n*f/(f-n),0}}; }
     template<class T> mat<T,4,4>           perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one)       { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
-
-    ////////////////////
-    // Legacy support //
-    ////////////////////
-
-    // Support for quaternion algebra using 4D vectors, representing xi + yj + zk + w
-    template<class T> vec<T,4>           qexp (const vec<T,4> & q)                     { const vec<T,3> v = q.xyz; const auto vv = length(v); return std::exp(q.w) * vec<T,4>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
-    template<class T> vec<T,4>           qlog (const vec<T,4> & q)                     { const vec<T,3> v = q.xyz; const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
-    template<class T> vec<T,4>           qpow (const vec<T,4> & q, const T & p)        { const vec<T,3> v = q.xyz; const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*vec<T,4>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
-
-    // Support for 3D spatial rotations using quaternions, via qmul(qmul(q, v), qconj(q))
-    template<class T> constexpr vec<T,3>   qxdir (const vec<T,4> & q)                          { return {q.w*q.w+q.x*q.x-q.y*q.y-q.z*q.z, (q.x*q.y+q.z*q.w)*2, (q.z*q.x-q.y*q.w)*2}; }
-    template<class T> constexpr vec<T,3>   qydir (const vec<T,4> & q)                          { return {(q.x*q.y-q.z*q.w)*2, q.w*q.w-q.x*q.x+q.y*q.y-q.z*q.z, (q.y*q.z+q.x*q.w)*2}; }
-    template<class T> constexpr vec<T,3>   qzdir (const vec<T,4> & q)                          { return {(q.z*q.x+q.y*q.w)*2, (q.y*q.z-q.x*q.w)*2, q.w*q.w-q.x*q.x-q.y*q.y+q.z*q.z}; }
-    template<class T> constexpr mat<T,3,3> qmat  (const vec<T,4> & q)                          { return {qxdir(q), qydir(q), qzdir(q)}; }
-    template<class T> constexpr vec<T,3>   qrot  (const vec<T,4> & q, const vec<T,3> & v)      { return qxdir(q)*v.x + qydir(q)*v.y + qzdir(q)*v.z; }
-    template<class T> T                    qangle(const vec<T,4> & q)                          { const vec<T,3> v = q.xyz; return std::atan2(length(v), q.w)*2; }
-    template<class T> vec<T,3>             qaxis (const vec<T,4> & q)                          { const vec<T,3> v = q.xyz; return normalize(v); }
-    template<class T> vec<T,4>             qnlerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return nlerp(a, dot(a,b) < 0 ? -b : b, t); }
-    template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
-
-    // These functions exist to ease the difficulty of porting from older versions of linalg
-    template<class T> constexpr vec<T,4> qconj(const vec<T,4> & q) { return vec<T,4>(conjugate(quat<T>(q))); }
-    template<class T> constexpr vec<T,4> qinv(const vec<T,4> & q) { return vec<T,4>(inverse(quat<T>(q))); }
-    template<class T> constexpr vec<T,4> qmul (const vec<T,4> & a, const vec<T,4> & b) { return vec<T,4>(quat<T>(a) * quat<T>(b)); }
-    template<class T, class... R> constexpr vec<T,4> qmul(const vec<T,4> & a, R... r)  { return qmul(a, qmul(r...)); }
-    template<class T, int M, int N, class B> constexpr auto mul(const mat<T,M,N> & a, const B & b) -> decltype(a*b) { return a*b; }
-    template<class T, int M, int N, class... R> constexpr auto mul(const mat<T,M,N> & a, R... r) -> decltype(mul(a, mul(r...))) { return mul(a, mul(r...)); }
 }
 
 ////////////////////////////////////////////////////////
@@ -1009,14 +984,14 @@ template<class T> constexpr T linalg::determinant(const mat<T,4,4> & a)
          + a[0][3]*(a[1][0]*a[3][1]*a[2][2] + a[2][0]*a[1][1]*a[3][2] + a[3][0]*a[2][1]*a[1][2] - a[1][0]*a[2][1]*a[3][2] - a[3][0]*a[1][1]*a[2][2] - a[2][0]*a[3][1]*a[1][2]); 
 }
 
-template<class T> linalg::vec<T,4> linalg::rotation_quat(const mat<T,3,3> & m)
+template<class T> linalg::quat<T> linalg::rotation_quat(const mat<T,3,3> & m)
 {
     const vec<T,4> q {m[0][0]-m[1][1]-m[2][2], m[1][1]-m[0][0]-m[2][2], m[2][2]-m[0][0]-m[1][1], m[0][0]+m[1][1]+m[2][2]}, s[] {
         {1, m[0][1] + m[1][0], m[2][0] + m[0][2], m[1][2] - m[2][1]}, 
         {m[0][1] + m[1][0], 1, m[1][2] + m[2][1], m[2][0] - m[0][2]},
         {m[0][2] + m[2][0], m[1][2] + m[2][1], 1, m[0][1] - m[1][0]},
         {m[1][2] - m[2][1], m[2][0] - m[0][2], m[0][1] - m[1][0], 1}};
-    return copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)]);
+    return quat<T>{copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)])};
 }
 
 #endif

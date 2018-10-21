@@ -636,67 +636,6 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 }
 
-
-TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, float, double )
-{
-    std::mt19937 engine;
-    std::normal_distribution<T> dist;
-
-    for(int i=0; i<1000; ++i)
-    {
-        linalg::vec<T,4> q = normalize(linalg::vec<T,4>(dist(engine), dist(engine), dist(engine), dist(engine)));
-        linalg::vec<T,4> q2 = rotation_quat(qmat(q));
-        if(dot(q, q2) > 0) // q2 should either equal q or -q
-        {
-            REQUIRE( std::abs(q.x - q2.x) < 0.0001 );
-            REQUIRE( std::abs(q.y - q2.y) < 0.0001 );
-            REQUIRE( std::abs(q.z - q2.z) < 0.0001 );
-            REQUIRE( std::abs(q.w - q2.w) < 0.0001 );
-        }
-        else
-        {
-            REQUIRE( std::abs(q.x + q2.x) < 0.0001 );
-            REQUIRE( std::abs(q.y + q2.y) < 0.0001 );
-            REQUIRE( std::abs(q.z + q2.z) < 0.0001 );
-            REQUIRE( std::abs(q.w + q2.w) < 0.0001 );        
-        }
-    }
-}
-
-TEST_CASE( "90 degree rotation matrices round trip with rotation quaternions" )
-{
-    const float3x3 matrices[] {
-        {{+1,0,0},{0,+1,0},{0,0,+1}},
-        {{+1,0,0},{0,-1,0},{0,0,-1}},
-        {{+1,0,0},{0,0,+1},{0,-1,0}},
-        {{+1,0,0},{0,0,-1},{0,+1,0}},
-        {{-1,0,0},{0,+1,0},{0,0,-1}},
-        {{-1,0,0},{0,-1,0},{0,0,+1}},
-        {{-1,0,0},{0,0,+1},{0,+1,0}},
-        {{-1,0,0},{0,0,-1},{0,-1,0}},
-        {{0,+1,0},{+1,0,0},{0,0,-1}},
-        {{0,+1,0},{-1,0,0},{0,0,+1}},
-        {{0,+1,0},{0,0,+1},{+1,0,0}},
-        {{0,+1,0},{0,0,-1},{-1,0,0}},
-        {{0,-1,0},{+1,0,0},{0,0,+1}},
-        {{0,-1,0},{-1,0,0},{0,0,-1}},
-        {{0,-1,0},{0,0,+1},{-1,0,0}},
-        {{0,-1,0},{0,0,-1},{+1,0,0}},
-        {{0,0,+1},{+1,0,0},{0,+1,0}},
-        {{0,0,+1},{-1,0,0},{0,-1,0}},
-        {{0,0,+1},{0,+1,0},{-1,0,0}},
-        {{0,0,+1},{0,-1,0},{+1,0,0}},
-        {{0,0,-1},{+1,0,0},{0,-1,0}},
-        {{0,0,-1},{-1,0,0},{0,+1,0}},
-        {{0,0,-1},{0,+1,0},{+1,0,0}},
-        {{0,0,-1},{0,-1,0},{-1,0,0}},
-    };
-    for(auto & m : matrices)
-    {
-        check_approx_equal(m, qmat(rotation_quat(m)));
-    }
-}
-
 TEST_CASE( "hashing works as expected" )
 {
     // std::hash specializations should take their specified type and return size_t
@@ -722,36 +661,6 @@ TEST_CASE( "hashing works as expected" )
             else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
         }
     }
-}
-
-TEST_CASE( "special quaternion functions behave as expected" )
-{
-    // qexp of a scalar should simply be the exp of that scalar
-    check_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
-
-    // e^(tau*i) == 1
-    check_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
-
-    // e^(tau*j) == 1
-    check_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
-
-    // qlog of a scalar should simply be the log of that scalar
-    check_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
-
-    // qexp(qlog(q)) == q
-    check_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
-
-    // qpow of a scalar should simply be the pow of that scalar
-    check_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
-
-    // qpow(q,2) == qmul(q,q)
-    check_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(q,3) == qmul(q,q,q)
-    check_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(qpow(q,2),3) == qpow(q,2*3)
-    check_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
 }
 
 template<class T> void take(const T &) {}
@@ -905,24 +814,22 @@ TEST_CASE( "templates instantiate correctly" )
     MATCH(float4, slerp(float4(), float4(), float()) );
 
     // Exercise quaternion algebra functions
-    MATCH(float4, qconj(float4()) );
-    MATCH(float4, qinv(float4()) );
-    MATCH(float4, qmul(float4(), float4()) );
-    MATCH(float3, qxdir(float4()) );
-    MATCH(float3, qydir(float4()) );
-    MATCH(float3, qzdir(float4()) );
-    MATCH(float3, qrot(float4(), float3()) );
-    MATCH(float , qangle(float4()) );
-    MATCH(float3, qaxis(float4()) );
-    MATCH(float4, qnlerp(float4(), float4(), float()) );
-    MATCH(float4, qslerp(float4(), float4(), float()) );
+    MATCH(quatf, conjugate(quatf()) );
+    MATCH(quatf, inverse(quatf()) );
+    MATCH(quatf, quatf() * quatf() );
+    MATCH(float3, qxdir(quatf()) );
+    MATCH(float3, qydir(quatf()) );
+    MATCH(float3, qzdir(quatf()) );
+    MATCH(float3, qrot(quatf(), float3()) );
+    MATCH(float , qangle(quatf()) );
+    MATCH(float3, qaxis(quatf()) );
 
     // Exercise factory functions
-    MATCH(float4, rotation_quat(float3(), float()) );
+    MATCH(quatf, rotation_quat(float3(), float()) );
     MATCH(float4x4, translation_matrix(float3()) );
-    MATCH(float4x4, rotation_matrix(float4()) );
+    MATCH(float4x4, rotation_matrix(quatf()) );
     MATCH(float4x4, scaling_matrix(float3()) );
-    MATCH(float4x4, pose_matrix(float4(), float3()) );
+    MATCH(float4x4, pose_matrix(quatf(), float3()) );
     MATCH(float4x4, linalg::frustum_matrix(float(), float(), float(), float(), float(), float()) );
     MATCH(float4x4, linalg::perspective_matrix(float(), float(), float(), float()) );
 }
