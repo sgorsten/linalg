@@ -87,89 +87,57 @@ namespace linalg
         return quat<T>{copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)])};    
     }
 
-    // Produce a homogeneous transformation matrix that moves between two coordinate systems
-    template<class T> constexpr mat<T,4,4> coord_change_matrix(const coord_system & from, const coord_system & to)
-    { 
-        return {
-            {to(from.x_axis),0},
-            {to(from.y_axis),0},
-            {to(from.z_axis),0},
-            {0,1}
-        };
-    }
-
-    // Produce a homogeneous transformation matrix representing a translation
-    template<class T> constexpr mat<T,4,4> translation_matrix(const vec<T,3> & translation)
-    { 
-        return {
-            {1,0,0,0},
-            {0,1,0,0},
-            {0,0,1,0},
-            {translation,1}
-        };
-    }
-
-    // Produce a homogeneous transformation matrix representing a pure rotation
-    template<class T> constexpr mat<T,4,4> rotation_matrix(const quat<T> & rotation)
-    { 
-        return {
-            {qxdir(rotation),0},
-            {qydir(rotation),0},
-            {qzdir(rotation),0},
-            {0,0,0,1}
-        }; 
-    }
-
-    // Produce a homogeneous transformation matrix representing non-uniform scaling
-    template<class T> constexpr mat<T,4,4> scaling_matrix(T scaling_x, T scaling_y, T scaling_z) 
-    { 
-        return {
-            {scaling_x,0,0,0},
-            {0,scaling_y,0,0},
-            {0,0,scaling_z,0},
-            {0,0,0,1}
-        };
-    }
-    template<class T> constexpr mat<T,4,4> scaling_matrix(const vec<T,3> & scaling) 
-    { 
-        return {
-            {scaling[0],0,0,0},
-            {0,scaling[1],0,0},
-            {0,0,scaling[2],0},
-            {0,0,0,1}
-        };
-    }
-
-    // Produce a homogeneous transformation matrix representing a pure rotation followed by a translation.
-    // Equivalent to translation_matrix(translation) * rotation_matrix(rotation)
-    template<class T> constexpr mat<T,4,4> pose_matrix(const quat<T> & rotation, const vec<T,3> & translation)
-    { 
-        return {
-            {qxdir(rotation),0},
-            {qydir(rotation),0},
-            {qzdir(rotation),0},
-            {translation,1}
-        }; 
-    }
-
-    // Produce a frustum projection matrix
+    // Transformation types
     enum fwd_axis { neg_z, pos_z }; // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
     enum z_range { neg_one_to_one, zero_to_one }; // Should projection matrices map z into the range of [-1,1] or [0,1]?
-    template<class T> mat<T,4,4> frustum_matrix(T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one)
-    { 
-        T offset = z == neg_one_to_one ? n : 0;
-        return mat<T,4,4>{
-            {2*n/(x1-x0),0,0,0}, 
-            {0,2*n/(y1-y0),0,0}, 
-            {-(x0+x1)/(x1-x0), -(y0+y1)/(y1-y0), (f+offset)/(f-n), 1},
-            {0,0,-(n+offset)*f/(f-n),0}
-        } * scaling_matrix(T(1), T(1), a == pos_z ? T(1) : T(-1));
-    }
-    template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one)
-    { 
-        T y = n*std::tan(fovy / 2), x = y*aspect;
-        return frustum_matrix(-x, x, -y, y, n, f, a, z); 
-    }
+    template<class T, int M> struct linear_transformation;
+    template<class T, int M> struct homogeneous_transformation;
+
+    // Helper to construct linear transformations in 3D space
+    template<class T> struct linear_transformation<T,3>
+    {
+        using type = mat<T,3,3>;
+
+        constexpr static type identity() { return linalg::identity; }
+        constexpr static type coord_change(const coord_system & from, const coord_system & to)  { return {to.get<T>(from.x_axis), to.get<T>(from.y_axis), to.get<T>(from.z_axis)}; }    
+        constexpr static type scaling(T uniform_scale)                                          { return {{uniform_scale,0,0},{0,uniform_scale,0},{0,0,uniform_scale}}; }
+        constexpr static type scaling(const vec<T,3> & scale)                                   { return {{scale[0],0,0},{0,scale[1],0},{0,0,scale[2]}}; }
+        constexpr static type rotation(const quat<T> & rotation)                                { return {qxdir(rotation), qydir(rotation), qzdir(rotation)}; }
+    };
+
+    // Helper to construct homogeneous transformations in 3D space
+    template<class T> struct homogeneous_transformation<T,3>
+    {
+        using type = mat<T,4,4>;
+
+        constexpr static type identity() { return linalg::identity; }
+        constexpr static type linear(const mat<T,3,3> & transform)                              { return {{transform[0],0}, {transform[1],0}, {transform[2],0}, {0,0,0,1}}; }
+        constexpr static type coord_change(const coord_system & from, const coord_system & to)  { return {{to.get<T>(from.x_axis),0}, {to.get<T>(from.y_axis),0}, {to.get<T>(from.z_axis),0}, {0,0,0,1}}; }    
+        constexpr static type scaling(T uniform_scale)                                          { return {{uniform_scale,0,0,0},{0,uniform_scale,0,0},{0,0,uniform_scale,0},{0,0,0,1}}; }
+        constexpr static type scaling(const vec<T,3> & scale)                                   { return {{scale[0],0,0,0},{0,scale[1],0,0},{0,0,scale[2],0},{0,0,0,1}}; }
+        constexpr static type rotation(const quat<T> & rotation)                                { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
+        constexpr static type translation(const vec<T,3> & translation)                         { return {{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {translation,1}}; }
+        constexpr static type pose(const quat<T> & rotation, const vec<T,3> & translation)      { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {translation,1}}; }
+
+        constexpr static type frustum(T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) 
+        { 
+            return (z == neg_one_to_one ? translation({0,0,-1}) * scaling({1,1,2}) : identity()) 
+                * type{{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {-(x0+x1)/(x1-x0), -(y0+y1)/(y1-y0), f/(f-n), 1}, {0,0,-n*f/(f-n),0}}
+                * (a == neg_z ? scaling({1,1,-1}) : identity()); 
+        }
+        static type perspective(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one)
+        { 
+            T y = n*std::tan(fovy / 2), x = y*aspect;
+            return frustum(-x, x, -y, y, n, f, a, z); 
+        }
+    };
+
+    // Transformation functions
+    template<class T> vec<T,3> transform_vector(const mat<T,3,3> & linear_transform, const vec<T,3> & vector) { return linear_transform * vector; }
+    template<class T> vec<T,3> transform_point(const mat<T,3,3> & linear_transform, const vec<T,3> & point) { return linear_transform * point; }
+
+    template<class T> vec<T,3> transform_vector(const mat<T,4,4> & homogeneous_transform, const vec<T,3> & vector) { return (homogeneous_transform * vec<T,4>{vector,0}).xyz; }
+    template<class T> vec<T,3> transform_point(const mat<T,4,4> & homogeneous_transform, const vec<T,3> & point) { auto p = homogeneous_transform * vec<T,4>{point,1}; return p.xyz / p.w; }
 
     namespace aliases
     {

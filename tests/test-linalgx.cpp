@@ -125,7 +125,52 @@ TEST_CASE( "hashing works as expected" )
     }
 }
 
-float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = m*float4(p,1); return r.xyz/r.w; }
+TEST_CASE_TEMPLATE("Test linear and homogeneous transformations", T, float, double)
+{
+    random_number_generator rng;
+    const linalg::coord_system ruf{linalg::coord_axis::right, linalg::coord_axis::up, linalg::coord_axis::forward};
+    const linalg::coord_system rfu{linalg::coord_axis::right, linalg::coord_axis::forward, linalg::coord_axis::up};
+    for(int i=0; i<reps; ++i)
+    {
+        const vec3<T> a = rng, b = rng;
+        const quat<T> q = normalize(rng.get<quat<T>>());
+        const T s = rng;
+
+        // Check linear transformations of vectors
+        using linear = linalg::linear_transformation<T,3>;
+        check_approx_equal(transform_vector(linear::identity(), a), a);
+        check_approx_equal(transform_vector(linear::coord_change(rfu,ruf), a), a.xzy());
+        check_approx_equal(transform_vector(linear::scaling(s), a), a*s);
+        check_approx_equal(transform_vector(linear::scaling(b), a), a*b);        
+        check_approx_equal(transform_vector(linear::rotation(q), a), qrot(q,a));
+
+        // Check linear transformations of points
+        check_approx_equal(transform_point(linear::identity(), a), a);
+        check_approx_equal(transform_point(linear::coord_change(rfu,ruf), a), a.xzy());
+        check_approx_equal(transform_point(linear::scaling(s), a), a*s);
+        check_approx_equal(transform_point(linear::scaling(b), a), a*b);        
+        check_approx_equal(transform_point(linear::rotation(q), a), qrot(q,a));
+
+        // Check homogeneous transformations of vectors
+        using homog = linalg::homogeneous_transformation<T,3>;
+        check_approx_equal(transform_vector(homog::identity(), a), a);
+        check_approx_equal(transform_vector(homog::coord_change(rfu,ruf), a), a.xzy());
+        check_approx_equal(transform_vector(homog::scaling(s), a), a*s);
+        check_approx_equal(transform_vector(homog::scaling(b), a), a*b);        
+        check_approx_equal(transform_vector(homog::rotation(q), a), qrot(q,a));
+        check_approx_equal(transform_vector(homog::translation(b), a), a);
+        check_approx_equal(transform_vector(homog::pose(q,b), a), qrot(q,a));
+        
+        // Check homogeneous transformations of points
+        check_approx_equal(transform_point(homog::identity(), a), a);
+        check_approx_equal(transform_point(homog::coord_change(rfu,ruf), a), a.xzy());
+        check_approx_equal(transform_point(homog::scaling(s), a), a*s);
+        check_approx_equal(transform_point(homog::scaling(b), a), a*b);        
+        check_approx_equal(transform_point(homog::rotation(q), a), qrot(q,a));
+        check_approx_equal(transform_point(homog::translation(b), a), a+b);
+        check_approx_equal(transform_point(homog::pose(q,b), a), qrot(q,a)+b);
+    }
+}
 
 TEST_CASE( "Projection matrices behave as intended" )
 {
@@ -133,8 +178,10 @@ TEST_CASE( "Projection matrices behave as intended" )
     const float nx0 = -0.9f*n, ny0 = -0.6f*n, nx1 = 0.8f*n, ny1 = 0.7f*n, ncx = (nx0+nx1)/2, ncy = (ny0+ny1)/2;
     const float fx0 = -0.9f*f, fy0 = -0.6f*f, fx1 = 0.8f*f, fy1 = 0.7f*f, fcx = (fx0+fx1)/2, fcy = (fy0+fy1)/2;
 
+    using transform = linalg::homogeneous_transformation<float,3>;
+
     // Right handed OpenGL convention, x-right, y-up, z-back
-    const float4x4 gl_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::neg_one_to_one); 
+    const float4x4 gl_rh = transform::frustum(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::neg_one_to_one); 
     check_approx_equal( transform_point(gl_rh, float3(ncx, ncy, -n)), float3( 0,  0, -1) );
     check_approx_equal( transform_point(gl_rh, float3(ncx, ny0, -n)), float3( 0, -1, -1) );
     check_approx_equal( transform_point(gl_rh, float3(ncx, ny1, -n)), float3( 0, +1, -1) );
@@ -147,7 +194,7 @@ TEST_CASE( "Projection matrices behave as intended" )
     check_approx_equal( transform_point(gl_rh, float3(fx1, fcy, -f)), float3(+1,  0, +1) );
 
     // Left handed OpenGL convention, x-right, y-up, z-forward
-    const float4x4 gl_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::neg_one_to_one);
+    const float4x4 gl_lh = transform::frustum(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::neg_one_to_one);
     check_approx_equal( transform_point(gl_lh, float3(ncx, ncy, +n)), float3( 0,  0, -1) );
     check_approx_equal( transform_point(gl_lh, float3(ncx, ny0, +n)), float3( 0, -1, -1) );
     check_approx_equal( transform_point(gl_lh, float3(ncx, ny1, +n)), float3( 0, +1, -1) );
@@ -160,7 +207,7 @@ TEST_CASE( "Projection matrices behave as intended" )
     check_approx_equal( transform_point(gl_lh, float3(fx1, fcy, +f)), float3(+1,  0, +1) );
 
     // Right handed Vulkan convention, x-right, y-down, z-forward
-    const float4x4 vk_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::zero_to_one);
+    const float4x4 vk_rh = transform::frustum(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::zero_to_one);
     check_approx_equal( transform_point(vk_rh, float3(ncx, ncy, +n)), float3( 0,  0, 0) );
     check_approx_equal( transform_point(vk_rh, float3(ncx, ny0, +n)), float3( 0, -1, 0) );
     check_approx_equal( transform_point(vk_rh, float3(ncx, ny1, +n)), float3( 0, +1, 0) );
@@ -173,7 +220,7 @@ TEST_CASE( "Projection matrices behave as intended" )
     check_approx_equal( transform_point(vk_rh, float3(fx1, fcy, +f)), float3(+1,  0, 1) );
 
     // Left handed Vulkan convention, x-right, y-down, z-back
-    const float4x4 vk_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::zero_to_one); 
+    const float4x4 vk_lh = transform::frustum(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::zero_to_one); 
     check_approx_equal( transform_point(vk_lh, float3(ncx, ncy, -n)), float3( 0,  0, 0) );
     check_approx_equal( transform_point(vk_lh, float3(ncx, ny0, -n)), float3( 0, -1, 0) );
     check_approx_equal( transform_point(vk_lh, float3(ncx, ny1, -n)), float3( 0, +1, 0) );
