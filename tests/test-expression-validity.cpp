@@ -278,6 +278,40 @@ template<class T, int M, int N> void check_matrix_operators()
     CHECK(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,M,N>>::value); // a+b
     CHECK(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,M,N>>::value); // a-b
 
+    // Binary + and - are not defined for matrices of different size
+    if(M!=1 || N!=1) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,1,1>>::value);
+    if(M!=1 || N!=2) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,1,2>>::value);
+    if(M!=1 || N!=3) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,1,3>>::value);
+    if(M!=1 || N!=4) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,1,4>>::value);
+    if(M!=2 || N!=1) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,2,1>>::value);
+    if(M!=2 || N!=2) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,2,2>>::value);
+    if(M!=2 || N!=3) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,2,3>>::value);
+    if(M!=2 || N!=4) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,2,4>>::value);
+    if(M!=3 || N!=1) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,3,1>>::value);
+    if(M!=3 || N!=2) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,3,2>>::value);
+    if(M!=3 || N!=3) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,3,3>>::value);
+    if(M!=3 || N!=4) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,3,4>>::value);
+    if(M!=4 || N!=1) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,4,1>>::value);
+    if(M!=4 || N!=2) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,4,2>>::value);
+    if(M!=4 || N!=3) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,4,3>>::value);
+    if(M!=4 || N!=4) CHECK_FALSE(has_op_add<linalg::mat<T,M,N>, linalg::mat<T,4,4>>::value);
+    if(M!=1 || N!=1) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,1,1>>::value);
+    if(M!=1 || N!=2) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,1,2>>::value);
+    if(M!=1 || N!=3) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,1,3>>::value);
+    if(M!=1 || N!=4) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,1,4>>::value);
+    if(M!=2 || N!=1) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,2,1>>::value);
+    if(M!=2 || N!=2) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,2,2>>::value);
+    if(M!=2 || N!=3) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,2,3>>::value);
+    if(M!=2 || N!=4) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,2,4>>::value);
+    if(M!=3 || N!=1) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,3,1>>::value);
+    if(M!=3 || N!=2) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,3,2>>::value);
+    if(M!=3 || N!=3) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,3,3>>::value);
+    if(M!=3 || N!=4) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,3,4>>::value);
+    if(M!=4 || N!=1) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,4,1>>::value);
+    if(M!=4 || N!=2) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,4,2>>::value);
+    if(M!=4 || N!=3) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,4,3>>::value);
+    if(M!=4 || N!=4) CHECK_FALSE(has_op_sub<linalg::mat<T,M,N>, linalg::mat<T,4,4>>::value);
+
     // Binary * is defined for matrices of compatible size
     CHECK(has_op_mul<linalg::mat<T,M,1>, linalg::mat<T,1,N>>::value);
     CHECK(has_op_mul<linalg::mat<T,M,2>, linalg::mat<T,2,N>>::value);
