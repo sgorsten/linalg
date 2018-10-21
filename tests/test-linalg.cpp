@@ -437,7 +437,7 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
+        T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
 
         CHECK(linalg::vec<T,2>(a,b    ) + linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a+e, b+f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) + linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a+e, b+f, c+g     ));
@@ -450,6 +450,12 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
         CHECK(linalg::vec<T,2>(a,b    ) * linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a*e, b*f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) * linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a*e, b*f, c*g     ));
         CHECK(linalg::vec<T,4>(a,b,c,d) * linalg::vec<T,4>(e,f,g,h) == linalg::vec<U,4>(a*e, b*f, c*g, d*h));
+
+        // Ensure nonzero denominator
+        e = e ? e : 2;
+        f = f ? f : 2;
+        g = g ? g : 2;
+        h = h ? h : 2;
 
         CHECK(linalg::vec<T,2>(a,b    ) / linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a/e, b/f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) / linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a/e, b/f, c/g     ));
@@ -477,11 +483,7 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
-
-        CHECK( linalg::vec<T,2>(a,b    ) % linalg::vec<T,2>(e,f    )  == linalg::vec<U,2>(a%e, b%f          ));
-        CHECK( linalg::vec<T,3>(a,b,c  ) % linalg::vec<T,3>(e,f,g  )  == linalg::vec<U,3>(a%e, b%f, c%g     ));
-        CHECK( linalg::vec<T,4>(a,b,c,d) % linalg::vec<T,4>(e,f,g,h)  == linalg::vec<U,4>(a%e, b%f, c%g, d%h));
+        T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;       
 
         CHECK((linalg::vec<T,2>(a,b    ) | linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a|e, b|f          ));
         CHECK((linalg::vec<T,3>(a,b,c  ) | linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a|e, b|f, c|g     ));
@@ -502,6 +504,16 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
         CHECK((linalg::vec<T,2>(a,b    ) >> linalg::vec<T,2>(e,f    )) == linalg::vec<U,2>(a>>e, b>>f            ));
         CHECK((linalg::vec<T,3>(a,b,c  ) >> linalg::vec<T,3>(e,f,g  )) == linalg::vec<U,3>(a>>e, b>>f, c>>g      ));
         CHECK((linalg::vec<T,4>(a,b,c,d) >> linalg::vec<T,4>(e,f,g,h)) == linalg::vec<U,4>(a>>e, b>>f, c>>g, d>>h));
+
+        // Ensure nonzero denominator
+        e = e ? e : 2;
+        f = f ? f : 2;
+        g = g ? g : 2;
+        h = h ? h : 2;
+
+        CHECK( linalg::vec<T,2>(a,b    ) % linalg::vec<T,2>(e,f    )  == linalg::vec<U,2>(a%e, b%f          ));
+        CHECK( linalg::vec<T,3>(a,b,c  ) % linalg::vec<T,3>(e,f,g  )  == linalg::vec<U,3>(a%e, b%f, c%g     ));
+        CHECK( linalg::vec<T,4>(a,b,c,d) % linalg::vec<T,4>(e,f,g,h)  == linalg::vec<U,4>(a%e, b%f, c%g, d%h));
     }
 }
 
