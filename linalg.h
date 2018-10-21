@@ -318,6 +318,7 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -414,6 +415,7 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -522,6 +524,7 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -842,10 +845,11 @@ namespace linalg
                  a[0][0]*a[3][1]*a[1][2] + a[1][0]*a[0][1]*a[3][2] + a[3][0]*a[1][1]*a[0][2] - a[0][0]*a[1][1]*a[3][2] - a[3][0]*a[0][1]*a[1][2] - a[1][0]*a[3][1]*a[0][2],
                  a[0][0]*a[1][1]*a[2][2] + a[2][0]*a[0][1]*a[1][2] + a[1][0]*a[2][1]*a[0][2] - a[0][0]*a[2][1]*a[1][2] - a[1][0]*a[0][1]*a[2][2] - a[2][0]*a[1][1]*a[0][2]}}; 
     }
-    template<class T> constexpr T determinant (const mat<T,1,1> & a) { return a[0][0]; }
-    template<class T> constexpr T determinant (const mat<T,2,2> & a) { return a[0][0]*a[1][1] - a[0][1]*a[1][0]; }
-    template<class T> constexpr T determinant (const mat<T,3,3> & a) { return a[0][0]*(a[1][1]*a[2][2] - a[2][1]*a[1][2]) + a[0][1]*(a[1][2]*a[2][0] - a[2][2]*a[1][0]) + a[0][2]*(a[1][0]*a[2][1] - a[2][0]*a[1][1]); }
-    template<class T> constexpr T determinant (const mat<T,4,4> & a)
+    template<class T, int N> constexpr mat<T,N,N> comatrix(const mat<T,N,N> & a) { return transpose(adjugate(a)); }
+    template<class T> constexpr T determinant(const mat<T,1,1> & a) { return a[0][0]; }
+    template<class T> constexpr T determinant(const mat<T,2,2> & a) { return a[0][0]*a[1][1] - a[0][1]*a[1][0]; }
+    template<class T> constexpr T determinant(const mat<T,3,3> & a) { return a[0][0]*(a[1][1]*a[2][2] - a[2][1]*a[1][2]) + a[0][1]*(a[1][2]*a[2][0] - a[2][2]*a[1][0]) + a[0][2]*(a[1][0]*a[2][1] - a[2][0]*a[1][1]); }
+    template<class T> constexpr T determinant(const mat<T,4,4> & a)
     { 
         return a[0][0]*(a[1][1]*a[2][2]*a[3][3] + a[3][1]*a[1][2]*a[2][3] + a[2][1]*a[3][2]*a[1][3] - a[1][1]*a[3][2]*a[2][3] - a[2][1]*a[1][2]*a[3][3] - a[3][1]*a[2][2]*a[1][3])
              + a[0][1]*(a[1][2]*a[3][3]*a[2][0] + a[2][2]*a[1][3]*a[3][0] + a[3][2]*a[2][3]*a[1][0] - a[1][2]*a[2][3]*a[3][0] - a[3][2]*a[1][3]*a[2][0] - a[2][2]*a[3][3]*a[1][0])

@@ -132,43 +132,95 @@ TEST_CASE_TEMPLATE("Test linear and homogeneous transformations", T, float, doub
     const linalg::coord_system rfu{linalg::coord_axis::right, linalg::coord_axis::forward, linalg::coord_axis::up};
     for(int i=0; i<reps; ++i)
     {
-        const vec3<T> a = rng, b = rng;
-        const quat<T> q = normalize(rng.get<quat<T>>());
-        const T s = rng;
+        const vec3<T> a = rng, b = rng, u = normalize(a);
+        const vec3<T> c = cross(a,b), n = normalize(c);
+        
+        const T uniform_scale = rng;
+        const vec3<T> scale_factors = rng;
+        const quat<T> rotation_quat = normalize(rng.get<quat<T>>());
+        const vec3<T> translation_vec = rng;
 
         // Check linear transformations of vectors
         using linear = linalg::linear_transformation<T,3>;
-        check_approx_equal(transform_vector(linear::identity(), a), a);
-        check_approx_equal(transform_vector(linear::coord_change(rfu,ruf), a), a.xzy());
-        check_approx_equal(transform_vector(linear::scaling(s), a), a*s);
-        check_approx_equal(transform_vector(linear::scaling(b), a), a*b);        
-        check_approx_equal(transform_vector(linear::rotation(q), a), qrot(q,a));
+        check_approx_equal(transform_vector(linear::identity(), a),              a);
+        check_approx_equal(transform_vector(linear::coord_change(rfu,ruf), a),   a.xzy());
+        check_approx_equal(transform_vector(linear::scaling(uniform_scale), a),  a*uniform_scale);
+        check_approx_equal(transform_vector(linear::scaling(scale_factors), a),  a*scale_factors);        
+        check_approx_equal(transform_vector(linear::rotation(rotation_quat), a), qrot(rotation_quat,a));
+
+        // Check linear transformation of directions
+        check_approx_equal(transform_direction(linear::identity(), u),              normalize(a));
+        check_approx_equal(transform_direction(linear::coord_change(rfu,ruf), u),   normalize(a.xzy()));
+        check_approx_equal(transform_direction(linear::scaling(uniform_scale), u),  normalize(a*uniform_scale));
+        check_approx_equal(transform_direction(linear::scaling(scale_factors), u),  normalize(a*scale_factors));        
+        check_approx_equal(transform_direction(linear::rotation(rotation_quat), u), normalize(qrot(rotation_quat,a)));
+
+        // Check linear transformation of bivectors
+        check_approx_equal(transform_bivector(linear::identity(), c),              cross(a,b));
+        check_approx_equal(transform_bivector(linear::coord_change(rfu,ruf), c),   cross(a.xzy(),b.xzy()));
+        check_approx_equal(transform_bivector(linear::scaling(uniform_scale), c),  cross(a*uniform_scale,b*uniform_scale));
+        check_approx_equal(transform_bivector(linear::scaling(scale_factors), c),  cross(a*scale_factors,b*scale_factors));        
+        check_approx_equal(transform_bivector(linear::rotation(rotation_quat), c), cross(qrot(rotation_quat,a),qrot(rotation_quat,b)));
+
+        // Check linear transformation of normals
+        check_approx_equal(transform_normal(linear::identity(), n),              normalize(cross(a,b)));
+        check_approx_equal(transform_normal(linear::coord_change(rfu,ruf), n),   normalize(cross(a.xzy(),b.xzy())));
+        check_approx_equal(transform_normal(linear::scaling(uniform_scale), n),  normalize(cross(a*uniform_scale,b*uniform_scale)));
+        check_approx_equal(transform_normal(linear::scaling(scale_factors), n),  normalize(cross(a*scale_factors,b*scale_factors)));        
+        check_approx_equal(transform_normal(linear::rotation(rotation_quat), n), normalize(cross(qrot(rotation_quat,a),qrot(rotation_quat,b))));
 
         // Check linear transformations of points
-        check_approx_equal(transform_point(linear::identity(), a), a);
-        check_approx_equal(transform_point(linear::coord_change(rfu,ruf), a), a.xzy());
-        check_approx_equal(transform_point(linear::scaling(s), a), a*s);
-        check_approx_equal(transform_point(linear::scaling(b), a), a*b);        
-        check_approx_equal(transform_point(linear::rotation(q), a), qrot(q,a));
+        check_approx_equal(transform_point(linear::identity(), a),              a);
+        check_approx_equal(transform_point(linear::coord_change(rfu,ruf), a),   a.xzy());
+        check_approx_equal(transform_point(linear::scaling(uniform_scale), a),  a*uniform_scale);
+        check_approx_equal(transform_point(linear::scaling(scale_factors), a),  a*scale_factors);        
+        check_approx_equal(transform_point(linear::rotation(rotation_quat), a), qrot(rotation_quat,a));
 
         // Check homogeneous transformations of vectors
         using homog = linalg::homogeneous_transformation<T,3>;
-        check_approx_equal(transform_vector(homog::identity(), a), a);
-        check_approx_equal(transform_vector(homog::coord_change(rfu,ruf), a), a.xzy());
-        check_approx_equal(transform_vector(homog::scaling(s), a), a*s);
-        check_approx_equal(transform_vector(homog::scaling(b), a), a*b);        
-        check_approx_equal(transform_vector(homog::rotation(q), a), qrot(q,a));
-        check_approx_equal(transform_vector(homog::translation(b), a), a);
-        check_approx_equal(transform_vector(homog::pose(q,b), a), qrot(q,a));
+        check_approx_equal(transform_vector(homog::identity(), a),                          a);
+        check_approx_equal(transform_vector(homog::coord_change(rfu,ruf), a),               a.xzy());
+        check_approx_equal(transform_vector(homog::scaling(uniform_scale), a),              a*uniform_scale);
+        check_approx_equal(transform_vector(homog::scaling(scale_factors), a),              a*scale_factors);        
+        check_approx_equal(transform_vector(homog::rotation(rotation_quat), a),             qrot(rotation_quat,a));
+        check_approx_equal(transform_vector(homog::translation(translation_vec), a),        a);
+        check_approx_equal(transform_vector(homog::pose(rotation_quat,translation_vec), a), qrot(rotation_quat,a));
         
+        // Check homogeneous transformations of directions
+        check_approx_equal(transform_direction(homog::identity(), u),                          normalize(a));
+        check_approx_equal(transform_direction(homog::coord_change(rfu,ruf), u),               normalize(a.xzy()));
+        check_approx_equal(transform_direction(homog::scaling(uniform_scale), u),              normalize(a*uniform_scale));
+        check_approx_equal(transform_direction(homog::scaling(scale_factors), u),              normalize(a*scale_factors));
+        check_approx_equal(transform_direction(homog::rotation(rotation_quat), u),             normalize(qrot(rotation_quat,a)));
+        check_approx_equal(transform_direction(homog::translation(translation_vec), u),        normalize(a));
+        check_approx_equal(transform_direction(homog::pose(rotation_quat,translation_vec), u), normalize(qrot(rotation_quat,a)));
+
+        // Check homogeneous transformation of bivectors
+        check_approx_equal(transform_bivector(homog::identity(), c),                          cross(a,b));
+        check_approx_equal(transform_bivector(homog::coord_change(rfu,ruf), c),               cross(a.xzy(),b.xzy()));
+        check_approx_equal(transform_bivector(homog::scaling(uniform_scale), c),              cross(a*uniform_scale,b*uniform_scale));
+        check_approx_equal(transform_bivector(homog::scaling(scale_factors), c),              cross(a*scale_factors,b*scale_factors));        
+        check_approx_equal(transform_bivector(homog::rotation(rotation_quat), c),             cross(qrot(rotation_quat,a),qrot(rotation_quat,b)));
+        check_approx_equal(transform_bivector(homog::translation(translation_vec), c),        cross(a,b));
+        check_approx_equal(transform_bivector(homog::pose(rotation_quat,translation_vec), c), cross(qrot(rotation_quat,a),qrot(rotation_quat,b)));
+
+        // Check homogeneous transformation of normals
+        check_approx_equal(transform_normal(homog::identity(), c),                          normalize(cross(a,b)));
+        check_approx_equal(transform_normal(homog::coord_change(rfu,ruf), c),               normalize(cross(a.xzy(),b.xzy())));
+        check_approx_equal(transform_normal(homog::scaling(uniform_scale), c),              normalize(cross(a*uniform_scale,b*uniform_scale)));
+        check_approx_equal(transform_normal(homog::scaling(scale_factors), c),              normalize(cross(a*scale_factors,b*scale_factors)));
+        check_approx_equal(transform_normal(homog::rotation(rotation_quat), c),             normalize(cross(qrot(rotation_quat,a),qrot(rotation_quat,b))));
+        check_approx_equal(transform_normal(homog::translation(translation_vec), c),        normalize(cross(a,b)));
+        check_approx_equal(transform_normal(homog::pose(rotation_quat,translation_vec), c), normalize(cross(qrot(rotation_quat,a),qrot(rotation_quat,b))));
+
         // Check homogeneous transformations of points
-        check_approx_equal(transform_point(homog::identity(), a), a);
-        check_approx_equal(transform_point(homog::coord_change(rfu,ruf), a), a.xzy());
-        check_approx_equal(transform_point(homog::scaling(s), a), a*s);
-        check_approx_equal(transform_point(homog::scaling(b), a), a*b);        
-        check_approx_equal(transform_point(homog::rotation(q), a), qrot(q,a));
-        check_approx_equal(transform_point(homog::translation(b), a), a+b);
-        check_approx_equal(transform_point(homog::pose(q,b), a), qrot(q,a)+b);
+        check_approx_equal(transform_point(homog::identity(), a),                          a);
+        check_approx_equal(transform_point(homog::coord_change(rfu,ruf), a),               a.xzy());
+        check_approx_equal(transform_point(homog::scaling(uniform_scale), a),              a*uniform_scale);
+        check_approx_equal(transform_point(homog::scaling(scale_factors), a),              a*scale_factors);        
+        check_approx_equal(transform_point(homog::rotation(rotation_quat), a),             qrot(rotation_quat,a));
+        check_approx_equal(transform_point(homog::translation(translation_vec), a),        a+translation_vec);
+        check_approx_equal(transform_point(homog::pose(rotation_quat,translation_vec), a), qrot(rotation_quat,a)+translation_vec);
     }
 }
 

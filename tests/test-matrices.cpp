@@ -175,6 +175,20 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
     }
 }
 
+TEST_CASE_TEMPLATE( "comatrix can be used to transform bivectors", T, float, double )
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const linalg::mat<T,3,3> m = rng;
+        for(int j=0; j<reps; ++j)
+        {
+            const vec3<T> a = rng, b = rng;
+            check_approx_equal( cross(m*a, m*b), comatrix(m)*cross(a,b) );
+        }
+    }
+}
+
 TEST_CASE( "matrix inverse is correct for trivial cases" )
 {
     const float2x2 id2 {{1,0},{0,1}};
