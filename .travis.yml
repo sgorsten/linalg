@@ -12,28 +12,22 @@ matrix:
       addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
     - env: COMPILER=g++-8
       addons: { apt: { packages: ["g++-8"], sources: ["ubuntu-toolchain-r-test"] } }
-    #- env: COMPILER=clang++-3.3 CXXLIBRARY="-stdlib=libc++ -lc++abi"
-    #  addons: { apt: { packages: ["clang-3.3", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.3"] } }
-    #- env: COMPILER=clang++-3.4 CXXLIBRARY="-stdlib=libc++ -lc++abi"
-    #  addons: { apt: { packages: ["clang-3.4", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.4"] } }
-    - env: COMPILER=clang++-3.5 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-3.5 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-3.5", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.5"] } }
-    - env: COMPILER=clang++-3.6 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-3.6 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-3.6", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.6"] } }
-    - env: COMPILER=clang++-3.7 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-3.7 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-3.7", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.7"] } }
-    - env: COMPILER=clang++-3.8 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-3.8 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-3.8", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.8"] } }
-    - env: COMPILER=clang++-3.9 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-3.9 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-3.9", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-3.9"] } }
-    - env: COMPILER=clang++-4.0 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-4.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-4.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-4.0"] } }
-    - env: COMPILER=clang++-5.0 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-5.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-5.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-5.0"] } }
-    - env: COMPILER=clang++-6.0 CXXLIBRARY="-stdlib=libc++ -lc++abi"
+    - env: COMPILER=clang++-6.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-6.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
-    #- env: COMPILER=clang++-7.0
-    #  addons: { apt: { packages: ["clang-7.0"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-7.0"] } }      
       
 install:
   - export CXX=${COMPILER}
