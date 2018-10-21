@@ -318,7 +318,6 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
-        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -415,7 +414,6 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
-        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -524,7 +522,6 @@ namespace linalg
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
         constexpr const T *                  data() const                                                { return elems.elems; }
         LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
-        template<int... I> constexpr vec<T,sizeof...(I)> swizzle() const                                 { return {elems.elems[I]...}; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -734,6 +731,9 @@ namespace linalg
     // Search functions on vectors
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
+
+    // Variadic vector swizzle
+    template<int... I, class T, int M> constexpr vec<T,sizeof...(I)> swizzle(const vec<T,M> & a) { return {a[I]...}; }
 
     // Component-wise standard library math functions on vectors
     template<class A> vec_apply_t<detail::std_abs,   A> abs  (const A & a) { return apply(detail::std_abs{},   a); }

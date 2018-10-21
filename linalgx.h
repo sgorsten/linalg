@@ -132,7 +132,7 @@ namespace linalg
         }
     };
 
-    template<class T> constexpr vec<T,3> project(const vec<T,4> & p) { return p.swizzle<0,1,2>() / p[3]; }
+    template<class T> constexpr vec<T,3> project(const vec<T,4> & p) { return swizzle<0,1,2>(p) / p[3]; }
 
     // Transformation functions
     template<class T> constexpr vec<T,3> transform_vector   (const mat<T,3,3> & linear_transform, const vec<T,3> & vector   ) { return linear_transform * vector; }
@@ -141,7 +141,7 @@ namespace linalg
     template<class T> constexpr vec<T,3> transform_normal   (const mat<T,3,3> & linear_transform, const vec<T,3> & normal   ) { return normalize(transform_bivector(linear_transform, normal)); }
     template<class T> constexpr vec<T,3> transform_point    (const mat<T,3,3> & linear_transform, const vec<T,3> & point    ) { return transform_vector(linear_transform, point); }
 
-    template<class T> constexpr vec<T,3> transform_vector   (const mat<T,4,4> & homogeneous_transform, const vec<T,3> & vector   ) { return (homogeneous_transform * vec<T,4>{vector,0}).swizzle<0,1,2>(); }
+    template<class T> constexpr vec<T,3> transform_vector   (const mat<T,4,4> & homogeneous_transform, const vec<T,3> & vector   ) { return swizzle<0,1,2>(homogeneous_transform * vec<T,4>{vector,0}); }
     template<class T> constexpr vec<T,3> transform_direction(const mat<T,4,4> & homogeneous_transform, const vec<T,3> & direction) { return normalize(transform_vector(homogeneous_transform, direction)); }
     template<class T> constexpr vec<T,3> transform_bivector (const mat<T,4,4> & homogeneous_transform, const vec<T,3> & bivector ) { return transform_vector(comatrix(homogeneous_transform), bivector); }
     template<class T> constexpr vec<T,3> transform_normal   (const mat<T,4,4> & homogeneous_transform, const vec<T,3> & normal   ) { return normalize(transform_bivector(homogeneous_transform, normal)); }
