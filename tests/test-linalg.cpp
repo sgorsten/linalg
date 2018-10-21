@@ -648,6 +648,35 @@ TEST_CASE( "relational operators model LessThanComparable" )
     REQUIRE( points == ordered_points );
 }
 
+TEST_CASE_TEMPLATE( "3D cross products behave as intended", T, float, double )
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const vec3<T> a = rng, b = rng;
+        check_approx_equal( cross(a,b), -cross(b,a) );
+        CHECK( dot(cross(a,b),a) == doctest::Approx(0) );
+        CHECK( dot(cross(a,b),b) == doctest::Approx(0) );
+        if(angle(a,b) > 0) CHECK( length2(cross(a,b)) > 0 );
+    }
+}
+
+TEST_CASE_TEMPLATE( "2D cross products behave as intended", T, int, float, double )
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        vec2<T> a = rng, b = rng;
+        T c = rng;
+        CHECK( vec3<T>{0,0,cross(a,b)} == cross(vec3<T>{a,0}, vec3<T>{b,0}) );
+        CHECK( vec3<T>{0,0,cross(b,a)} == cross(vec3<T>{b,0}, vec3<T>{a,0}) );
+        CHECK( vec3<T>{cross(a,c),0} == cross(vec3<T>{a,0}, vec3<T>{0,0,c}) );
+        CHECK( vec3<T>{cross(b,c),0} == cross(vec3<T>{b,0}, vec3<T>{0,0,c}) );
+        CHECK( vec3<T>{cross(c,a),0} == cross(vec3<T>{0,0,c}, vec3<T>{a,0}) );
+        CHECK( vec3<T>{cross(c,b),0} == cross(vec3<T>{0,0,c}, vec3<T>{b,0}) );
+    }
+}
+
 template<class T> void take(const T &) {}
 #define MATCH(TYPE, ...) static_assert(std::is_same<TYPE, decltype(__VA_ARGS__)>::value, #TYPE " != " #__VA_ARGS__); take(__VA_ARGS__)
 
