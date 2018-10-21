@@ -836,9 +836,9 @@ namespace linalg
     template<class T> constexpr quat<T> operator * (const quat<T> & a, const quat<T> & b) { return {a.x*b.w+a.w*b.x+a.y*b.z-a.z*b.y, a.y*b.w+a.w*b.y+a.z*b.x-a.x*b.z, a.z*b.w+a.w*b.z+a.x*b.y-a.y*b.x, a.w*b.w-a.x*b.x-a.y*b.y-a.z*b.z}; }
 
     // Quaternion algebra functions
-    template<class T> quat<T>           qexp     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w)*quat<T>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
-    template<class T> quat<T>           qlog     (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
-    template<class T> quat<T>           qpow     (const quat<T> & q, const T & p)            { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*quat<T>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
+    template<class T> quat<T>           exp      (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v); return std::exp(q.w)*quat<T>{v * (vv > 0 ? std::sin(vv)/vv : 0), std::cos(vv)}; }
+    template<class T> quat<T>           log      (const quat<T> & q)                         { const auto v = q.xyz(); const auto vv = length(v), qq = length(q); return {v * (vv > 0 ? std::acos(q.w/qq)/vv : 0), std::log(qq)}; }
+    template<class T> quat<T>           pow      (const quat<T> & q, const T & p)            { const auto v = q.xyz(); const auto vv = length(v), qq = length(q), th = std::acos(q.w/qq); return std::pow(qq,p)*quat<T>{v * (vv > 0 ? std::sin(p*th)/vv : 0), std::cos(p*th)}; }
     template<class T> constexpr quat<T> conjugate(const quat<T> & a)                         { return {-a.x, -a.y, -a.z, a.w}; }
     template<class T> constexpr T       dot      (const quat<T> & a, const quat<T> & b)      { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
     template<class T> constexpr T       length2  (const quat<T> & a)                         { return dot(a,a); }

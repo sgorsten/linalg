@@ -5,7 +5,7 @@
 using namespace linalg::aliases;
 
 // Tests which use random data will be repeated this many times
-constexpr int reps = 3;
+constexpr int reps = 5;
 
 // Template aliases to make it easier to use linalg types in templated test cases
 template<class T> using vec2 = linalg::vec<T,2>;
