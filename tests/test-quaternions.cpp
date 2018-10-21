@@ -1,6 +1,6 @@
 #include "test-linalg.h"
 
-TEST_CASE_TEMPLATE("qxdir(q) == qvq* where v={1,0,0,0}",  T, float, double)
+TEST_CASE_TEMPLATE("qxdir(q) == qvq* where v={1,0,0,0}",  T, int, float, double)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -13,7 +13,7 @@ TEST_CASE_TEMPLATE("qxdir(q) == qvq* where v={1,0,0,0}",  T, float, double)
     }
 }
 
-TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,1,0,0}",  T, float, double)
+TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,1,0,0}",  T, int, float, double)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -26,7 +26,7 @@ TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,1,0,0}",  T, float, double)
     }
 }
 
-TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,0,1,0}",  T, float, double)
+TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,0,1,0}",  T, int, float, double)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -39,7 +39,7 @@ TEST_CASE_TEMPLATE("qzdir(q) == qvq* where v={0,0,1,0}",  T, float, double)
     }
 }
 
-TEST_CASE_TEMPLATE("qrot(q,v) == qvq*",  T, float, double)
+TEST_CASE_TEMPLATE("qrot(q,v) == qvq*",  T, int, float, double)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)

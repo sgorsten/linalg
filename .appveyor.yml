@@ -7,6 +7,7 @@ configuration:
 platform:
 
 - x64
+- x86
 
 image:
 
@@ -26,10 +27,24 @@ test_script:
     if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2017")
     {
         msbuild /t:Build tests\msvc150\linalg-test.vcxproj
-        tests\msvc150\bin\linalg-test-Debug-x64.exe
+        if($env:PLATFORM -eq "x64")
+        {
+            tests\msvc150\bin\linalg-test-Debug-x64.exe
+        }
+        if($env:PLATFORM -eq "x86")
+        {
+            tests\msvc150\bin\linalg-test-Debug-Win32.exe
+        }        
     }
     if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2015")
     {
         msbuild /t:Build tests\msvc140\linalg-test.vcxproj
-        tests\msvc140\bin\linalg-test-Debug-x64.exe
+        if($env:PLATFORM -eq "x64")
+        {
+            tests\msvc140\bin\linalg-test-Debug-x64.exe
+        }
+        if($env:PLATFORM -eq "x86")
+        {
+            tests\msvc140\bin\linalg-test-Debug-Win32.exe
+        }        
     }
