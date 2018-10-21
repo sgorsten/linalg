@@ -42,7 +42,29 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 
 #### Vectors
 
-TODO: Explain `linalg::vec<T,M>`
+`linalg::vec<T,M>` defines a fixed-length vector containing exactly `M` elements of type `T`. Convenience aliases such as `float3`, `float4`, or `int2` are provided in the [`linalg::aliases` namespace](#type-aliases). This data structure can be used to store a wide variety of types of data, including geometric vectors, points, homogeneous coordinates, plane equations, colors, texture coordinates, or any other situation where you need to manipulate a small sequence of numbers. As such, `vec<T,M>` is supported by a set of [algebraic](#vector-algebra) and [component-wise](#component-wise-operations) functions, as well as a set of standard [reductions](#reductions).
+
+`vec<T,M>`:
+* is default-constructible: `float3 v; // v contains 0,0,0`
+* is implicitly constructible from `M` elements of type `T`: `float3 v {1,2,3}; // v contains 1,2,3`
+* is explicitly constructible from a single element of type `T`: `float3 v {4}; // v contains 4,4,4`
+* is explicitly constructible from a `vec<T,U>` of some other type `U`: `float3 v {int3{5,6,7}}; // v contains 5,6,7`
+* is copy-constructible: `float3 v {1,2,3}, u {v}; // u and v contain 1,2,3`
+* is copy-assignable: `float3 v {4,5,6}, u; u = v; // u and v contain 4,5,6`
+* supports indexing: `float x = v[0]; // x contains first element of v`
+* supports named accessors `x`,`y`,`z`,`w`: `float y = point.y; // y contains second element of point`
+* supports named accessors `r`,`g`,`b`,`a`: `pixel.a = 0.5; // fourth element of pixel set to 0.5` 
+* supports named accessors `s`,`t`,`p`,`q`: `float s = tc.s; // s contains first element of tc`
+* supports swizzles: `float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]
+* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `bool b = (v == u); // b is true if v and u contain equal elements`
+* is [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `bool b = (v < u); // b is true if v precedes u lexicographically`
+* supports unary operators `+`, `-`, `!` and `~` in component-wise fashion: `auto v = -float{2,3}; // v is float2{-2,-3}`
+* supports binary operators `+`, `-`, `*`, `/`, `%`, `|`, `&`, `^`, `<<` and `>>` in component-wise fashion: `auto v = float2{1,1} + float2{2,3}; // v is float2{3,4}`
+* supports mixed element types: `auto v = float3{1,2,3} + int3{4,5,6}; // v is float3{5,7,9}`
+* supports binary operators with a scalar on the left or the right: `auto v = float3{1,2,3} * 2; // v is float3{2,4,6}`
+* supports operators `+=`, `-=`, `*=`, `/=`, `%=`, `|=`, `&=`, `^=`, `<<=` and `>>=` with vectors or scalars on the right
+* is iterable: `for(auto elem : float3{1,2,3}) cout << elem; // prints "123"`
+* has a flat memory layout: `float3 v {1,2,3}; float * p = v.data(); // &v[i] == p+i`
 
 #### Matrices
 
@@ -147,7 +169,7 @@ TODO: Rework this to include a migration guide for users coming from previous ve
 
 Documentation needs to be provided for the following symbols.
 
-- [ ] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
+- [x] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 - [ ] user-defined conversions: `converter<T,U>`
