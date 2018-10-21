@@ -114,6 +114,7 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
             CHECK(adj * mat == id * det);
             CHECK(mat * adj == det * id);
             CHECK(adj * mat == det * id);
+            CHECK(determinant(adj) == 1);
         }
     }
 
@@ -132,6 +133,7 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
             CHECK(adj * mat == id * det);
             CHECK(mat * adj == det * id);
             CHECK(adj * mat == det * id);
+            CHECK(determinant(adj) == det);
         }
     }
 
@@ -151,6 +153,7 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
             CHECK(adj * mat == id * det);
             CHECK(mat * adj == det * id);
             CHECK(adj * mat == det * id);
+            CHECK(determinant(adj) == det*det);
         }
     }
 
@@ -171,6 +174,7 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
             CHECK(adj * mat == id * det);
             CHECK(mat * adj == det * id);
             CHECK(adj * mat == det * id);
+            CHECK(determinant(adj) == det*det*det);
         }
     }
 }
