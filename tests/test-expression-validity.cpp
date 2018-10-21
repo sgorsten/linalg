@@ -182,7 +182,7 @@ template<class T, int M> void check_vec_arithmetic_operators()
     CHECK(has_op_assign_sub<linalg::vec<T,M> &, T>::value); // a-=b
 }
 
-TEST_CASE_TEMPLATE("Overloaded operators for vectors with floating-point element type", T, floating_point_types) 
+TEST_CASE_TEMPLATE("Overloaded operators for vectors with floating-point element type", T, float, double) 
 {
     check_vec_arithmetic_operators<T,1>();
     check_vec_arithmetic_operators<T,2>();
@@ -256,7 +256,7 @@ template<class T, int M> void check_vec_integer_operators()
     CHECK(has_op_assign_un <linalg::vec<T,M> &, T>::value); // a|=b 
 }
 
-TEST_CASE_TEMPLATE("Overloaded operators for vectors with integral element type", T, non_promoting_integral_types) 
+TEST_CASE_TEMPLATE("Overloaded operators for vectors with integral element type", T, int, unsigned) 
 {
     check_vec_integer_operators<T,1>();
     check_vec_integer_operators<T,2>();
@@ -374,7 +374,7 @@ template<class T, int M, int N> void check_matrix_operators()
     CHECK_FALSE(has_op_assign_un <linalg::mat<T,M,N> &, T>::value); // a|=b 
 }
 
-TEST_CASE_TEMPLATE("Overloaded operators for matrices", T, non_promoting_types) 
+TEST_CASE_TEMPLATE("Overloaded operators for matrices", T, double, float, int, unsigned int) 
 {
     check_matrix_operators<T,1,1>();
     check_matrix_operators<T,1,2>();
@@ -394,7 +394,7 @@ TEST_CASE_TEMPLATE("Overloaded operators for matrices", T, non_promoting_types)
     check_matrix_operators<T,4,4>();
 }
 
-TEST_CASE_TEMPLATE("Overloaded operators for quaternions", T, non_promoting_types) 
+TEST_CASE_TEMPLATE("Overloaded operators for quaternions", T, double, float, int, unsigned int) 
 {
     // Only operator + and - are defined for unary quaternions
     CHECK(has_op_pos<linalg::quat<T>>::value); // +a

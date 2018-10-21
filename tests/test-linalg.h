@@ -7,14 +7,6 @@ using namespace linalg::aliases;
 // Tests which use random data will be repeated this many times
 constexpr int reps = 3;
 
-// Type lists to use in templated test cases
-using floating_point_types = doctest::Types<double, float>;
-using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
-using signed_types = doctest::Types<double, float, int, short>;
-using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
-using non_promoting_integral_types = doctest::Types<int, unsigned int>;
-using non_promoting_types = doctest::Types<double, float, int, unsigned int>;
-
 // Template aliases to make it easier to use linalg types in templated test cases
 template<class T> using vec2 = linalg::vec<T,2>;
 template<class T> using vec3 = linalg::vec<T,3>;

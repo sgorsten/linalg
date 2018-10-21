@@ -52,7 +52,7 @@ TEST_CASE( "matrix multiplication produces correct result dimensions" )
     REQUIRE( outerprod(float4(), float4()) == float4x4() );
 }
 
-TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, signed_types )
+TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, double, float, int, short )
 {
     random_number_generator rng;
 
@@ -197,7 +197,7 @@ TEST_CASE( "matrix inverse is correct for trivial cases" )
     REQUIRE( determinant(id4) == 1.0f );
 }
 
-TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_point_types )
+TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, float, double )
 {
     const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
     const linalg::mat<T,4,4> inv = inverse(mat);
@@ -212,7 +212,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_po
     }
 }
 
-TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
+TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, double, float, int, short, unsigned int, unsigned short )
 {
     const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
     const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
