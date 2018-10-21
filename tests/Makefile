@@ -16,5 +16,9 @@ time:
 tests: $(sources) ../linalg.h
 	$(CXX) $(sources) -std=c++11 $(CXXLIBRARY) -o $@
 
+generate-swizzles: generate-swizzles.cpp
+	$(CXX) $< -std=c++11 $(CXXLIBRARY) -o $@
+	./generate-swizzles
+	
 clean:
-	rm -f tests include-linalg.o
+	rm -f include-linalg.o tests generate-swizzles
