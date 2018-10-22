@@ -650,18 +650,16 @@ namespace linalg
     // Higher-order functions //
     ////////////////////////////
 
-    // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
-    template<class T, class F> constexpr T fold(const vec<T,1> & a, F f) { return a[0]; }
-    template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a[0],a[1]); }
-    template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a[0],a[1]),a[2]); }
-    template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a[0],a[1]),a[2]),a[3]); }
-
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,1> & a, F f) { return fold(a[0],f); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,2> & a, F f) { return f(fold(a[0],f),fold(a[1],f)); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a[0],f),fold(a[1],f)),fold(a[2],f)),fold(a[3],f)); }   
-
-    template<class T, class F> constexpr T fold(const quat<T> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
+    // Produce a scalar by applying f(A,B) -> A to adjacent pairs of elements from a vec/mat/quat in left-to-right/column-major order (matching the associativity of arithmetic and logical operators)
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,1> & b) { return f(a, b[0]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,2> & b) { return f(f(a, b[0]), b[1]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,3> & b) { return f(f(f(a, b[0]), b[1]), b[2]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,4> & b) { return f(f(f(f(a, b[0]), b[1]), b[2]), b[3]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,1> & b) { return fold(f, a, b[0]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,2> & b) { return fold(f, fold(f, a, b[0]), b[1]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,3> & b) { return fold(f, fold(f, fold(f, a, b[0]), b[1]), b[2]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,4> & b) { return fold(f, fold(f, fold(f, fold(f, a, b[0]), b[1]), b[2]), b[3]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const quat<B> & b) { return f(f(f(f(a, b.x), b.y), b.z), b.w); }
 
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
     template<class F, class... A> using apply_t = typename detail::any_apply<F,detail::unpack_t<A>...>::type;
@@ -721,12 +719,12 @@ namespace linalg
     template<class A, class B> constexpr auto operator >>= (A & a, const B & b) -> decltype(a = a >> b) { return a = a >> b; }
 
     // Reduction functions on vectors
-    template<class T, int M> constexpr bool any (const vec<T,M> & a) { return fold(a, detail::op_or{}); }
-    template<class T, int M> constexpr bool all (const vec<T,M> & a) { return fold(a, detail::op_and{}); }
-    template<class T, int M> constexpr T sum    (const vec<T,M> & a) { return fold(a, detail::op_add{}); }
-    template<class T, int M> constexpr T product(const vec<T,M> & a) { return fold(a, detail::op_mul{}); }
-    template<class T, int M> constexpr T minelem(const vec<T,M> & a) { return fold(a, detail::min{}); }
-    template<class T, int M> constexpr T maxelem(const vec<T,M> & a) { return fold(a, detail::max{}); }
+    template<class T, int M> constexpr bool any (const vec<T,M> & a) { return fold(detail::op_or{}, false, a); }
+    template<class T, int M> constexpr bool all (const vec<T,M> & a) { return fold(detail::op_and{}, true, a); }
+    template<class T, int M> constexpr T sum    (const vec<T,M> & a) { return fold(detail::op_add{}, T(0), a); }
+    template<class T, int M> constexpr T product(const vec<T,M> & a) { return fold(detail::op_mul{}, T(1), a); }
+    template<class T, int M> constexpr T minelem(const vec<T,M> & a) { return fold(detail::min{}, a[0], a); }
+    template<class T, int M> constexpr T maxelem(const vec<T,M> & a) { return fold(detail::max{}, a[0], a); }
 
     // Search functions on vectors
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }

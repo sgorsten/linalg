@@ -236,7 +236,43 @@ TODO: Finish explaining `linalg::quat<T>`
 
 #### Component-wise operations
 
+The unary functions `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round` accept a vector-valued argument and produce a vector-valued result by passing individual elements to the function of the same name in the `std::` namespace, as defined by `<cmath>` or `<cstdlib>`.
+
+```cpp
+float3 a {1,-2,3,-4}; // a contains 1,-2,3,-4
+float3 b = abs(a);    // b contains 1,2,3,4
+```
+
+The binary functions `fmod`, `pow`, `atan2`, and `copysign` function similarly, except that either argument can be a vector or a scalar.
+
+```cpp
+float2 a {5,4}, b {2,3};
+float2 c = pow(a, 2);    // c contains 25,16
+float2 d = pow(2, b);    // d contains 4,8
+float2 e = pow(a, b);    // e contains 25,64
+```
+
+The binary functions `equal`, `nequal`, `less`, `greater`, `lequal`, and `gequal` apply operators `==`, `!=`, `<`, `>`, `<=` and `>=` respectively in a component-wise fashion, returning a `vec<bool,M>`. As before, either argument can be a vector or a scalar.
+
+```cpp
+int2 a {2,5}, b {3,4};
+bool2 c = less(a,3);    // c contains true, false
+bool2 d = equal(4,b);   // d contains false, true
+bool2 e = greater(a,b); // e contains false, true
+```
+
+TODO: Explain `min`, `max`, `clamp`, `select`, `lerp`
+
 #### Reductions
+
+* `any :: vec<bool,M> => bool` returns true if any element of the vector is true
+* `all :: vec<bool,M> => bool` returns true if all elements of the vector are true
+* `sum :: vec<T,M> => T` returns the sum of all elements in the vector
+* `product :: vec<T,M> => T` returns the product of all elements in the vector
+* `minelem :: vec<T,M> => T` returns the **value** of the least element in the vector
+* `maxelem :: vec<T,M> => T` returns the **value** of the greatest element in the vector
+* `argmin :: vec<T,M> => int` returns the **index** of the least element in the vector
+* `argmax :: vec<T,M> => int` returns the **index** of the greatest element in the vector
 
 ## Optional features
 
@@ -258,9 +294,15 @@ A second header `linalgx.h` is under development, providing functionality that i
 
 ## Higher order functions
 
+#### `linalg::fold(f, a, b)`
+
+`fold(f, a, b)` is a higher order function which accepts a function of the form `A,B => A` and repeatedly invokes `a = f(a, element_of_b)` until all elements have been consumed, before returning `a`. It is approximately equal to a [left fold with an initial value](https://en.wikipedia.org/wiki/Fold_(higher-order_function)). When `b` is a `vec<T,M>`, elements are folded from least to greatest index. When `b` is a `mat<T,M,N>`, elements are folded in column-major order. When `b` is a `quat<T>`, elements are folded in `x,y,z,w` order.
+
+See also: [Reductions](#reductions)
+
 #### `linalg::apply(f, a...)`
 
-`apply(...)` is a higher order function designed to apply a specified function to component-wise sets of elements from data structures of compatible shape and dimensions, such as vectors, matrices, and quaternions. These data structures can be freely intermixed with scalars, but cannot be intermixed with each other, and when multiple structured values are passed to `apply(...)`, they must have the same dimensionality. However, they are **not** required to have the same element type. The element type of the returned value is determined by the return type of the function passed to `apply(...)`.
+`apply(f, a...)` is a higher order function which accepts a function of the form `A... => T` and applies it to component-wise sets of elements from data structures of compatible shape and dimensions. It is apprxoimately equal to a [convolution](https://en.wikipedia.org/wiki/Convolution_(computer_science)) followed by a [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)). The shape of the result (that is, whether it is a scalar, vector, matrix, or quaternion, and the dimensions thereof) is determined by the arguments. If more than one argument is a non-scalar, the shape of those arguments must agree. Scalars can be freely intermixed with non-scalars, and element types can also be freely mixed. The element type of the returned value is determined by the return type of the provided mapping function `f`. The supported call signatures are enumerated in the following table:
 
 | call             | type of `a`  | type of `b`  | type of `c` | result type  | result elements          |
 |------------------|--------------|--------------|-------------|--------------|--------------------------|
@@ -287,7 +329,9 @@ A second header `linalgx.h` is under development, providing functionality that i
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `C`         | `vec<T,M>`   | `f(a[i], b[i], c)...`    |
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `vec<C,M>`  | `vec<T,M>`   | `f(a[i], b[i], c[i])...` |
 
-TODO: Explain `fold`
+TODO: Explain `apply_t<F, A...>` and SFINAE helpers.
+
+See also: [Component-wise operations](#component-wide-operations)
 
 ## Design rationale
 
@@ -353,22 +397,25 @@ Documentation needs to be provided for the following symbols.
 - [x] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
 - [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
-- [ ] user-defined conversions: `converter<T,U>`
+
 - [ ] `identity`
-- [ ] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
+- [x] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
 - [ ] three-way comparison: `compare`
 - [ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
 - [ ] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
 - [ ] component-wise operator overloads for `vec<T,M>`
 - [ ] algebraic operator overloads for `mat<T,M,N>` and `quat<T>`
-- [ ] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
-- [ ] search functions: `argmin`, `argmax`
-- [ ] `<cmath>` projections: `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round`, `fmod`, `pow`, `atan2`, `copysign`
-- [ ] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
-- [ ] component-wise selection: `min`, `max`, `clamp`, `select`
-- [ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `rot`, `lerp`, `nlerp`, `slerp`
+- [x] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
+- [x] search functions: `argmin`, `argmax`
+- [x] `<cmath>` projections: `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round`, `fmod`, `pow`, `atan2`, `copysign`
+- [x] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
+- [ ] component-wise selection: `min`, `max`, `clamp`, `select`, `lerp`
+- [ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`
 - [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `trace`, `inverse`
 - [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
 - [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
 - [ ] iterators and ranges: `begin`, `end`
 - [ ] `namespace linalg::aliases`
+- [ ] ostream operators
+- [ ] user-defined conversions: `converter<T,U>`
+

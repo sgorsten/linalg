@@ -1,5 +1,68 @@
 #include "test-linalg.h"
+#include <vector>
 #include <tuple>
+
+// Function object which repeatedly appends to a std::vector<T>
+struct { template<class T> std::vector<T> operator() (std::vector<T> a, T b) const { a.push_back(b); return a; } } flatten;
+
+TEST_CASE("linalg::fold(...)")
+{
+    std::vector<float> values {0};
+
+    SUBCASE("vec<T,1>")
+    {
+        values = fold(flatten, values, float1{1});
+        CHECK(values == std::vector<float>{0,1});
+    }
+
+    SUBCASE("vec<T,2>")
+    {
+        values = fold(flatten, values, float2{1,2});
+        CHECK(values == std::vector<float>{0,1,2});
+    }
+
+    SUBCASE("vec<T,3>")
+    {
+        values = fold(flatten, values, float3{1,2,3});
+        CHECK(values == std::vector<float>{0,1,2,3});
+    }
+
+    SUBCASE("vec<T,4>")
+    {
+        values = fold(flatten, values, float4{1,2,3,4});
+        CHECK(values == std::vector<float>{0,1,2,3,4});
+    }
+
+    SUBCASE("mat<T,4,1>")
+    {
+        values = fold(flatten, values, float4x1{{1,2,3,4}});
+        CHECK(values == std::vector<float>{0,1,2,3,4});
+    }
+
+    SUBCASE("mat<T,3,2>")
+    {
+        values = fold(flatten, values, float3x2{{1,2,3},{4,5,6}});
+        CHECK(values == std::vector<float>{0,1,2,3,4,5,6});
+    }
+
+    SUBCASE("mat<T,3,3>")
+    {
+        values = fold(flatten, values, float3x3{{1,2,3},{4,5,6},{7,8,9}});
+        CHECK(values == std::vector<float>{0,1,2,3,4,5,6,7,8,9});
+    }
+
+    SUBCASE("mat<T,2,4>")
+    {
+        values = fold(flatten, values, float2x4{{1,2},{3,4},{5,6},{7,8}});
+        CHECK(values == std::vector<float>{0,1,2,3,4,5,6,7,8});
+    }
+
+    SUBCASE("quat<4>")
+    {
+        values = fold(flatten, values, quatf{2,3,5,7});
+        CHECK(values == std::vector<float>{0,2,3,5,7});
+    }
+}
 
 // Function object equivalent to the overload set of std::make_tuple(...)
 struct { template<class... T> std::tuple<T...> operator() (const T & ... args) const { return std::tuple<T...>(args...); } } tup;
