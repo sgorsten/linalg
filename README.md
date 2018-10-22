@@ -45,43 +45,124 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 `linalg::vec<T,M>` defines a fixed-length vector containing exactly `M` elements of type `T`. Convenience aliases such as `float3`, `float4`, or `int2` are provided in the [`linalg::aliases` namespace](#type-aliases). This data structure can be used to store a wide variety of types of data, including geometric vectors, points, homogeneous coordinates, plane equations, colors, texture coordinates, or any other situation where you need to manipulate a small sequence of numbers. As such, `vec<T,M>` is supported by a set of [algebraic](#vector-algebra) and [component-wise](#component-wise-operations) functions, as well as a set of standard [reductions](#reductions).
 
 `vec<T,M>`:
-* is default-constructible: `float3 v; // v contains 0,0,0`
-* is implicitly constructible from `M` elements of type `T`: `float3 v {1,2,3}; // v contains 1,2,3`
-* is **explicitly** constructible from a single element of type `T`: `float3 v {4}; // v contains 4,4,4`
-* is **explicitly** constructible from a `vec<U,M>` of some other type `U`: `float3 v {int3{5,6,7}}; // v contains 5,6,7`
-* is copy-constructible: `float3 v {1,2,3}, u {v}; // u and v contain 1,2,3`
-* is copy-assignable: `float3 v {4,5,6}, u; u = v; // u and v contain 4,5,6`
-* supports indexing: `float x = v[0]; // x contains first element of v`
-* supports named accessors `x`,`y`,`z`,`w`: `float y = point.y; // y contains second element of point`
-* supports named accessors `r`,`g`,`b`,`a`: `pixel.a = 0.5; // fourth element of pixel set to 0.5` 
-* supports named accessors `s`,`t`,`p`,`q`: `float s = tc.s; // s contains first element of tc`
-* supports swizzles: `float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]`
-* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `bool b = (v == u); // b is true if v and u contain equal elements in the same positions`
-* is [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `bool b = (v < u); // b is true if v precedes u lexicographically`
-* supports unary operators `+`, `-`, `!` and `~` in component-wise fashion: `auto v = -float{2,3}; // v is float2{-2,-3}`
-* supports binary operators `+`, `-`, `*`, `/`, `%`, `|`, `&`, `^`, `<<` and `>>` in component-wise fashion: `auto v = float2{1,1} + float2{2,3}; // v is float2{3,4}`
-* supports binary operators with a scalar on the left or the right: `auto v = 2 * float3{1,2,3}; // v is float3{2,4,6}`
-* supports operators `+=`, `-=`, `*=`, `/=`, `%=`, `|=`, `&=`, `^=`, `<<=` and `>>=` with vectors or scalars on the right: `float2 v {1,2}; v *= 3; // v is float2{3,6}`
-* supports operations on mixed element types: `auto v = float3{1,2,3} + int3{4,5,6}; // v is float3{5,7,9}`
-* is iterable: `for(auto elem : float3{1,2,3}) cout << elem; // prints "123"`
-* has a flat memory layout: `float3 v {1,2,3}; float * p = v.data(); // &v[i] == p+i`
+* is default-constructible: 
+  ```cpp
+  float3 v; // v contains 0,0,0
+  ```
+* is implicitly constructible from `M` elements of type `T`:
+  ```cpp
+  float3 v {1,2,3}; // v contains 1,2,3
+  ```
+* is **explicitly** constructible from a single element of type `T`:
+  ```cpp
+  float3 v = float3{4}; // v contains 4,4,4
+  ```
+* is **explicitly** constructible from a `vec<U,M>` of some other type `U`:
+  ```cpp
+  float3 v {1.1f,2.3f,3.5f}; // v contains 1.1,2.3,3.5
+  int3 u = int3{v};          // u contains 1,2,3
+  ```
+* is copy-constructible and copy-assignable: 
+  ```cpp
+  float3 v {1,2,3}; // v contains 1,2,3
+  float3 u {v};     // u contains 1,2,3
+  float3 w;         // w contains 0,0,0 
+  w = u;            // w contains 1,2,3
+  ```
+* supports indexing: 
+  ```cpp
+  float x = v[0]; // x contains first element of v
+  v[2] = 5;       // third element of v set to 5
+  ```
+* supports named accessors `x,y,z,w`, `r,g,b,a`, or `s,t,p,q` and swizzles:
+  ```cpp
+  float y = point.y;    // y contains second element of point
+  pixel.a = 0.5;        // fourth element of pixel set to 0.5
+  float s = tc.s;       // s contains first element of tc
+  float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]
+  ```
+* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
+  ```cpp
+  if(v == y) cout << "v and u contain equal elements in the same positions" << endl;
+  if(v < u) cout << "v precedes u lexicographically" << endl;
+  ```
+* supports unary operators `+`, `-`, `!` and `~` in component-wise fashion: 
+  ```cpp
+  auto v = -float{2,3}; // v is float2{-2,-3}
+  ```
+* supports binary operators `+`, `-`, `*`, `/`, `%`, `|`, `&`, `^`, `<<` and `>>` in component-wise fashion: 
+  ```cpp
+  auto v = float2{1,1} + float2{2,3}; // v is float2{3,4}
+  ```
+* supports binary operators with a scalar on the left or the right:
+  ```cpp
+  auto v = 2 * float3{1,2,3}; // v is float3{2,4,6}
+  auto u = float3{1,2,3} + 1; // u is float3{2,3,4}
+  ```
+* supports operators `+=`, `-=`, `*=`, `/=`, `%=`, `|=`, `&=`, `^=`, `<<=` and `>>=` with vectors or scalars on the right:
+  ```cpp
+  float2 v {1,2}; v *= 3; // v is float2{3,6}
+  ```
+* supports operations on mixed element types: 
+  ```cpp
+  auto v = float3{1,2,3} + int3{4,5,6}; // v is float3{5,7,9}
+  ```
+* is iterable:
+  ```cpp
+  for(auto elem : float3{1,2,3}) cout << elem << ' '; // prints "1 2 3 "
+  ```
+* has a flat memory layout: 
+  ```cpp
+  float3 v {1,2,3}; 
+  float * p = v.data(); // &v[i] == p+i
+  p[1] = 4; // v contains 1,4,3
+  ```
 
 #### Matrices
 
 `linalg::mat<T,M,N>` defines a fixed-size matrix containing exactly `M` rows and `N` columns of type `T`, in column-major order. Convenience aliases such as `float4x4` or `double3x3` are provided in the [`linalg::aliases` namespace](#type-aliases). Unlike `vec<T,M>`, this data structure is **not** intended for general storage of two dimensional arrays of data, and is supported only by a set of [algebraic](#matrix-algebra) functions. However, component-wise and reduction operations can be invoked explicitly via [higher-order functions](#higher-order-functions).
 
 `mat<T,M,N>`:
-* is default-constructible: `float2x2 m; // m contains columns 0,0; 0,0`
-* is implicitly constructible from `N` columns of type `vec<T,M>`: `float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4`
-* is **explicitly** constructible from a single element of type `T`: `float2x2 m {5}; // m contains columns 5,5; 5,5`
-* is **explicitly** constructible from a `mat<U,M,N>` of some other type `U`: `float2x2 m {int2x2{{5,6},{7,8}}}; // m contains columns 5,6; 7,8`
-* is copy-constructible: `float2x2 m {{1,2},{3,4}}, n {m}; // m and n contain columns 1,2; 3,4`
-* is copy-assignable: `float2x2 m {{1,2},{3,4}}, n; n = m; // m and n contain columns 1,2; 3,4`
-* supports indexing into *columns*: `float2 c = m[0]; // c contains first column of m`
-* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `bool b = (m == n); // b is true if m and n contain equal elements in the same positions`
-* is [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `bool b = (v < u); // b is true if m precedes n lexicographically when compared in column-major order`
-* supports unary operators `+`, `-`: `auto m = -float2x2{{1,2},{3,4}}; // m is float2x2{{-1,-2},{-3,-4}}`
-* supports binary operators `+`, `-` between matrices of the same size: `auto m = float2x2{{0,0},{2,2}} + float2x2{{1,2},{1,2}}; // m is float2x2{{1,2}{3,4}}`
+* is default-constructible: 
+  ```cpp
+  float2x2 m; // m contains columns 0,0; 0,0
+  ```
+* is implicitly constructible from `N` columns of type `vec<T,M>`: 
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  ```
+* is **explicitly** constructible from a single element of type `T`: 
+  ```cpp
+  float2x2 m {5}; // m contains columns 5,5; 5,5
+  ```
+* is **explicitly** constructible from a `mat<U,M,N>` of some other type `U`: 
+  ```cpp
+  float2x2 m {int2x2{{5,6},{7,8}}}; // m contains columns 5,6; 7,8
+  ```
+* is copy-constructible and copy-assignable: 
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  float2x2 n {m};           // n contains columns 1,2; 3,4
+  float2x2 p;               // p contains columns 0,0; 0,0
+  p = n;                    // p contains columns 1,2; 3,4
+  ```
+* supports indexing into *columns*: 
+  ```cpp
+  float2 c = m[0]; // c contains first column of m
+  ```
+* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
+  ```cpp
+  if(m == n) cout << "m and n contain equal elements in the same positions" << endl;
+  if(m < n) cout << "m precedes n lexicographically when compared in column-major order" << endl;
+  ```
+* supports unary operators `+`, `-`:
+  ```cpp
+  auto m = -float2x2{{1,2},{3,4}}; // m is float2x2{{-1,-2},{-3,-4}}
+  ```
+* supports binary operators `+`, `-` between matrices of the same size: 
+  ```cpp
+  auto m = float2x2{{0,0},{2,2}} + float2x2{{1,2},{1,2}}; // m is float2x2{{1,2}{3,4}}
+  ```
 * supports operator `*` with a scalar on the left or on the right
 * supports operator `/` with a scalar on the right
 * supports operator `*` with a `vec<T,N>` on the right (matrix product)
