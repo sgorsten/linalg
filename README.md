@@ -55,7 +55,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports named accessors `x`,`y`,`z`,`w`: `float y = point.y; // y contains second element of point`
 * supports named accessors `r`,`g`,`b`,`a`: `pixel.a = 0.5; // fourth element of pixel set to 0.5` 
 * supports named accessors `s`,`t`,`p`,`q`: `float s = tc.s; // s contains first element of tc`
-* supports swizzles: `float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]
+* supports swizzles: `float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]`
 * is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `bool b = (v == u); // b is true if v and u contain equal elements in the same positions`
 * is [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `bool b = (v < u); // b is true if v precedes u lexicographically`
 * supports unary operators `+`, `-`, `!` and `~` in component-wise fashion: `auto v = -float{2,3}; // v is float2{-2,-3}`
@@ -84,8 +84,8 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports binary operators `+`, `-` between matrices of the same size: `auto m = float2x2{{0,0},{2,2}} + float2x2{{1,2},{1,2}}; // m is float2x2{{1,2}{3,4}}`
 * supports operator `*` with a scalar on the left or on the right
 * supports operator `/` with a scalar on the right
-* supports operator `*` with a vec<T,N>` on the right (matrix product)
-* supports operator `*` with a mat<T,N,P>` on the right (matrix product)
+* supports operator `*` with a `vec<T,N>` on the right (matrix product)
+* supports operator `*` with a `mat<T,N,P>` on the right (matrix product)
 * supports operators `+=`, `-=`, `*=`, `/=` with appropriate types on the right
 * supports operations on mixed element types
 * is iterable over columns
