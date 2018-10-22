@@ -63,12 +63,12 @@ static_assert(maxelem(int4(-1, -2, 3, -4)) == 3, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, -2, -3, 4)) == 4, "maxelem should be constexpr");
 
 // Check member .data()
-static_assert(a2.data() == (const int *)a2.elems.elems, "linalg::vec<T,2>::data() should be constexpr");
-static_assert(a3.data() == (const int *)a3.elems.elems, "linalg::vec<T,3>::data() should be constexpr");
-static_assert(a4.data() == (const int *)a4.elems.elems, "linalg::vec<T,4>::data() should be constexpr");
-static_assert(a2x2.data() == (const int *)a2x2.cols[0].elems.elems, "linalg::mat<T,M,2>::data() should be constexpr");
-static_assert(a3x3.data() == (const int *)a3x3.cols[0].elems.elems, "linalg::mat<T,M,3>::data() should be constexpr");
-static_assert(a4x4.data() == (const int *)a4x4.cols[0].elems.elems, "linalg::mat<T,M,4>::data() should be constexpr");
+static_assert(a2.data() == (const int *)a2._._, "linalg::vec<T,2>::data() should be constexpr");
+static_assert(a3.data() == (const int *)a3._._, "linalg::vec<T,3>::data() should be constexpr");
+static_assert(a4.data() == (const int *)a4._._, "linalg::vec<T,4>::data() should be constexpr");
+static_assert(a2x2.data() == (const int *)a2x2._[0]._._, "linalg::mat<T,M,2>::data() should be constexpr");
+static_assert(a3x3.data() == (const int *)a3x3._[0]._._, "linalg::mat<T,M,3>::data() should be constexpr");
+static_assert(a4x4.data() == (const int *)a4x4._[0]._._, "linalg::mat<T,M,4>::data() should be constexpr");
 
 // Check constexpr iterators
 #if !defined(_MSC_VER) || _MSC_VER > 1900

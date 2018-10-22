@@ -36,6 +36,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   * [Extensions in `linalgx.h`](#extensions-in-linalgxh)
 * [Higher order functions](#higher-order-functions)
 * [Design rationale](#design-rationale)
+* [Stability guarantees](#stability-guarantees)
 * [Changes from v2.1](#changes-from-v21)
 
 ## Data structures
@@ -391,6 +392,15 @@ See also: [Component-wise operations](#component-wide-operations)
 
 This space exists for me to explain the design decisions that went into `linalg.h`.
 
+## Stability guarantees
+
+As of the `v3.0` tag, the functionality provided by `linalg.h` will be considered stable, except for:
+* The contents of the `linalg::detail` namespace
+* The type or implementation details of any types which begin with an underscore, such as `_scalar<...>`, `_lswizzle<...>`, `_rswizzle<...>`
+* Direct access to any member variable whose name begins with an underscore, such as `vec<T,M>::_` or `mat<T,M,N>::_`
+
+The `linalgx.h` header will continue to experience breaking changes. As functionality in `linalgx.h` stabilizes, it may be migrated into `linalg.h`, in which case it will be considered stable.
+
 ## Changes from `v2.1`
 
 *TODO:* Rework this to include a migration guide for users coming from previous versions of `linalg.h`.
@@ -448,8 +458,8 @@ This space exists for me to explain the design decisions that went into `linalg.
 
 Documentation needs to be provided for the following symbols.
 
-- [x] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
-- [x] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
+- [x] `struct vec<T,M>`: accessors, swizzles, constructors, `operator[]`
+- [x] `struct mat<T,M,N>`: constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 
 - [ ] `identity`

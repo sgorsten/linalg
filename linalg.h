@@ -99,7 +99,7 @@ namespace linalg
 
     namespace detail
     {
-        template<class A> struct element_storage { A elems; };
+        template<class A> struct element_storage { A _; };
 
         // Support for user defined conversions
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type;
@@ -245,53 +245,53 @@ namespace linalg
 
     template<class T, class A, int I> struct _scalar 
     { 
-        A elems;
-        _scalar()                          = delete;
-        T operator () () const             { return elems[I]; }
-        operator const T & () const        { return elems[I]; }
-        operator T & ()                    { return elems[I]; }
-        const T * operator & () const      { return &elems[I]; }
-        T * operator & ()                  { return &elems[I]; }
-        T & operator = (const T & value)   { return elems[I] = value; }
-        T & operator = (const _scalar & r) { return elems[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
+        A                           _;
+                                    _scalar()                                = delete;
+        T                           operator () () const                     { return _[I]; }
+                                    operator const T & () const              { return _[I]; }
+                                    operator T & ()                          { return _[I]; }
+        const T *                   operator & () const                      { return &_[I]; }
+        T *                         operator & ()                            { return &_[I]; }
+        T &                         operator = (const T & value)             { return _[I] = value; }
+        T &                         operator = (const _scalar & r)           { return _[I] = r; } // Default copy operator has incorrect semantics, force interpretation as scalar
     };
     template<class T, class A, int I0, int I1> struct _lswizzle<T,A,I0,I1>
     {
-        A                           e;
-        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
-                                    _lswizzle(T e0, T e1)                    { e[I0]=e0; e[I1]=e1; }
+        A                           _;
+        constexpr                   _lswizzle()                              : _{} {} // This constructor makes _lswizzle _ literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1)                    { _[I0]=e0; _[I1]=e1; }
                                     _lswizzle(const vec<T,2> & r)            : _lswizzle(r[0], r[1]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,2>(r)) {}
-        vec<T,2>                    operator () () const                     { return {e[I0], e[I1]}; }
-                                    operator vec<T,2> () const               { return {e[I0], e[I1]}; }           
-        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; return *this; } // Default copy operator has incorrect semantics
+        vec<T,2>                    operator () () const                     { return {_[I0], _[I1]}; }
+                                    operator vec<T,2> () const               { return {_[I0], _[I1]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { _[I0]=r._[I0]; _[I1]=r._[I1]; return *this; } // Default copy operator has incorrect semantics
     };
     template<class T, class A, int I0, int I1, int I2> struct _lswizzle<T,A,I0,I1,I2>
     {
-        A                           e;
-        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
-                                    _lswizzle(T e0, T e1, T e2)              { e[I0]=e0; e[I1]=e1; e[I2]=e2; }
+        A                           _;
+        constexpr                   _lswizzle()                              : _{} {} // This constructor makes _lswizzle _ literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1, T e2)              { _[I0]=e0; _[I1]=e1; _[I2]=e2; }
                                     _lswizzle(const vec<T,3> & r)            : _lswizzle(r[0], r[1], r[2]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,3>(r)) {}
-        vec<T,3>                    operator () () const                     { return {e[I0], e[I1], e[I2]}; }
-                                    operator vec<T,3> () const               { return {e[I0], e[I1], e[I2]}; }           
-        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; return *this; } // Default copy operator has incorrect semantics
+        vec<T,3>                    operator () () const                     { return {_[I0], _[I1], _[I2]}; }
+                                    operator vec<T,3> () const               { return {_[I0], _[I1], _[I2]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { _[I0]=r._[I0]; _[I1]=r._[I1]; _[I2]=r._[I2]; return *this; } // Default copy operator has incorrect semantics
     };
     template<class T, class A, int I0, int I1, int I2, int I3> struct _lswizzle<T,A,I0,I1,I2,I3>
     {
-        A                           e;
-        constexpr                   _lswizzle()                              : e{} {} // This constructor makes _lswizzle a literal type, allowing it to live inside unions
-                                    _lswizzle(T e0, T e1, T e2, T e3)        { e[I0]=e0; e[I1]=e1; e[I2]=e2; e[I3]=e3; }
+        A                           _;
+        constexpr                   _lswizzle()                              : _{} {} // This constructor makes _lswizzle _ literal type, allowing it to live inside unions
+                                    _lswizzle(T e0, T e1, T e2, T e3)        { _[I0]=e0; _[I1]=e1; _[I2]=e2; _[I3]=e3; }
                                     _lswizzle(const vec<T,4> & r)            : _lswizzle(r[0], r[1], r[2], r[3]) {}
         template<class B, int... J> _lswizzle(const _lswizzle<T,B,J...> & r) : _lswizzle(vec<T,4>(r)) {}
-        vec<T,4>                    operator () () const                     { return {e[I0], e[I1], e[I2], e[I3]}; }
-                                    operator vec<T,4> () const               { return {e[I0], e[I1], e[I2], e[I3]}; }           
-        _lswizzle &                 operator = (const _lswizzle & r)         { e[I0]=r.e[I0]; e[I1]=r.e[I1]; e[I2]=r.e[I2]; e[I3]=r.e[I3]; return *this; } // Default copy operator has incorrect semantics
+        vec<T,4>                    operator () () const                     { return {_[I0], _[I1], _[I2], _[I3]}; }
+                                    operator vec<T,4> () const               { return {_[I0], _[I1], _[I2], _[I3]}; }           
+        _lswizzle &                 operator = (const _lswizzle & r)         { _[I0]=r._[I0]; _[I1]=r._[I1]; _[I2]=r._[I2]; _[I3]=r._[I3]; return *this; } // Default copy operator has incorrect semantics
     };
     template<class T, class A, int... I> struct _rswizzle
     {
-        A                           e;
-                                    operator vec<T,sizeof...(I)> () const    { return {e[I]...}; }
+        A                           _;
+                                    operator vec<T,sizeof...(I)> () const    { return {_[I]...}; }
         _rswizzle &                 operator = (const _rswizzle & r)         = delete;
     };
 
@@ -303,21 +303,21 @@ namespace linalg
     {
         union
         {
-            detail::element_storage<T[1]> elems;
+            detail::element_storage<T[1]> _;
             _scalar<T,T[1],0> x,r,s;
             _rswizzle<T,T[1],0,0> xx,rr,ss;
             _rswizzle<T,T[1],0,0,0> xxx,rrr,sss;
             _rswizzle<T,T[1],0,0,0,0> xxxx,rrrr,ssss;
         };
-        constexpr                            vec()                                                       : elems{} {}
-        constexpr                            vec(const vec & v)                                          : elems{v[0]} {}
-        constexpr                            vec(const T & e0)                                           : elems{e0} {}
-        template<class U> constexpr explicit vec(const vec<U,1> & v)                                     : elems{static_cast<T>(v[0])} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
-        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
-        constexpr const T *                  data() const                                                { return elems.elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        constexpr                            vec()                                                       : _{} {}
+        constexpr                            vec(const vec & v)                                          : _{v[0]} {}
+        constexpr                            vec(const T & e0)                                           : _{e0} {}
+        template<class U> constexpr explicit vec(const vec<U,1> & v)                                     : _{static_cast<T>(v[0])} {}
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
+        constexpr const T *                  data() const                                                { return _._; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _._; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -326,7 +326,7 @@ namespace linalg
     {
         union
         {
-            detail::element_storage<T[2]> elems;
+            detail::element_storage<T[2]> _;
             _scalar<T,T[2],0> x,r,s; _scalar<T,T[2],1> y,g,t;
             _rswizzle<T,T[2],0,0> xx,rr,ss; _lswizzle<T,T[2],0,1> xy,rg,st;
             _lswizzle<T,T[2],1,0> yx,gr,ts; _rswizzle<T,T[2],1,1> yy,gg,tt;
@@ -343,16 +343,16 @@ namespace linalg
             _rswizzle<T,T[2],1,1,0,0> yyxx,ggrr,ttss; _rswizzle<T,T[2],1,1,0,1> yyxy,ggrg,ttst;
             _rswizzle<T,T[2],1,1,1,0> yyyx,gggr,ttts; _rswizzle<T,T[2],1,1,1,1> yyyy,gggg,tttt;
         };
-        constexpr                            vec()                                                       : elems{} {}
-        constexpr                            vec(const vec & v)                                          : elems{v[0], v[1]} {}
-        constexpr                            vec(const T & e0, const T & e1)                             : elems{e0, e1} {}
-        constexpr explicit                   vec(const T & s)                                            : elems{s, s} {}
-        template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
-        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
-        constexpr const T *                  data() const                                                { return elems.elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        constexpr                            vec()                                                       : _{} {}
+        constexpr                            vec(const vec & v)                                          : _{v[0], v[1]} {}
+        constexpr                            vec(const T & e0, const T & e1)                             : _{e0, e1} {}
+        constexpr explicit                   vec(const T & s)                                            : _{s, s} {}
+        template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : _{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
+        constexpr const T *                  data() const                                                { return _._; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _._; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -361,7 +361,7 @@ namespace linalg
     {
         union
         {
-            detail::element_storage<T[3]> elems;
+            detail::element_storage<T[3]> _;
             _scalar<T,T[3],0> x,r,s; _scalar<T,T[3],1> y,g,t; _scalar<T,T[3],2> z,b,p;
             _rswizzle<T,T[3],0,0> xx,rr,ss; _lswizzle<T,T[3],0,1> xy,rg,st; _lswizzle<T,T[3],0,2> xz,rb,sp;
             _lswizzle<T,T[3],1,0> yx,gr,ts; _rswizzle<T,T[3],1,1> yy,gg,tt; _lswizzle<T,T[3],1,2> yz,gb,tp;
@@ -403,17 +403,17 @@ namespace linalg
             _rswizzle<T,T[3],2,2,1,0> zzyx,bbgr,ppts; _rswizzle<T,T[3],2,2,1,1> zzyy,bbgg,pptt; _rswizzle<T,T[3],2,2,1,2> zzyz,bbgb,pptp;
             _rswizzle<T,T[3],2,2,2,0> zzzx,bbbr,ppps; _rswizzle<T,T[3],2,2,2,1> zzzy,bbbg,pppt; _rswizzle<T,T[3],2,2,2,2> zzzz,bbbb,pppp;
         };
-        constexpr                            vec()                                                       : elems{} {}
-        constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2]} {}
-        constexpr                            vec(const T & e0, const T & e1, const T & e2)               : elems{e0, e1, e2} {}
-        constexpr                            vec(const vec<T,2> & e01, const T & e2)                     : elems{e01[0], e01[1], e2} {}
-        constexpr explicit                   vec(const T & s)                                            : elems{s, s, s} {}
-        template<class U> constexpr explicit vec(const vec<U,3> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2])} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
-        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
-        constexpr const T *                  data() const                                                { return elems.elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        constexpr                            vec()                                                       : _{} {}
+        constexpr                            vec(const vec & v)                                          : _{v[0], v[1], v[2]} {}
+        constexpr                            vec(const T & e0, const T & e1, const T & e2)               : _{e0, e1, e2} {}
+        constexpr                            vec(const vec<T,2> & e01, const T & e2)                     : _{e01[0], e01[1], e2} {}
+        constexpr explicit                   vec(const T & s)                                            : _{s, s, s} {}
+        template<class U> constexpr explicit vec(const vec<U,3> & v)                                     : _{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2])} {}
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
+        constexpr const T *                  data() const                                                { return _._; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _._; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -422,7 +422,7 @@ namespace linalg
     {
         union
         {
-            detail::element_storage<T[4]> elems;
+            detail::element_storage<T[4]> _;
             _scalar<T,T[4],0> x,r,s; _scalar<T,T[4],1> y,g,t; _scalar<T,T[4],2> z,b,p; _scalar<T,T[4],3> w,a,q;
             _rswizzle<T,T[4],0,0> xx,rr,ss; _lswizzle<T,T[4],0,1> xy,rg,st; _lswizzle<T,T[4],0,2> xz,rb,sp; _lswizzle<T,T[4],0,3> xw,ra,sq;
             _lswizzle<T,T[4],1,0> yx,gr,ts; _rswizzle<T,T[4],1,1> yy,gg,tt; _lswizzle<T,T[4],1,2> yz,gb,tp; _lswizzle<T,T[4],1,3> yw,ga,tq;
@@ -509,19 +509,19 @@ namespace linalg
             _rswizzle<T,T[4],3,3,2,0> wwzx,aabr,qqps; _rswizzle<T,T[4],3,3,2,1> wwzy,aabg,qqpt; _rswizzle<T,T[4],3,3,2,2> wwzz,aabb,qqpp; _rswizzle<T,T[4],3,3,2,3> wwzw,aaba,qqpq;
             _rswizzle<T,T[4],3,3,3,0> wwwx,aaar,qqqs; _rswizzle<T,T[4],3,3,3,1> wwwy,aaag,qqqt; _rswizzle<T,T[4],3,3,3,2> wwwz,aaab,qqqp; _rswizzle<T,T[4],3,3,3,3> wwww,aaaa,qqqq;
         };
-        constexpr                            vec()                                                       : elems{} {}
-        constexpr                            vec(const vec & v)                                          : elems{v[0], v[1], v[2], v[3]} {}
-        constexpr                            vec(const T & e0, const T & e1, const T & e2, const T & e3) : elems{e0, e1, e2, e3} {}
-        constexpr                            vec(const vec<T,2> & e01, const T & e2, const T & e3)       : elems{e01[0], e01[1], e2, e3} {}
-        constexpr                            vec(const vec<T,3> & e012, const T & e3)                    : elems{e012[0], e012[1], e012[2], e3} {}
-        constexpr explicit                   vec(const T & s)                                            : elems{s, s, s, s} {}
-        template<class U> constexpr explicit vec(const vec<U,4> & v)                                     : elems{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2]), static_cast<T>(v[3])} {}
-        constexpr explicit                   vec(const quat<T> & q)                                      : elems{q.x, q.y, q.z, q.w} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { elems = r.elems; return *this; }
-        constexpr const T &                  operator[] (int i) const                                    { return elems.elems[i]; }
-        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return elems.elems[i]; }
-        constexpr const T *                  data() const                                                { return elems.elems; }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return elems.elems; }
+        constexpr                            vec()                                                       : _{} {}
+        constexpr                            vec(const vec & v)                                          : _{v[0], v[1], v[2], v[3]} {}
+        constexpr                            vec(const T & e0, const T & e1, const T & e2, const T & e3) : _{e0, e1, e2, e3} {}
+        constexpr                            vec(const vec<T,2> & e01, const T & e2, const T & e3)       : _{e01[0], e01[1], e2, e3} {}
+        constexpr                            vec(const vec<T,3> & e012, const T & e3)                    : _{e012[0], e012[1], e012[2], e3} {}
+        constexpr explicit                   vec(const T & s)                                            : _{s, s, s, s} {}
+        template<class U> constexpr explicit vec(const vec<U,4> & v)                                     : _{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2]), static_cast<T>(v[3])} {}
+        constexpr explicit                   vec(const quat<T> & q)                                      : _{q.x, q.y, q.z, q.w} {}
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
+        LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
+        constexpr const T *                  data() const                                                { return _._; }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _._; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u)                        : vec(detail::convert<vec>(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -534,16 +534,16 @@ namespace linalg
     template<class T, int M> struct mat<T,M,1>
     {
         using V=vec<T,M>;
-        V                                    cols[1];
-        constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(const V & x_)                                           : cols{x_} {}
-        constexpr explicit                   mat(const T & s)                                            : cols{V(s)} {}
-        template<class U> constexpr explicit mat(const mat<U,M,1> & m)                                   : cols{V(m[0])} {}
-        constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
-        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
-        constexpr vec<T,1>                   row(int i) const                                            { return {cols[0][i]}; }
-        constexpr const T *                  data() const                                                { return cols[0].data(); }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return cols[0].data(); }
+        V                                    _[1];
+        constexpr                            mat()                                                       : _{} {}
+        constexpr                            mat(const V & x_)                                           : _{x_} {}
+        constexpr explicit                   mat(const T & s)                                            : _{V(s)} {}
+        template<class U> constexpr explicit mat(const mat<U,M,1> & m)                                   : _{V(m[0])} {}
+        constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
+        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
+        constexpr vec<T,1>                   row(int i) const                                            { return {_[0][i]}; }
+        constexpr const T *                  data() const                                                { return _[0].data(); }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _[0].data(); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u)                        : mat(detail::convert<mat>(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -551,16 +551,16 @@ namespace linalg
     template<class T, int M> struct mat<T,M,2>
     {
         using V=vec<T,M>;
-        V                                    cols[2];
-        constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(const V & x_, const V & y_)                             : cols{x_, y_} {}
-        constexpr explicit                   mat(const T & s)                                            : cols{V(s), V(s)} {}
-        template<class U> constexpr explicit mat(const mat<U,M,2> & m)                                   : cols{V(m[0]), V(m[1])} {}
-        constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
-        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
-        constexpr vec<T,2>                   row(int i) const                                            { return {cols[0][i], cols[1][i]}; }
-        constexpr const T *                  data() const                                                { return cols[0].data(); }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return cols[0].data(); }
+        V                                    _[2];
+        constexpr                            mat()                                                       : _{} {}
+        constexpr                            mat(const V & x_, const V & y_)                             : _{x_, y_} {}
+        constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s)} {}
+        template<class U> constexpr explicit mat(const mat<U,M,2> & m)                                   : _{V(m[0]), V(m[1])} {}
+        constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
+        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
+        constexpr vec<T,2>                   row(int i) const                                            { return {_[0][i], _[1][i]}; }
+        constexpr const T *                  data() const                                                { return _[0].data(); }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _[0].data(); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u)                        : mat(detail::convert<mat>(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -568,16 +568,16 @@ namespace linalg
     template<class T, int M> struct mat<T,M,3>
     {
         using V=vec<T,M>;
-        V                                    cols[3];
-        constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(const V & x_, const V & y_, const V & z_)               : cols{x_, y_, z_} {}
-        constexpr explicit                   mat(const T & s)                                            : cols{V(s), V(s), V(s)} {}
-        template<class U> constexpr explicit mat(const mat<U,M,3> & m)                                   : cols{V(m[0]), V(m[1]), V(m[2])} {}
-        constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
-        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
-        constexpr vec<T,3>                   row(int i) const                                            { return {cols[0][i], cols[1][i], cols[2][i]}; }
-        constexpr const T *                  data() const                                                { return cols[0].data(); }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return cols[0].data(); }
+        V                                    _[3];
+        constexpr                            mat()                                                       : _{} {}
+        constexpr                            mat(const V & x_, const V & y_, const V & z_)               : _{x_, y_, z_} {}
+        constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s), V(s)} {}
+        template<class U> constexpr explicit mat(const mat<U,M,3> & m)                                   : _{V(m[0]), V(m[1]), V(m[2])} {}
+        constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
+        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
+        constexpr vec<T,3>                   row(int i) const                                            { return {_[0][i], _[1][i], _[2][i]}; }
+        constexpr const T *                  data() const                                                { return _[0].data(); }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _[0].data(); }
                                                                                                          
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u)                        : mat(detail::convert<mat>(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -585,16 +585,16 @@ namespace linalg
     template<class T, int M> struct mat<T,M,4>
     {
         using V=vec<T,M>;
-        V                                    cols[4];
-        constexpr                            mat()                                                       : cols{} {}
-        constexpr                            mat(const V & x_, const V & y_, const V & z_, const V & w_) : cols{x_, y_, z_, w_} {}
-        constexpr explicit                   mat(const T & s)                                            : cols{V(s), V(s), V(s), V(s)} {}
-        template<class U> constexpr explicit mat(const mat<U,M,4> & m)                                   : cols{V(m[0]), V(m[1]), V(m[2]), V(m[3])} {}
-        constexpr const V &                  operator[] (int j) const                                    { return cols[j]; }
-        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return cols[j]; }
-        constexpr vec<T,4>                   row(int i) const                                            { return {cols[0][i], cols[1][i], cols[2][i], cols[3][i]}; }
-        constexpr const T *                  data() const                                                { return cols[0].data(); }
-        LINALG_CONSTEXPR14 T *               data()                                                      { return cols[0].data(); }
+        V                                    _[4];
+        constexpr                            mat()                                                       : _{} {}
+        constexpr                            mat(const V & x_, const V & y_, const V & z_, const V & w_) : _{x_, y_, z_, w_} {}
+        constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s), V(s), V(s)} {}
+        template<class U> constexpr explicit mat(const mat<U,M,4> & m)                                   : _{V(m[0]), V(m[1]), V(m[2]), V(m[3])} {}
+        constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
+        LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
+        constexpr vec<T,4>                   row(int i) const                                            { return {_[0][i], _[1][i], _[2][i], _[3][i]}; }
+        constexpr const T *                  data() const                                                { return _[0].data(); }
+        LINALG_CONSTEXPR14 T *               data()                                                      { return _[0].data(); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u)                        : mat(detail::convert<mat>(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const                     { return detail::convert<U>(*this); }
@@ -638,13 +638,13 @@ namespace linalg
 
     template<class T, int M> constexpr const T * begin(const vec<T,M> & a) { return a.data(); }
     template<class T, int M> constexpr const T * end  (const vec<T,M> & a) { return a.data() + M; }
-    template<class T, int M, int N> constexpr const vec<T,M> * begin(const mat<T,M,N> & a) { return a.cols; }
-    template<class T, int M, int N> constexpr const vec<T,M> * end  (const mat<T,M,N> & a) { return a.cols + N; }
+    template<class T, int M, int N> constexpr const vec<T,M> * begin(const mat<T,M,N> & a) { return a._; }
+    template<class T, int M, int N> constexpr const vec<T,M> * end  (const mat<T,M,N> & a) { return a._ + N; }
 
     template<class T, int M> constexpr T * begin(vec<T,M> & a) { return a.data(); }
     template<class T, int M> constexpr T * end  (vec<T,M> & a) { return a.data() + M; }
-    template<class T, int M, int N> constexpr vec<T,M> * begin(mat<T,M,N> & a) { return a.cols; }
-    template<class T, int M, int N> constexpr vec<T,M> * end  (mat<T,M,N> & a) { return a.cols + N; }
+    template<class T, int M, int N> constexpr vec<T,M> * begin(mat<T,M,N> & a) { return a._; }
+    template<class T, int M, int N> constexpr vec<T,M> * end  (mat<T,M,N> & a) { return a._ + N; }
 
     ////////////////////////////
     // Higher-order functions //
