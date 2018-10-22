@@ -153,15 +153,25 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```
 * supports indexing into *columns*: 
   ```cpp
-  float2 c = m[0]; // c contains first column of m
+  float2x3 m {{1,2},{3,4},{5,6}}; // m contains columns 1,2; 3,4; 5,6
+  float2 c = m[0];                // c contains 1,2
+  m[1]     = {7,8};               // m contains columns 1,2; 7,8; 5,6
+  ```
+* supports retrieval of rows:
+  ```cpp
+  float2x3 m {{1,2},{3,4},{5,6}}; // m contains columns 1,2; 3,4; 5,6
+  float3 r = m.row(1);            // r contains 2,4,6
   ```
 * supports unary operators `+`, `-`:
   ```cpp
-  auto m = -float2x2{{1,2},{3,4}}; // m is float2x2{{-1,-2},{-3,-4}}
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  float2x2 n = -m;          // n contains columns -1,-2; -3,-4
   ```
 * supports binary operators `+`, `-` between matrices of the same size: 
   ```cpp
-  auto m = float2x2{{0,0},{2,2}} + float2x2{{1,2},{1,2}}; // m is float2x2{{1,2}{3,4}}
+  float2x2 a {{0,0},{2,2}}; // a contains columns 0,0; 2,2
+  float2x2 b {{1,2},{1,2}}; // b contains columns 1,2; 1,2
+  float2x2 c = a + b;       // c contains columns 1,2; 3,4
   ```
 * supports operator `*` with a scalar on the left or on the right
 * supports operator `/` with a scalar on the right
@@ -172,7 +182,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * is iterable over columns
 * has a flat memory layout
 
-TODO: Finish explaining `linalg::mat<T,M,N>`
+*TODO:* Finish explaining `linalg::mat<T,M,N>`
 
 #### Quaternions
 
@@ -203,7 +213,7 @@ TODO: Finish explaining `linalg::mat<T,M,N>`
 * is [`EqualityComparable`](https://en.cppreference.com/w/cpp/named_req/EqualityComparable) and [`LessThanComparable`](https://en.cppreference.com/w/cpp/named_req/LessThanComparable):
   ```cpp
   if(q == r) cout << "q and r are equal quaternions" << endl;
-  if(q < r) cout << "q precedes r lexicographically when considered as sequences in x,y,z,w order" << endl;
+  if(q < r) cout << "q precedes r lexicographically in x,y,z,w order" << endl;
   ```  
 * is **explicitly** constructible from a `vec<T,4>`:
   ```cpp
@@ -224,7 +234,7 @@ TODO: Finish explaining `linalg::mat<T,M,N>`
 * supports operators `+=`, `-=`, `*=`, `/=` with appropriate types on the right
 * supports operations on mixed element types
 
-TODO: Finish explaining `linalg::quat<T>`
+*TODO:* Finish explaining `linalg::quat<T>`
 
 ## Function listing
 
@@ -239,8 +249,9 @@ TODO: Finish explaining `linalg::quat<T>`
 The unary functions `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round` accept a vector-valued argument and produce a vector-valued result by passing individual elements to the function of the same name in the `std::` namespace, as defined by `<cmath>` or `<cstdlib>`.
 
 ```cpp
-float3 a {1,-2,3,-4}; // a contains 1,-2,3,-4
-float3 b = abs(a);    // b contains 1,2,3,4
+float4 a {1,-4,9,-16}; // a contains 1,-4,9,-16
+float4 b = abs(a);     // b contains 1,4,9,16
+float4 c = sqrt(b);    // c contains 1,2,3,4
 ```
 
 The binary functions `fmod`, `pow`, `atan2`, and `copysign` function similarly, except that either argument can be a vector or a scalar.
@@ -261,7 +272,7 @@ bool2 d = equal(4,b);   // d contains false, true
 bool2 e = greater(a,b); // e contains false, true
 ```
 
-TODO: Explain `min`, `max`, `clamp`, `select`, `lerp`
+*TODO:* Explain `min`, `max`, `clamp`, `select`, `lerp`
 
 #### Reductions
 
@@ -278,15 +289,58 @@ TODO: Explain `min`, `max`, `clamp`, `select`, `lerp`
 
 #### Type aliases
 
-TODO: Explain `namespace linalg::aliases`
+By default, `linalg.h` does not define any symbols in the global namespace, and a three-element vector of single-precision floating point values must be spelled `linalg::vec<float,3>`. In various libraries and shading languages, such a type might be spelled `float3`, `vec3`, `vec3f`, `point3f`, `simd_float3`, or any one of a hundred other possibilities. `linalg.h` provides a collection of useful aliases in the `linalg::aliases` namespace. If the names specified in this namespace are suitable for a user's purposes, they can quickly be brought into scope as follows:
+
+```cpp
+#include <linalg.h>
+using namespace linalg::aliases;
+
+float3 a_vector;
+float4x4 a_matrix;
+```
+
+Note that this **only** brings the type aliases into global scope. The core types and all functions and operator overloads defined by the library remain in `namespace linalg`. 
+
+If the spellings in `namespace linalg::aliases` conflict with other types that have been defined in the global namespace or in other namespaces of interest, the user can choose to omit the `using namespace` directive and instead define their own aliases as desired.
+
+```cpp
+#include <linalg.h>
+using v3f = linalg::vec<float,3>;
+using m44f = linalg::mat<float,4,4>;
+
+v3f a_vector;
+m44f a_matrix;
+```
+
+It is, of course, always possible to use the core `linalg.h` types directly if operating in an environment where no additional symbols should be defined.
+
+```cpp
+#include <linalg.h>
+
+linalg::vec<float,3> a_vector;
+linalg::mat<float,4,4> a_matrix;
+```
+
+The set of type aliases defined in `namespace linalg::aliases` is as follows:
+
+* `vec<float,M>` aliased to *floatM*, as in: `float1`, `float2`, `float3`, `float4`
+* `vec<double,M>` aliased to *doubleM*, as in: `double1`, `double2`, `double3`, `double4`
+* `vec<int,M>` aliased to *intM* as in: `int1`, `int2`, `int3`, `int4`
+* `vec<bool,M>` aliased to *boolM* as in: `bool1`, `bool2`, `bool3`, `bool4`
+* `mat<float,M,N>` aliased to *floatMxN* as in: `float1x3`, `float3x2`, `float4x4`, etc.
+* `mat<double,M,N>` aliased to *doubleMxN* as in: `double1x3`, `double3x2`, `double4x4`, etc.
+* `mat<int,M,N>` aliased to *intMxN* as in: `int1x3`, `int3x2`, `int4x4`, etc.
+* `quat<float>` aliased to `quatf`
+* `quat<double>` aliased to `quatd`
+* `quat<int>` aliased to `quati`
 
 #### `ostream` overloads
 
-TODO: Explain `namespace linalg::ostream_overloads`
+*TODO:* Explain `namespace linalg::ostream_overloads`
 
 #### User-defined conversions
 
-TODO: Explain `converter<T,U>`
+*TODO:* Explain `converter<T,U>`
 
 #### Extensions in `linalgx.h`
 
@@ -302,7 +356,7 @@ See also: [Reductions](#reductions)
 
 #### `linalg::apply(f, a...)`
 
-`apply(f, a...)` is a higher order function which accepts a function of the form `A... => T` and applies it to component-wise sets of elements from data structures of compatible shape and dimensions. It is apprxoimately equal to a [convolution](https://en.wikipedia.org/wiki/Convolution_(computer_science)) followed by a [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)). The shape of the result (that is, whether it is a scalar, vector, matrix, or quaternion, and the dimensions thereof) is determined by the arguments. If more than one argument is a non-scalar, the shape of those arguments must agree. Scalars can be freely intermixed with non-scalars, and element types can also be freely mixed. The element type of the returned value is determined by the return type of the provided mapping function `f`. The supported call signatures are enumerated in the following table:
+`apply(f, a...)` is a higher order function which accepts a function of the form `A... => T` and applies it to component-wise sets of elements from data structures of compatible shape and dimensions. It is approximately equal to a [convolution](https://en.wikipedia.org/wiki/Convolution_(computer_science)) followed by a [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)). The shape of the result (that is, whether it is a scalar, vector, matrix, or quaternion, and the dimensions thereof) is determined by the arguments. If more than one argument is a non-scalar, the shape of those arguments must agree. Scalars can be freely intermixed with non-scalars, and element types can also be freely mixed. The element type of the returned value is determined by the return type of the provided mapping function `f`. The supported call signatures are enumerated in the following table:
 
 | call             | type of `a`  | type of `b`  | type of `c` | result type  | result elements          |
 |------------------|--------------|--------------|-------------|--------------|--------------------------|
@@ -329,7 +383,7 @@ See also: [Reductions](#reductions)
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `C`         | `vec<T,M>`   | `f(a[i], b[i], c)...`    |
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `vec<C,M>`  | `vec<T,M>`   | `f(a[i], b[i], c[i])...` |
 
-TODO: Explain `apply_t<F, A...>` and SFINAE helpers.
+*TODO:* Explain `apply_t<F, A...>` and SFINAE helpers.
 
 See also: [Component-wise operations](#component-wide-operations)
 
@@ -339,7 +393,7 @@ This space exists for me to explain the design decisions that went into `linalg.
 
 ## Changes from `v2.1`
 
-TODO: Rework this to include a migration guide for users coming from previous versions of `linalg.h`.
+*TODO:* Rework this to include a migration guide for users coming from previous versions of `linalg.h`.
 
 #### Improvements in `v3.0`
 
@@ -395,15 +449,15 @@ TODO: Rework this to include a migration guide for users coming from previous ve
 Documentation needs to be provided for the following symbols.
 
 - [x] `struct vec<T,M>`: `elems`, accessors, swizzles, constructors, `operator[]`
-- [ ] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
+- [x] `struct mat<T,M,N>`: `cols`, constructors, `operator[]`, `row`
 - [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
 
 - [ ] `identity`
 - [x] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
 - [ ] three-way comparison: `compare`
-- [ ] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
-- [ ] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
-- [ ] component-wise operator overloads for `vec<T,M>`
+- [x] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
+- [x] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
+- [x] component-wise operator overloads for `vec<T,M>`
 - [ ] algebraic operator overloads for `mat<T,M,N>` and `quat<T>`
 - [x] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
 - [x] search functions: `argmin`, `argmax`
@@ -415,7 +469,7 @@ Documentation needs to be provided for the following symbols.
 - [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
 - [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
 - [ ] iterators and ranges: `begin`, `end`
-- [ ] `namespace linalg::aliases`
+- [x] `namespace linalg::aliases`
 - [ ] ostream operators
 - [ ] user-defined conversions: `converter<T,U>`
 
