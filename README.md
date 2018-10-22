@@ -187,7 +187,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports [range-based for](https://en.cppreference.com/w/cpp/language/range-for) over columns
 * has a flat memory layout
 
-*TODO:* Finish explaining `linalg::mat<T,M,N>`
+**TODO: Finish explaining `linalg::mat<T,M,N>`**
 
 #### Quaternions
 
@@ -245,22 +245,22 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports operations on mixed element types
 * exposes explicit cast to `vec<T,4>` and member function `xyz()`
 
-*TODO:* Finish explaining `linalg::quat<T>`
+**TODO: Finish explaining `linalg::quat<T>`**
 
 ## Function listing
 
 #### Vector algebra
 
-*TODO:* Explain `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`
+**TODO: Explain `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`**
 
 #### Matrix algebra
 
-*TODO:* Explain `diagonal`, `trace`, `outerprod`, `transpose`, `adjugate`, `comatrix`, `determinant`, `inverse`
+**TODO: Explain `diagonal`, `trace`, `outerprod`, `transpose`, `adjugate`, `comatrix`, `determinant`, `inverse`**
 
 #### Quaternion algebra
 
-*TODO:* Explain `exp`, `log`, `pow`, `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`
-*TODO:* Explain `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`
+**TODO: Explain `exp`, `log`, `pow`, `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`**
+**TODO: Explain `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`**
 
 #### Component-wise operations
 
@@ -290,7 +290,7 @@ bool2 d = equal(4,b);   // d contains false, true
 bool2 e = greater(a,b); // e contains false, true
 ```
 
-*TODO:* Explain `min`, `max`, `clamp`, `select`, `lerp`
+**TODO: Explain `min`, `max`, `clamp`, `select`, `lerp`**
 
 #### Reductions
 
@@ -305,7 +305,7 @@ bool2 e = greater(a,b); // e contains false, true
 
 #### Comparisons
 
-*TODO:* Explain `compare`
+**TODO: Explain `compare`**
 
 ## Optional features
 
@@ -358,11 +358,11 @@ The set of type aliases defined in `namespace linalg::aliases` is as follows:
 
 #### `ostream` overloads
 
-*TODO:* Explain `namespace linalg::ostream_overloads`
+**TODO: Explain `namespace linalg::ostream_overloads`**
 
 #### User-defined conversions
 
-*TODO:* Explain `converter<T,U>`
+**TODO: Explain `converter<T,U>`**
 
 #### Extensions in `linalgx.h`
 
@@ -405,7 +405,7 @@ See also: [Reductions](#reductions)
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `C`         | `vec<T,M>`   | `f(a[i], b[i], c)...`    |
 | `apply(f,a,b,c)` | `vec<A,M>`   | `vec<B,M>`   | `vec<C,M>`  | `vec<T,M>`   | `f(a[i], b[i], c[i])...` |
 
-*TODO:* Explain `apply_t<F, A...>` and SFINAE helpers.
+**TODO: Explain `apply_t<F, A...>` and SFINAE helpers.**
 
 See also: [Component-wise operations](#component-wide-operations)
 
@@ -424,7 +424,7 @@ The `linalgx.h` header will continue to experience breaking changes. As function
 
 ## Changes from `v2.1`
 
-*TODO:* Rework this to include a migration guide for users coming from previous versions of `linalg.h`.
+**TODO: Rework this to include a migration guide for users coming from previous versions of `linalg.h`.**
 
 #### Improvements in `v3.0`
 
