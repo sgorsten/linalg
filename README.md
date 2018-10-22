@@ -45,14 +45,26 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 `linalg::vec<T,M>` defines a fixed-length vector containing exactly `M` elements of type `T`. Convenience aliases such as `float3`, `float4`, or `int2` are provided in the [`linalg::aliases` namespace](#type-aliases). This data structure can be used to store a wide variety of types of data, including geometric vectors, points, homogeneous coordinates, plane equations, colors, texture coordinates, or any other situation where you need to manipulate a small sequence of numbers. As such, `vec<T,M>` is supported by a set of [algebraic](#vector-algebra) and [component-wise](#component-wise-operations) functions, as well as a set of standard [reductions](#reductions).
 
 `vec<T,M>`:
-* is default-constructible: 
+* is [`DefaultConstructible`](https://en.cppreference.com/w/cpp/named_req/DefaultConstructible):
   ```cpp
   float3 v; // v contains 0,0,0
   ```
-* is implicitly constructible from `M` elements of type `T`:
+* is constructible from `M` elements of type `T`:
   ```cpp
   float3 v {1,2,3}; // v contains 1,2,3
   ```
+* is [`CopyConstructible`](https://en.cppreference.com/w/cpp/named_req/CopyConstructible) and [`CopyAssignable`](https://en.cppreference.com/w/cpp/named_req/CopyAssignable): 
+  ```cpp
+  float3 v {1,2,3}; // v contains 1,2,3
+  float3 u {v};     // u contains 1,2,3
+  float3 w;         // w contains 0,0,0 
+  w = u;            // w contains 1,2,3
+  ```
+* is [`EqualityComparable`](https://en.cppreference.com/w/cpp/named_req/EqualityComparable) and [`LessThanComparable`](https://en.cppreference.com/w/cpp/named_req/LessThanComparable):
+  ```cpp
+  if(v == y) cout << "v and u contain equal elements in the same positions" << endl;
+  if(v < u) cout << "v precedes u lexicographically" << endl;
+  ```  
 * is **explicitly** constructible from a single element of type `T`:
   ```cpp
   float3 v = float3{4}; // v contains 4,4,4
@@ -61,13 +73,6 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```cpp
   float3 v {1.1f,2.3f,3.5f}; // v contains 1.1,2.3,3.5
   int3 u = int3{v};          // u contains 1,2,3
-  ```
-* is copy-constructible and copy-assignable: 
-  ```cpp
-  float3 v {1,2,3}; // v contains 1,2,3
-  float3 u {v};     // u contains 1,2,3
-  float3 w;         // w contains 0,0,0 
-  w = u;            // w contains 1,2,3
   ```
 * supports indexing: 
   ```cpp
@@ -80,11 +85,6 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   pixel.a = 0.5;        // fourth element of pixel set to 0.5
   float s = tc.s;       // s contains first element of tc
   float3 c = pixel.bgr; // c contains pixel[2],pixel[1],pixel[0]
-  ```
-* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
-  ```cpp
-  if(v == y) cout << "v and u contain equal elements in the same positions" << endl;
-  if(v < u) cout << "v precedes u lexicographically" << endl;
   ```
 * supports unary operators `+`, `-`, `!` and `~` in component-wise fashion: 
   ```cpp
@@ -123,14 +123,26 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 `linalg::mat<T,M,N>` defines a fixed-size matrix containing exactly `M` rows and `N` columns of type `T`, in column-major order. Convenience aliases such as `float4x4` or `double3x3` are provided in the [`linalg::aliases` namespace](#type-aliases). Unlike `vec<T,M>`, this data structure is **not** intended for general storage of two dimensional arrays of data, and is supported only by a set of [algebraic](#matrix-algebra) functions. However, component-wise and reduction operations can be invoked explicitly via [higher-order functions](#higher-order-functions).
 
 `mat<T,M,N>`:
-* is default-constructible: 
+* is [`DefaultConstructible`](https://en.cppreference.com/w/cpp/named_req/DefaultConstructible):
   ```cpp
   float2x2 m; // m contains columns 0,0; 0,0
   ```
-* is implicitly constructible from `N` columns of type `vec<T,M>`: 
+* is constructible from `N` columns of type `vec<T,M>`: 
   ```cpp
   float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
   ```
+* is [`CopyConstructible`](https://en.cppreference.com/w/cpp/named_req/CopyConstructible) and [`CopyAssignable`](https://en.cppreference.com/w/cpp/named_req/CopyAssignable): 
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  float2x2 n {m};           // n contains columns 1,2; 3,4
+  float2x2 p;               // p contains columns 0,0; 0,0
+  p = n;                    // p contains columns 1,2; 3,4
+  ```
+* is [`EqualityComparable`](https://en.cppreference.com/w/cpp/named_req/EqualityComparable) and [`LessThanComparable`](https://en.cppreference.com/w/cpp/named_req/LessThanComparable):
+  ```cpp
+  if(m == n) cout << "m and n contain equal elements in the same positions" << endl;
+  if(m < n) cout << "m precedes n lexicographically when compared in column-major order" << endl;
+  ```  
 * is **explicitly** constructible from a single element of type `T`: 
   ```cpp
   float2x2 m {5}; // m contains columns 5,5; 5,5
@@ -139,21 +151,9 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```cpp
   float2x2 m {int2x2{{5,6},{7,8}}}; // m contains columns 5,6; 7,8
   ```
-* is copy-constructible and copy-assignable: 
-  ```cpp
-  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
-  float2x2 n {m};           // n contains columns 1,2; 3,4
-  float2x2 p;               // p contains columns 0,0; 0,0
-  p = n;                    // p contains columns 1,2; 3,4
-  ```
 * supports indexing into *columns*: 
   ```cpp
   float2 c = m[0]; // c contains first column of m
-  ```
-* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable) and [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable):
-  ```cpp
-  if(m == n) cout << "m and n contain equal elements in the same positions" << endl;
-  if(m < n) cout << "m precedes n lexicographically when compared in column-major order" << endl;
   ```
 * supports unary operators `+`, `-`:
   ```cpp
@@ -179,16 +179,44 @@ TODO: Finish explaining `linalg::mat<T,M,N>`
 `linalg::quat<T>` defines a quaternion using four elements of type `T`, representing the quantity *xi + yi + zj + w* in `x,y,z,w` order. Convenience aliases such as `quatf` and `quatd` are provided in the [`linalg::aliases` namespace](#type-aliases). Unlike `vec<T,4>`, this data structure is **not** intended for general storage of four dimensional quantities, and is supported only by a set of [algebraic](#quaternion-algebra) functions. However, component-wise and reduction operations can be invoked explicitly via [higher-order functions](#higher-order-functions).
 
 `quat<T>`:
-* is default-constructible to **zero**: `quatf q; // q contains 0,0,0,0`
-* is implicitly constructible from four elements of type `T`: `quatf q {0,0,0,1}; // q contains 0,0,0,1`
-* is implicitly constructible from a `vec<T,3>` and a `T`: `quatf q {axis*sinf(angle/2), cosf(angle/2)}; // q represents rotation of angle about axis`
-* is **explicitly** constructible from a `vec<T,4>`: `quatf q {float4{1,2,3,4}}; // q contains 1,2,3,4`
-* is **explicitly** constructible from a `quat<U>` of some other type `U`: `quatf q {quatd{1,0,0,0}}; // q contains 1,0,0,0`
-* is copy-constructible: `quatf q {0,1,0,0}, r {q}; // q and r contain 0,1,0,0`
-* is copy-assignable: `quatf q {0,0,1,0}, r; r = q; // q and r contain 0,0,1,0`
-* has named fields `x`,`y`,`z`,`w`: `float real = q.w; // real contains the real-valued part of q`
-* is [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `bool b = (q == q); // b is true if q and r are equal quaternions`
-* is [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `bool b = (q < r); // b is true if q precedes r lexicographically in x,y,z,w order`
+* is [`DefaultConstructible`](https://en.cppreference.com/w/cpp/named_req/DefaultConstructible): to **zero**:
+  ```cpp
+  quatf q; // q contains 0,0,0,0
+  ```
+* is constructible from four elements of type `T`:
+  ```cpp
+  quatf q {0,0,0,1}; // q contains 0,0,0,1
+  ```
+* is constructible from a `vec<T,3>` and a `T`:
+  ```cpp
+  float3 axis {0,1,0};
+  float angle = 2;
+  quatf q {axis*sinf(angle/2), cosf(angle/2)}; // q represents rotation of angle about axis
+  ```  
+* is [`CopyConstructible`](https://en.cppreference.com/w/cpp/named_req/CopyConstructible) and [`CopyAssignable`](https://en.cppreference.com/w/cpp/named_req/CopyAssignable): 
+  ```cpp
+  quatf q {0,1,0,0}; // q contains 0,1,0,0
+  quatf r {q};       // r contains 0,1,0,0
+  quatf s;           // s contains 0,0,0,0
+  s = r;             // s contains 0,1,0,0
+  ```
+* is [`EqualityComparable`](https://en.cppreference.com/w/cpp/named_req/EqualityComparable) and [`LessThanComparable`](https://en.cppreference.com/w/cpp/named_req/LessThanComparable):
+  ```cpp
+  if(q == r) cout << "q and r are equal quaternions" << endl;
+  if(q < r) cout << "q precedes r lexicographically when considered as sequences in x,y,z,w order" << endl;
+  ```  
+* is **explicitly** constructible from a `vec<T,4>`:
+  ```cpp
+  quatf q {float4{1,2,3,4}}; // q contains 1,2,3,4
+  ```
+* is **explicitly** constructible from a `quat<U>` of some other type `U`:
+  ```cpp
+  quatf q {quatd{1,0,0,0}}; // q contains 1,0,0,0`
+  ```
+* has named fields `x`,`y`,`z`,`w`:
+  ```cpp
+  float real = q.w; // real contains the real-valued part of q
+  ```
 * supports unary operators `+`, `-`
 * supports binary operators `+`, `-` between quaternions
 * supports operator `*` with quaternions or scalars
