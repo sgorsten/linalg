@@ -108,7 +108,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```cpp
   auto v = float3{1,2,3} + int3{4,5,6}; // v is float3{5,7,9}
   ```
-* is iterable:
+* supports [range-based for](https://en.cppreference.com/w/cpp/language/range-for):
   ```cpp
   for(auto elem : float3{1,2,3}) cout << elem << ' '; // prints "1 2 3 "
   ```
@@ -131,6 +131,10 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * is constructible from `N` columns of type `vec<T,M>`: 
   ```cpp
   float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  ```
+* is constructible from `linalg::identity`:
+  ```cpp
+  float3x3 m = linalg::identity; // m contains columns 1,0,0; 0,1,0; 0,0,1
   ```
 * is [`CopyConstructible`](https://en.cppreference.com/w/cpp/named_req/CopyConstructible) and [`CopyAssignable`](https://en.cppreference.com/w/cpp/named_req/CopyAssignable): 
   ```cpp
@@ -180,7 +184,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports operator `*` with a `mat<T,N,P>` on the right (matrix product)
 * supports operators `+=`, `-=`, `*=`, `/=` with appropriate types on the right
 * supports operations on mixed element types
-* is iterable over columns
+* supports [range-based for](https://en.cppreference.com/w/cpp/language/range-for) over columns
 * has a flat memory layout
 
 *TODO:* Finish explaining `linalg::mat<T,M,N>`
@@ -196,8 +200,12 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```
 * is constructible from four elements of type `T`:
   ```cpp
-  quatf q {0,0,0,1}; // q contains 0,0,0,1
+  quatf q {1,0,0,0}; // q contains 1,0,0,0
   ```
+* is constructible from `linalg::identity`:
+  ```cpp
+  quatf q = linalg::identity; // q contains 0,0,0,1
+  ```  
 * is constructible from a `vec<T,3>` and a `T`:
   ```cpp
   float3 axis {0,1,0};
@@ -218,7 +226,8 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   ```  
 * is **explicitly** constructible from a `vec<T,4>`:
   ```cpp
-  quatf q {float4{1,2,3,4}}; // q contains 1,2,3,4
+  float4 v {1,2,3,4}; // v contains 1,2,3,4
+  quatf q {v};        // q contains 1,2,3,4
   ```
 * is **explicitly** constructible from a `quat<U>` of some other type `U`:
   ```cpp
@@ -234,6 +243,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 * supports operator `/` with a scalar on the right
 * supports operators `+=`, `-=`, `*=`, `/=` with appropriate types on the right
 * supports operations on mixed element types
+* exposes explicit cast to `vec<T,4>` and member function `xyz()`
 
 *TODO:* Finish explaining `linalg::quat<T>`
 
@@ -241,9 +251,16 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 
 #### Vector algebra
 
+*TODO:* Explain `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`
+
 #### Matrix algebra
 
+*TODO:* Explain `diagonal`, `trace`, `outerprod`, `transpose`, `adjugate`, `comatrix`, `determinant`, `inverse`
+
 #### Quaternion algebra
+
+*TODO:* Explain `exp`, `log`, `pow`, `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`
+*TODO:* Explain `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`
 
 #### Component-wise operations
 
@@ -285,6 +302,10 @@ bool2 e = greater(a,b); // e contains false, true
 * `maxelem :: vec<T,M> => T` returns the **value** of the greatest element in the vector
 * `argmin :: vec<T,M> => int` returns the **index** of the least element in the vector
 * `argmax :: vec<T,M> => int` returns the **index** of the greatest element in the vector
+
+#### Comparisons
+
+*TODO:* Explain `compare`
 
 ## Optional features
 
@@ -453,33 +474,3 @@ The `linalgx.h` header will continue to experience breaking changes. As function
 * Some functionality has been moved from `linalg.h` to optional `linalgx.h` header
   * quat/matrix factory functions for 3D transformations
   * std::hash<...> specializations
-
-## Documentation checklist
-
-Documentation needs to be provided for the following symbols.
-
-- [x] `struct vec<T,M>`: accessors, swizzles, constructors, `operator[]`
-- [x] `struct mat<T,M,N>`: constructors, `operator[]`, `row`
-- [ ] `struct quat<T>`: `x`, `y`, `z`, `w`, constructors, `xyz`
-
-- [ ] `identity`
-- [x] higher-order functions: `fold`, `apply`, `map`, `zip`, `apply_t`
-- [ ] three-way comparison: `compare`
-- [x] [`EqualityComparable`](http://en.cppreference.com/w/cpp/concept/EqualityComparable): `operator ==, !=`
-- [x] [`LessThanComparable`](http://en.cppreference.com/w/cpp/concept/LessThanComparable): `operator <, >, <=, >=`
-- [x] component-wise operator overloads for `vec<T,M>`
-- [ ] algebraic operator overloads for `mat<T,M,N>` and `quat<T>`
-- [x] reduction functions: `any`, `all`, `sum`, `product`, `minelem`, `maxelem`
-- [x] search functions: `argmin`, `argmax`
-- [x] `<cmath>` projections: `abs`, `floor`, `ceil`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `round`, `fmod`, `pow`, `atan2`, `copysign`
-- [x] component-wise comparisons: `equal`, `nequal`, `less`, `greater`, `lequal`, `gequal`
-- [ ] component-wise selection: `min`, `max`, `clamp`, `select`, `lerp`
-- [ ] vector algebra: `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`
-- [ ] matrix algebra: `diagonal`, `outerprod`, `transpose`, `adjugate`, `determinant`, `trace`, `inverse`
-- [ ] quaternion algebra: `conjugate`, `dot`, `length`, `length2`, `inverse`, `normalize`, `uangle`, `lerp`, `nlerp`, `slerp`, `qexp`, `qlog`, `qpow`
-- [ ] rotation quaternion support: `qxdir`, `qydir`, `qzdir`, `qmat`, `qrot`, `qangle`, `qaxis`, `qnlerp`, `qslerp`
-- [ ] iterators and ranges: `begin`, `end`
-- [x] `namespace linalg::aliases`
-- [ ] ostream operators
-- [ ] user-defined conversions: `converter<T,U>`
-
