@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\test-linalgx.cpp">
-      <Filter>linalgx</Filter>
-    </ClCompile>
     <ClCompile Include="..\test-constant-expressions.cpp">
       <Filter>linalg</Filter>
     </ClCompile>
@@ -31,23 +28,26 @@
     <ClCompile Include="..\test-user-defined-conversions.cpp">
       <Filter>linalg</Filter>
     </ClCompile>
+    <ClCompile Include="..\test-linalg-ext.cpp">
+      <Filter>linalg-ext</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\linalgx.h">
-      <Filter>linalgx</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\linalg.h">
       <Filter>linalg</Filter>
     </ClInclude>
     <ClInclude Include="..\test-linalg.h">
       <Filter>linalg</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\linalg-ext.h">
+      <Filter>linalg-ext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="linalg">
       <UniqueIdentifier>{c3576057-c041-4594-8b84-1aefaf672236}</UniqueIdentifier>
     </Filter>
-    <Filter Include="linalgx">
+    <Filter Include="linalg-ext">
       <UniqueIdentifier>{9c88444b-99a3-47de-89d0-ccacee72aa03}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

@@ -33,7 +33,7 @@ float4 compute_plane(float3 a, float3 b, float3 c)
   * [Type aliases](#type-aliases)
   * [`ostream` overloads](#ostream-overloads)
   * [User-defined conversions](#user-defined-conversions)
-  * [Extensions in `linalgx.h`](#extensions-in-linalgxh)
+  * [Extensions in `linalg-ext.h`](#extensions-in-linalgxh)
 * [Higher order functions](#higher-order-functions)
 * [Design rationale](#design-rationale)
 * [Stability guarantees](#stability-guarantees)
@@ -364,9 +364,9 @@ The set of type aliases defined in `namespace linalg::aliases` is as follows:
 
 **TODO: Explain `converter<T,U>`**
 
-#### Extensions in `linalgx.h`
+#### Extensions in `linalg-ext.h`
 
-A second header `linalgx.h` is under development, providing functionality that is not essential to the use of `linalg.h`. This header will be considered unstable even after the publication of `v3.0`, but should stabilize shortly thereafter.
+A second header `linalg-ext.h` is under development, providing functionality that is not essential to the use of `linalg.h`. This header will be considered unstable even after the publication of `v3.0`, but should stabilize shortly thereafter.
 
 ## Higher order functions
 
@@ -420,7 +420,7 @@ As of the `v3.0` tag, the functionality provided by `linalg.h` will be considere
 * The type or implementation details of any types which begin with an underscore, such as `_scalar<...>`, `_lswizzle<...>`, `_rswizzle<...>`
 * Direct access to any member variable whose name begins with an underscore, such as `vec<T,M>::_` or `mat<T,M,N>::_`
 
-The `linalgx.h` header will continue to experience breaking changes. As functionality in `linalgx.h` stabilizes, it may be migrated into `linalg.h`, in which case it will be considered stable.
+The `linalg-ext.h` header will continue to experience breaking changes. As functionality in `linalg-ext.h` stabilizes, it may be migrated into `linalg.h`, in which case it will be considered stable.
 
 ## Changes from `v2.1`
 
@@ -471,6 +471,6 @@ The `linalgx.h` header will continue to experience breaking changes. As function
   * `vec<T,M>` and `mat<T,M,N>` no longer have an explicit constructor from `const T *`
   * These capabilities can be added by specializing `converter<T,U>`, as shown in [test-user-defined-conversions.cpp](tests/test-user-defined-conversions.cpp) 
 * The functions `vec::xy()` and `vec::xyz()` have been replaced by the swizzles `vec::xy` and `vec::xyz`
-* Some functionality has been moved from `linalg.h` to optional `linalgx.h` header
+* Some functionality has been moved from `linalg.h` to optional `linalg-ext.h` header
   * quat/matrix factory functions for 3D transformations
   * std::hash<...> specializations

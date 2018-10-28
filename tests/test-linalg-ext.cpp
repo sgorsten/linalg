@@ -1,5 +1,5 @@
 #include "test-linalg.h"
-#include "../linalgx.h"
+#include "../linalg-ext.h"
 
 namespace linalg
 {

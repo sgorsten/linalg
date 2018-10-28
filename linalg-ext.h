@@ -1,8 +1,8 @@
 #pragma once
-#ifndef LINALGX_H
-#define LINALGX_H
+#ifndef LINALG_EXT_H
+#define LINALG_EXT_H
 
-// linalgx.h - Unstable extensions to linalg.h
+// linalg_ext.h - Unstable extensions to linalg.h
 //
 // The intent of this file is to publish frequently used extensions to
 // linalg.h, without offering a commitment to backwards compatibility.
