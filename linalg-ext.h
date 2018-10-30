@@ -149,10 +149,10 @@ namespace linalg
 
     namespace aliases
     {
-         using byte1=vec<uint8_t,1>; using short1=vec<int16_t,1>; using ushort1=vec<uint16_t,1>; using uint1=vec<unsigned,1>;  
-         using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>; using uint2=vec<unsigned,2>;  
-         using byte3=vec<uint8_t,3>; using short3=vec<int16_t,3>; using ushort3=vec<uint16_t,3>; using uint3=vec<unsigned,3>;  
-         using byte4=vec<uint8_t,4>; using short4=vec<int16_t,4>; using ushort4=vec<uint16_t,4>; using uint4=vec<unsigned,4>;      
+         using byte1=vec<uint8_t,1>; using short1=vec<int16_t,1>; using ushort1=vec<uint16_t,1>;
+         using byte2=vec<uint8_t,2>; using short2=vec<int16_t,2>; using ushort2=vec<uint16_t,2>;
+         using byte3=vec<uint8_t,3>; using short3=vec<int16_t,3>; using ushort3=vec<uint16_t,3>;
+         using byte4=vec<uint8_t,4>; using short4=vec<int16_t,4>; using ushort4=vec<uint16_t,4>;
     }
 }
 
