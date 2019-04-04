@@ -1,27 +1,38 @@
 sudo: false
 language: cpp
-compiler: 
-  - gcc
-  - clang
-
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.7
-    packages:
-    - gcc-4.9
-    - g++-4.9
-    - clang-3.7
-
+matrix:
+  include:
+    - env: COMPILER=g++-4.9
+      addons: { apt: { packages: ["g++-4.9"], sources: ["ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=g++-5
+      addons: { apt: { packages: ["g++-5"], sources: ["ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=g++-6
+      addons: { apt: { packages: ["g++-6"], sources: ["ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=g++-7
+      addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=g++-8
+      addons: { apt: { packages: ["g++-8"], sources: ["ubuntu-toolchain-r-test"] } }
+    - env: COMPILER=clang++-3.5 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-3.5", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.5"] } }
+    - env: COMPILER=clang++-3.6 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-3.6", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.6"] } }
+    - env: COMPILER=clang++-3.7 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-3.7", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.7"] } }
+    - env: COMPILER=clang++-3.8 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-3.8", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-precise-3.8"] } }
+    - env: COMPILER=clang++-3.9 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-3.9", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-3.9"] } }
+    - env: COMPILER=clang++-4.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-4.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-4.0"] } }
+    - env: COMPILER=clang++-5.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-5.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-5.0"] } }
+    - env: COMPILER=clang++-6.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
+      addons: { apt: { packages: ["clang-6.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
+      
 install:
-  # /usr/bin/gcc is 4.6 always, but gcc-X.Y is available.
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
-  # /usr/bin/clang is 3.4, lets override with modern one.
-  - if [ "$CXX" = "clang++" ] && [ "$TRAVIS_OS_NAME" = "linux" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
-  - echo ${CXX}
-  - ${CXX} --version
-  - ${CXX} -v
+  - export CXX=${COMPILER}
+  - export CXXLIBRARY=${CXXLIBRARY}
+  - ${CXX} --version  
 
 script: 
   cd samples;
