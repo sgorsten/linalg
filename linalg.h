@@ -60,6 +60,10 @@
 
 namespace linalg
 {
+    // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
+    template<class T, class U> struct converter {};
+    namespace detail { template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type; }
+
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
     template<class T, int M> struct vec;
     template<class T> struct vec<T,2>
@@ -67,13 +71,16 @@ namespace linalg
         T                           x,y;
         constexpr                   vec()                               : x(), y() {}
         constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-        constexpr                   vec(const std::array<T,2> & a)		: x(a[0]), y(a[1]) {}
+        constexpr                   vec(const std::array<T,2> & a)      : x(a[0]), y(a[1]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
         constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
         T &                         operator[] (int i)                  { return (&x)[i]; }
+
+        template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
     };
     template<class T> struct vec<T,3>
     {
@@ -83,7 +90,7 @@ namespace linalg
                                         const T & z_)                   : x(x_), y(y_), z(z_) {}
         constexpr                   vec(const vec<T,2> & xy,
                                         const T & z_)                   : vec(xy.x, xy.y, z_) {}
-        constexpr                   vec(const std::array<T,3> & a)		: x(a[0]), y(a[1]), z(a[2]) {}
+        constexpr                   vec(const std::array<T,3> & a)      : x(a[0]), y(a[1]), z(a[2]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
@@ -92,6 +99,9 @@ namespace linalg
         T &                         operator[] (int i)                  { return (&x)[i]; }
         constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }
+
+        template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
     };
     template<class T> struct vec<T,4>
     {
@@ -103,7 +113,7 @@ namespace linalg
                                         const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
         constexpr                   vec(const vec<T,3> & xyz,
                                         const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-        constexpr                   vec(const std::array<T,4> & a)		: x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
+        constexpr                   vec(const std::array<T,4> & a)      : x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
@@ -114,6 +124,9 @@ namespace linalg
         constexpr const vec<T,3> &  xyz() const                         { return *reinterpret_cast<const vec<T,3> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }                
         vec<T,3> &                  xyz()                               { return *reinterpret_cast<vec<T,3> *>(this); }
+
+        template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
@@ -131,6 +144,9 @@ namespace linalg
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
         constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
+
+        template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
     };
     template<class T, int M> struct mat<T,M,3>
     {
@@ -146,6 +162,9 @@ namespace linalg
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
         constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
+
+        template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
     };
     template<class T, int M> struct mat<T,M,4>
     {
@@ -161,7 +180,17 @@ namespace linalg
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
         constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
         V &                         operator[] (int j)                  { return (&x)[j]; }
+
+        template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
     };
+
+    // Define a type which will convert to the multiplicative identity of any square matrix
+    struct identity_t { constexpr explicit identity_t(int) {} };
+    template<class T> struct converter<mat<T,2,2>, identity_t> { mat<T,2,2> operator() (identity_t) const { return {{1,0},{0,1}}; } };
+    template<class T> struct converter<mat<T,3,3>, identity_t> { mat<T,3,3> operator() (identity_t) const { return {{1,0,0},{0,1,0},{0,0,1}}; } };
+    template<class T> struct converter<mat<T,4,4>, identity_t> { mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
+    constexpr identity_t identity {1};
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
@@ -394,16 +423,6 @@ namespace linalg
     template<class T, int M, int N> const vec<T,M> * begin(const mat<T,M,N> & a) { return &a[0]; }
     template<class T, int M, int N>       vec<T,M> * end  (      mat<T,M,N> & a) { return begin(a) + N; }
     template<class T, int M, int N> const vec<T,M> * end  (const mat<T,M,N> & a) { return begin(a) + N; }
-
-    // linalg::identity is a constant which can be assigned to any square matrix type
-    struct identity_t
-    {
-        constexpr identity_t() {};
-        template<class T> constexpr operator mat<T,2,2>() const { return {{1,0},{0,1}}; }
-        template<class T> constexpr operator mat<T,3,3>() const { return {{1,0,0},{0,1,0},{0,0,1}}; }
-        template<class T> constexpr operator mat<T,4,4>() const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; }
-    };
-    static constexpr const identity_t identity {};
 
     // Factory functions for 3D spatial transformations (will possibly be removed or changed in a future version)
     enum fwd_axis { neg_z, pos_z };                 // Should projection matrices be generated assuming forward is {0,0,-1} or {0,0,1}
