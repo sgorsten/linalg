@@ -50,8 +50,7 @@
 #include <cmath>        // For various unary math functions, such as std::sqrt
 #include <cstdlib>      // To resolve std::abs ambiguity on clang
 #include <cstdint>      // For implementing namespace linalg::aliases
-#include <array>        // For std::array, used in the relational operator overloads
-#include <limits>       // For std::numeric_limits/epsilon
+#include <type_traits>  // For std::enable_if, std::is_same, std::declval
 
 // Visual Studio versions prior to 2015 lack constexpr support
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(constexpr)
@@ -62,7 +61,7 @@ namespace linalg
 {
     // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
     template<class T, class U> struct converter {};
-    namespace detail { template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>()(std::declval<U>()))>::type; }
+    namespace detail { template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type; }
 
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
     template<class T, int M> struct vec;
@@ -71,7 +70,6 @@ namespace linalg
         T                           x,y;
         constexpr                   vec()                               : x(), y() {}
         constexpr                   vec(const T & x_, const T & y_)     : x(x_), y(y_) {}
-        constexpr                   vec(const std::array<T,2> & a)      : x(a[0]), y(a[1]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
@@ -90,7 +88,6 @@ namespace linalg
                                         const T & z_)                   : x(x_), y(y_), z(z_) {}
         constexpr                   vec(const vec<T,2> & xy,
                                         const T & z_)                   : vec(xy.x, xy.y, z_) {}
-        constexpr                   vec(const std::array<T,3> & a)      : x(a[0]), y(a[1]), z(a[2]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
@@ -113,7 +110,6 @@ namespace linalg
                                         const T & z_, const T & w_)     : vec(xy.x, xy.y, z_, w_) {}
         constexpr                   vec(const vec<T,3> & xyz,
                                         const T & w_)                   : vec(xyz.x, xyz.y, xyz.z, w_) {}
-        constexpr                   vec(const std::array<T,4> & a)      : x(a[0]), y(a[1]), z(a[2]), w(a[3]) {}
         constexpr explicit          vec(const T & s)                    : vec(s, s, s, s) {}
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
@@ -194,10 +190,10 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; typedef std::array<T,M> compare_as; };
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
     template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
     template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; typedef std::array<T,M*N> compare_as; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
     template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
@@ -230,12 +226,32 @@ namespace linalg
     template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) -> mat<decltype(f(T())),M,N> { return zip(a, a, [f](T l, T) { return f(l); }); }
 
     // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator == (const A & a, const A & b) { return reinterpret_cast<const C &>(a) == reinterpret_cast<const C &>(b); } 
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator != (const A & a, const A & b) { return reinterpret_cast<const C &>(a) != reinterpret_cast<const C &>(b); } 
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator <  (const A & a, const A & b) { return reinterpret_cast<const C &>(a) <  reinterpret_cast<const C &>(b); } 
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator >  (const A & a, const A & b) { return reinterpret_cast<const C &>(a) >  reinterpret_cast<const C &>(b); } 
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator <= (const A & a, const A & b) { return reinterpret_cast<const C &>(a) <= reinterpret_cast<const C &>(b); } 
-    template<class A, class C=typename traits<A,A>::compare_as> constexpr bool operator >= (const A & a, const A & b) { return reinterpret_cast<const C &>(a) >= reinterpret_cast<const C &>(b); }
+    namespace detail
+    {
+        // Type returned by the compare(...) function which supports all six comparison operators against 0
+        template<class T> struct ord { T a,b; };
+        template<class T> constexpr bool operator == (const ord<T> & o, std::nullptr_t) { return o.a == o.b; }
+        template<class T> constexpr bool operator != (const ord<T> & o, std::nullptr_t) { return !(o.a == o.b); }
+        template<class T> constexpr bool operator < (const ord<T> & o, std::nullptr_t) { return o.a < o.b; }
+        template<class T> constexpr bool operator > (const ord<T> & o, std::nullptr_t) { return o.b < o.a; }
+        template<class T> constexpr bool operator <= (const ord<T> & o, std::nullptr_t) { return !(o.b < o.a); }
+        template<class T> constexpr bool operator >= (const ord<T> & o, std::nullptr_t) { return !(o.a < o.b); }
+
+        template<class A, class B> struct any_compare {};
+        template<class T> struct any_compare<vec<T,2>,vec<T,2>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,2> & a, const vec<T,2> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : ord<T>{a[1],b[1]}; } };
+        template<class T> struct any_compare<vec<T,3>,vec<T,3>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,3> & a, const vec<T,3> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : ord<T>{a[2],b[2]}; } };
+        template<class T> struct any_compare<vec<T,4>,vec<T,4>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,4> & a, const vec<T,4> & b) const { return !(a[0]==b[0]) ? ord<T>{a[0],b[0]} : !(a[1]==b[1]) ? ord<T>{a[1],b[1]} : !(a[2]==b[2]) ? ord<T>{a[2],b[2]} : ord<T>{a[3],b[3]}; } };
+        template<class T, int M> struct any_compare<mat<T,M,2>,mat<T,M,2>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,2> & a, const mat<T,M,2> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : compare(a[1],b[1]); } };
+        template<class T, int M> struct any_compare<mat<T,M,3>,mat<T,M,3>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,3> & a, const mat<T,M,3> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : compare(a[2],b[2]); } };
+        template<class T, int M> struct any_compare<mat<T,M,4>,mat<T,M,4>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,4> & a, const mat<T,M,4> & b) const { return a[0]!=b[0] ? compare(a[0],b[0]) : a[1]!=b[1] ? compare(a[1],b[1]) : a[2]!=b[2] ? compare(a[2],b[2]) : compare(a[3],b[3]); } };
+    }
+    template<class A, class B> constexpr typename detail::any_compare<A,B>::type compare(const A & a, const B & b) { return detail::any_compare<A,B>()(a,b); }
+    template<class A, class B> constexpr auto operator == (const A & a, const B & b) -> decltype(compare(a,b) == 0) { return compare(a,b) == 0; }
+    template<class A, class B> constexpr auto operator != (const A & a, const B & b) -> decltype(compare(a,b) != 0) { return compare(a,b) != 0; }
+    template<class A, class B> constexpr auto operator <  (const A & a, const B & b) -> decltype(compare(a,b) <  0) { return compare(a,b) <  0; }
+    template<class A, class B> constexpr auto operator >  (const A & a, const B & b) -> decltype(compare(a,b) >  0) { return compare(a,b) >  0; }
+    template<class A, class B> constexpr auto operator <= (const A & a, const B & b) -> decltype(compare(a,b) <= 0) { return compare(a,b) <= 0; }
+    template<class A, class B> constexpr auto operator >= (const A & a, const B & b) -> decltype(compare(a,b) >= 0) { return compare(a,b) >= 0; }
 
     // Lambdas are not permitted inside constexpr functions, so we provide explicit function objects instead
     namespace op
@@ -455,17 +471,6 @@ namespace linalg
         typedef mat<bool,4,3> bool4x3; typedef mat<int,4,3> int4x3; typedef mat<float,4,3> float4x3; typedef mat<double,4,3> double4x3;
         typedef mat<bool,4,4> bool4x4; typedef mat<int,4,4> int4x4; typedef mat<float,4,4> float4x4; typedef mat<double,4,4> double4x4;
     }
-}
-
-// Provide specializations for std::hash<...> with linalg types
-namespace std 
-{ 
-    template<class T> struct hash<linalg::vec<T,2>> { std::size_t operator()(const linalg::vec<T,2> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1); } };
-    template<class T> struct hash<linalg::vec<T,3>> { std::size_t operator()(const linalg::vec<T,3> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2); } };
-    template<class T> struct hash<linalg::vec<T,4>> { std::size_t operator()(const linalg::vec<T,4> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2) ^ (h(v.w) << 3); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,2>> { std::size_t operator()(const linalg::mat<T,M,2> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,3>> { std::size_t operator()(const linalg::mat<T,M,3> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)); } };
-    template<class T, int M> struct hash<linalg::mat<T,M,4>> { std::size_t operator()(const linalg::mat<T,M,4> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)) ^ (h(v.w) << (M*3)); } };
 }
 
 // Definitions of functions too long to be defined inline

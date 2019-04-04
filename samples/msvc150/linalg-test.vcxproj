@@ -23,6 +23,7 @@
     <ClCompile Include="..\linalg-test2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\linalg-std.h" />
     <ClInclude Include="..\..\linalg.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

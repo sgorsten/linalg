@@ -5,9 +5,12 @@
 [![Travis CI build status](http://travis-ci.org/sgorsten/linalg.svg)](https://travis-ci.org/sgorsten/linalg)
 [![Appveyor build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
 
-[linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/). 
+[linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/).
 
-It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 400 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 600 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
+
+Additionally, a small number of header-only extensions are provided for user convenience. See:
+* [linalg-std.h](/linalg-std.h) - Provide interop with some features of the C++ standard library
 
 # FAQ
 

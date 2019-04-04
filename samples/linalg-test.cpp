@@ -1,4 +1,5 @@
 #include "../linalg.h"
+#include "../linalg-std.h"
 using namespace linalg::aliases;
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

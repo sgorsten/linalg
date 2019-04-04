@@ -6,5 +6,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
+    <ClInclude Include="..\..\linalg-std.h" />
   </ItemGroup>
 </Project>
