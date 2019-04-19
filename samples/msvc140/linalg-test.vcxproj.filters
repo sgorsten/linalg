@@ -3,9 +3,16 @@
   <ItemGroup>
     <ClCompile Include="..\linalg-test.cpp" />
     <ClCompile Include="..\linalg-test2.cpp" />
+    <ClCompile Include="..\test-user-defined-conversions.cpp" />
+    <ClCompile Include="..\test-matrices.cpp" />
+    <ClCompile Include="..\test-ostream-overloads.cpp" />
+    <ClCompile Include="..\test-constant-expressions.cpp" />
+    <ClCompile Include="..\test-higher-order-functions.cpp" />
+    <ClCompile Include="..\test-quaternions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
     <ClInclude Include="..\..\linalg-std.h" />
+    <ClInclude Include="..\test-linalg.h" />
   </ItemGroup>
 </Project>
