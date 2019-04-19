@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClCompile Include="..\linalg-test.cpp" />
     <ClCompile Include="..\linalg-test2.cpp" />
+    <ClCompile Include="..\test-user-defined-conversions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg-std.h" />
     <ClInclude Include="..\..\linalg.h" />
+    <ClInclude Include="..\test-linalg.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
