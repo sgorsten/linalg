@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\linalg-test.cpp" />
     <ClCompile Include="..\linalg-test2.cpp" />
+    <ClCompile Include="..\test-matrices.cpp" />
     <ClCompile Include="..\test-user-defined-conversions.cpp" />
   </ItemGroup>
   <ItemGroup>

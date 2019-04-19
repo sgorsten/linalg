@@ -419,12 +419,14 @@ namespace linalg
     template<class T> constexpr vec<T,2> diagonal(const mat<T,2,2> & a) { return {a.x.x, a.y.y}; }
     template<class T> constexpr vec<T,3> diagonal(const mat<T,3,3> & a) { return {a.x.x, a.y.y, a.z.z}; }
     template<class T> constexpr vec<T,4> diagonal(const mat<T,4,4> & a) { return {a.x.x, a.y.y, a.z.z, a.w.w}; }
+    template<class T, int N> constexpr T trace(const mat<T,N,N> & a) { return sum(diagonal(a)); }
     template<class T, int M> constexpr mat<T,M,2> transpose(const mat<T,2,M> & m) { return {m.row(0), m.row(1)}; }
     template<class T, int M> constexpr mat<T,M,3> transpose(const mat<T,3,M> & m) { return {m.row(0), m.row(1), m.row(2)}; }
     template<class T, int M> constexpr mat<T,M,4> transpose(const mat<T,4,M> & m) { return {m.row(0), m.row(1), m.row(2), m.row(3)}; }
     template<class T> constexpr mat<T,2,2> adjugate(const mat<T,2,2> & a) { return {{a.y.y, -a.x.y}, {-a.y.x, a.x.x}}; }
     template<class T> constexpr mat<T,3,3> adjugate(const mat<T,3,3> & a);
     template<class T> constexpr mat<T,4,4> adjugate(const mat<T,4,4> & a);
+    template<class T, int N> constexpr mat<T,N,N> comatrix(const mat<T,N,N> & a) { return transpose(adjugate(a)); }
     template<class T> constexpr T determinant(const mat<T,2,2> & a) { return a.x.x*a.y.y - a.x.y*a.y.x; }
     template<class T> constexpr T determinant(const mat<T,3,3> & a) { return a.x.x*(a.y.y*a.z.z - a.z.y*a.y.z) + a.x.y*(a.y.z*a.z.x - a.z.z*a.y.x) + a.x.z*(a.y.x*a.z.y - a.z.x*a.y.y); }
     template<class T> constexpr T determinant(const mat<T,4,4> & a);
