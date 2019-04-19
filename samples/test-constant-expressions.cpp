@@ -53,7 +53,6 @@ static_assert(b2x2 >  a2x2, "linalg::mat<T,M,N>::operator> should be constexpr")
 static_assert(a3x3 <= b3x3, "linalg::mat<T,M,N>::operator<= should be constexpr");
 static_assert(b4x4 >= a4x4, "linalg::mat<T,M,N>::operator>= should be constexpr");
 
-/*
 // Check minelem
 static_assert(minelem(int4(-1, 2, 3, 4)) == -1, "minelem should be constexpr");
 static_assert(minelem(int4(1, -2, 3, 4)) == -2, "minelem should be constexpr");
@@ -66,6 +65,7 @@ static_assert(maxelem(int4(-1, 2, -3, -4)) == 2, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, -2, 3, -4)) == 3, "maxelem should be constexpr");
 static_assert(maxelem(int4(-1, -2, -3, 4)) == 4, "maxelem should be constexpr");
 
+/*
 // Check member .data()
 static_assert(a2.data() == (const int *)a2._._, "linalg::vec<T,2>::data() should be constexpr");
 static_assert(a3.data() == (const int *)a3._._, "linalg::vec<T,3>::data() should be constexpr");

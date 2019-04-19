@@ -61,16 +61,62 @@
 
 namespace linalg
 {
+    // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted.
+    template<class T, int M> struct vec;
+
+    // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
+    template<class T, int M, int N> struct mat;
+
     // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
     template<class T, class U> struct converter {};
     namespace detail 
     { 
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type;
         template<class T, int N> struct arr { T a[N]; };
+
+        // Stand-in for std::integer_sequence/std::make_integer_sequence
+        template<int... I> struct seq {};
+        template<int A, int N> struct make_seq_impl;
+        template<int A> struct make_seq_impl<A,0> { using type=seq<>; };
+        template<int A> struct make_seq_impl<A,1> { using type=seq<A+0>; };
+        template<int A> struct make_seq_impl<A,2> { using type=seq<A+0,A+1>; };
+        template<int A> struct make_seq_impl<A,3> { using type=seq<A+0,A+1,A+2>; };
+        template<int A> struct make_seq_impl<A,4> { using type=seq<A+0,A+1,A+2,A+3>; };
+        template<int A, int B> using make_seq = typename make_seq_impl<A,B-A>::type;
+        template<class T, int M, int... I> vec<T,sizeof...(I)> constexpr swizzle(const vec<T,M> & v, seq<I...> i) { return {v[I]...}; }
+        template<class T, int M, int N, int... I, int... J> mat<T,sizeof...(I),sizeof...(J)> constexpr swizzle(const mat<T,M,N> & m, seq<I...> i, seq<J...> j) { return {swizzle(m[J],i)...}; }
+
+        // SFINAE helpers to determine result of function application
+        template<class F, class... T> using ret_t = decltype(std::declval<F>()(std::declval<T>()...));
+
+        // SFINAE helper which is defined if all provided types are scalars
+        struct empty {};
+        template<class... T> struct scalars;
+        template<> struct scalars<> { using type=void; };
+        template<class T, class... U> struct scalars<T,U...> : std::conditional<std::is_arithmetic<T>::value, scalars<U...>, empty>::type {};
+        template<class... T> using scalars_t = typename scalars<T...>::type;
+
+        // Helpers which indicate how apply(F, ...) should be called for various arguments
+        template<class F, class Void, class... T> struct apply {}; // Patterns which contain only vectors or scalars
+        template<class F, int M, class A                  > struct apply<F, scalars_t<   >, vec<A,M>                    > { using type=vec<ret_t<F,A    >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a                                        ) { return {f(a[I]            )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b                    ) { return {f(a[I], b[I]      )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<B  >, vec<A,M>, B                 > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b                    ) { return {f(a[I], b         )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<A  >, A,        vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b                    ) { return {f(a,    b[I]      )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a[I], b[I], c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<C  >, vec<A,M>, vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, C                c) { return {f(a[I], b[I], c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B  >, vec<A,M>, B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, const vec<C,M> & c) { return {f(a[I], b,    c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B,C>, vec<A,M>, B,        C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, C                c) { return {f(a[I], b,    c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A  >, A,        vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a,    b[I], c[I])...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,C>, A,        vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, C                c) { return {f(a,    b[I], c   )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,B>, A,        B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, B                b, const vec<C,M> & c) { return {f(a,    b,    c[I])...}; } };
+        template<class F, int M, int N, class A         > struct apply<F, scalars_t< >, mat<A,M,N>            > { using type=mat<ret_t<F,A  >,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a                      ) { return {apply<F, void, vec<A,M>          >::impl(make_seq<0,M>{}, f, a[J]      )...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t< >, mat<A,M,N>, mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, const mat<B,M,N> & b) { return {apply<F, void, vec<A,M>, vec<B,M>>::impl(make_seq<0,M>{}, f, a[J], b[J])...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<B>, mat<A,M,N>, B         > { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, B                  b) { return {apply<F, void, vec<A,M>, B       >::impl(make_seq<0,M>{}, f, a[J], b   )...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<A>, A,          mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, A                  a, const mat<B,M,N> & b) { return {apply<F, void, A,        vec<B,M>>::impl(make_seq<0,M>{}, f, a,    b[J])...}; } };
+        template<class F, class... A> struct apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0}; static constexpr type impl(seq<>, F f, A... a) { return f(a...); } };
     }
 
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
-    template<class T, int M> struct vec;
     template<class T> struct vec<T,2>
     {
         T                           x,y;
@@ -132,7 +178,6 @@ namespace linalg
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
-    template<class T, int M, int N> struct mat;
     template<class T, int M> struct mat<T,M,2>
     {
         typedef vec<T,M>            V;
@@ -207,29 +252,25 @@ namespace linalg
     template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
     template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
 
-    // Produce a scalar by applying f(T,T) -> T to adjacent pairs of elements from vector/matrix a in left-to-right order (matching the associativity of arithmetic and logical operators)
-    template<class T, class F> constexpr T fold(const vec<T,2> & a, F f) { return f(a.x,a.y); }
-    template<class T, class F> constexpr T fold(const vec<T,3> & a, F f) { return f(f(a.x,a.y),a.z); }
-    template<class T, class F> constexpr T fold(const vec<T,4> & a, F f) { return f(f(f(a.x,a.y),a.z),a.w); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,2> & a, F f) { return f(fold(a.x,f),fold(a.y,f)); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,3> & a, F f) { return f(f(fold(a.x,f),fold(a.y,f)),fold(a.z,f)); }
-    template<class T, int M, class F> constexpr T fold(const mat<T,M,4> & a, F f) { return f(f(f(fold(a.x,f),fold(a.y,f)),fold(a.z,f)),fold(a.w,f)); }
+    // Produce a scalar by applying f(A,B) -> A to adjacent pairs of elements from a vec/mat in left-to-right/column-major order (matching the associativity of arithmetic and logical operators)
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,2> & b) { return f(f(a, b[0]), b[1]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,3> & b) { return f(f(f(a, b[0]), b[1]), b[2]); }
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,4> & b) { return f(f(f(f(a, b[0]), b[1]), b[2]), b[3]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,2> & b) { return fold(f, fold(f, a, b[0]), b[1]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,3> & b) { return fold(f, fold(f, fold(f, a, b[0]), b[1]), b[2]); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,4> & b) { return fold(f, fold(f, fold(f, fold(f, a, b[0]), b[1]), b[2]), b[3]); }
 
-    // Produce a vector/matrix by applying f(T,T) to corresponding pairs of elements from vectors/matrix a and b
-    template<class T,               class F> constexpr auto zip(const vec<T,2  > & a, const vec<T,2  > & b, F f) -> vec<decltype(f(T(),T())),2  > { return {f(a.x,b.x), f(a.y,b.y)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,3  > & a, const vec<T,3  > & b, F f) -> vec<decltype(f(T(),T())),3  > { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z)}; }
-    template<class T,               class F> constexpr auto zip(const vec<T,4  > & a, const vec<T,4  > & b, F f) -> vec<decltype(f(T(),T())),4  > { return {f(a.x,b.x), f(a.y,b.y), f(a.z,b.z), f(a.w,b.w)}; }
-    template<class T, int M,        class F> constexpr auto zip(const vec<T,M  > & a,                  T b, F f) -> vec<decltype(f(T(),T())),M  > { return zip(a, vec<T,M>(b), f); }
-    template<class T, int M,        class F> constexpr auto zip(                 T a, const vec<T,M  > & b, F f) -> vec<decltype(f(T(),T())),M  > { return zip(vec<T,M>(a), b, f); }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,2> & a, const mat<T,M,2> & b, F f) -> mat<decltype(f(T(),T())),M,2> { return {zip(a.x,b.x,f), zip(a.y,b.y,f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,3> & a, const mat<T,M,3> & b, F f) -> mat<decltype(f(T(),T())),M,3> { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f)}; }
-    template<class T, int M,        class F> constexpr auto zip(const mat<T,M,4> & a, const mat<T,M,4> & b, F f) -> mat<decltype(f(T(),T())),M,4> { return {zip(a.x,b.x,f), zip(a.y,b.y,f), zip(a.z,b.z,f), zip(a.w,b.w,f)}; }
-    template<class T, int M, int N, class F> constexpr auto zip(const mat<T,M,N> & a,                  T b, F f) -> mat<decltype(f(T(),T())),M,N> { return zip(a, mat<T,M,N>(b), f); }
-    template<class T, int M, int N, class F> constexpr auto zip(                 T a, const mat<T,M,N> & b, F f) -> mat<decltype(f(T(),T())),M,N> { return zip(mat<T,M,N>(a), b, f); }
+    // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
+    template<class F, class... A> using apply_t = typename detail::apply<F,void,A...>::type;
 
-    // Produce a vector/matrix by applying f(T) to elements from vector/matrix a
-    template<class T, int M,        class F> constexpr auto map(const vec<T,M  > & a, F f) -> vec<decltype(f(T())),M  > { return zip(a, a, [f](T l, T) { return f(l); }); }
-    template<class T, int M, int N, class F> constexpr auto map(const mat<T,M,N> & a, F f) -> mat<decltype(f(T())),M,N> { return zip(a, a, [f](T l, T) { return f(l); }); }
+    // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
+    template<class F, class... A> constexpr apply_t<F,A...> apply(F func, const A & ... args) { return detail::apply<F,void,A...>::impl(detail::make_seq<0,detail::apply<F,void,A...>::size>{}, func, args...); }
+
+    // map(a,f) is equivalent to apply(f,a)
+    template<class A, class F> constexpr apply_t<F,A> map(const A & a, F func) { return apply(func, a); }
+
+    // zip(a,b,f) is equivalent to apply(f,a,b)
+    template<class A, class B, class F> constexpr apply_t<F,A,B> zip(const A & a, const B & b, F func) { return apply(func, a, b); }
 
     // Relational operators are defined to compare the elements of two vectors or matrices lexicographically, in column-major order
     namespace detail
@@ -293,14 +334,14 @@ namespace linalg
     }
 
     // Functions for coalescing scalar values
-    template<class A> constexpr scalar_t<A> any    (const A & a) { return fold(a, op::logical_or<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> all    (const A & a) { return fold(a, op::logical_and<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(a, op::add<scalar_t<A>>{}); }
-    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(a, op::mul<scalar_t<A>>{}); }
+    template<class A> constexpr bool any (const A & a) { return fold(op::logical_or<scalar_t<A>>{}, false, a); }
+    template<class A> constexpr bool all (const A & a) { return fold(op::logical_and<scalar_t<A>>{}, true, a); }
+    template<class A> constexpr scalar_t<A> sum    (const A & a) { return fold(op::add<scalar_t<A>>{}, scalar_t<A>(0), a); }
+    template<class A> constexpr scalar_t<A> product(const A & a) { return fold(op::mul<scalar_t<A>>{}, scalar_t<A>(1), a); }
+    template<class A> constexpr scalar_t<A> minelem(const A & a) { return fold(op::min<scalar_t<A>>{}, a[0], a); }
+    template<class A> constexpr scalar_t<A> maxelem(const A & a) { return fold(op::max<scalar_t<A>>{}, a[0], a); }
     template<class T, int M> int argmin(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] < a[j]) j = i; return j; }
     template<class T, int M> int argmax(const vec<T,M> & a) { int j=0; for(int i=1; i<M; ++i) if(a[i] > a[j]) j = i; return j; }
-    template<class T, int M> T minelem(const vec<T,M> & a) { return a[argmin(a)]; }
-    template<class T, int M> T maxelem(const vec<T,M> & a) { return a[argmax(a)]; }
 
     // Overloads for unary operators on vectors are implemented in terms of elementwise application of the operator
     template<class A> constexpr arith_result_t<A> operator + (const A & a) { return map(a, op::pos<scalar_t<A>>{}); }
