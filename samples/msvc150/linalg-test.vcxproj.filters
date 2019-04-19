@@ -8,6 +8,7 @@
     <ClCompile Include="..\test-ostream-overloads.cpp" />
     <ClCompile Include="..\test-constant-expressions.cpp" />
     <ClCompile Include="..\test-higher-order-functions.cpp" />
+    <ClCompile Include="..\test-quaternions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />

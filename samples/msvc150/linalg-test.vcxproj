@@ -25,6 +25,7 @@
     <ClCompile Include="..\test-higher-order-functions.cpp" />
     <ClCompile Include="..\test-matrices.cpp" />
     <ClCompile Include="..\test-ostream-overloads.cpp" />
+    <ClCompile Include="..\test-quaternions.cpp" />
     <ClCompile Include="..\test-user-defined-conversions.cpp" />
   </ItemGroup>
   <ItemGroup>
