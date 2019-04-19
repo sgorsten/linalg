@@ -5,6 +5,7 @@
     <ClCompile Include="..\linalg-test2.cpp" />
     <ClCompile Include="..\test-user-defined-conversions.cpp" />
     <ClCompile Include="..\test-matrices.cpp" />
+    <ClCompile Include="..\test-ostream-overloads.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
