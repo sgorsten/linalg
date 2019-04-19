@@ -73,12 +73,12 @@ static_assert(a4.data() == (const int *)a4._._, "linalg::vec<T,4>::data() should
 static_assert(a2x2.data() == (const int *)a2x2._[0]._._, "linalg::mat<T,M,2>::data() should be constexpr");
 static_assert(a3x3.data() == (const int *)a3x3._[0]._._, "linalg::mat<T,M,3>::data() should be constexpr");
 static_assert(a4x4.data() == (const int *)a4x4._[0]._._, "linalg::mat<T,M,4>::data() should be constexpr");
+*/
 
 // Check submat/subvec
 static_assert(linalg::submat<0,0, 4,4>(m) == int4x4{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}}, "...");
 static_assert(linalg::submat<0,0, 3,3>(m) == int3x3{{1,2,3},{5,6,7},{9,10,11}}, "...");
 static_assert(linalg::submat<0,0, 2,2>(m) == int2x2{{1,2},{5,6}}, "...");
-static_assert(linalg::submat<0,0, 1,1>(m) == int1x1{int1{1}}, "...");
     
 static_assert(linalg::submat<0,0, 4,3>(m) == int4x3{{1,2,3,4},{5,6,7,8},{9,10,11,12}}, "...");
 static_assert(linalg::submat<0,1, 4,4>(m) == int4x3{{5,6,7,8},{9,10,11,12},{13,14,15,16}}, "...");
@@ -87,11 +87,6 @@ static_assert(linalg::submat<0,0, 4,2>(m) == int4x2{{1,2,3,4},{5,6,7,8}}, "...")
 static_assert(linalg::submat<0,1, 4,3>(m) == int4x2{{5,6,7,8},{9,10,11,12}}, "...");
 static_assert(linalg::submat<0,2, 4,4>(m) == int4x2{{9,10,11,12},{13,14,15,16}}, "...");
     
-static_assert(linalg::submat<0,0, 4,1>(m) == int4x1{{1,2,3,4}}, "...");
-static_assert(linalg::submat<0,1, 4,2>(m) == int4x1{{5,6,7,8}}, "...");
-static_assert(linalg::submat<0,2, 4,3>(m) == int4x1{{9,10,11,12}}, "...");
-static_assert(linalg::submat<0,3, 4,4>(m) == int4x1{{13,14,15,16}}, "...");
-
 static_assert(linalg::submat<0,0, 3,4>(m) == int3x4{{1,2,3},{5,6,7},{9,10,11},{13,14,15}}, "...");
 static_assert(linalg::submat<1,0, 4,4>(m) == int3x4{{2,3,4},{6,7,8},{10,11,12},{14,15,16}}, "...");
 
@@ -99,11 +94,7 @@ static_assert(linalg::submat<0,0, 2,4>(m) == int2x4{{1,2},{5,6},{9,10},{13,14}},
 static_assert(linalg::submat<1,0, 3,4>(m) == int2x4{{2,3},{6,7},{10,11},{14,15}}, "...");
 static_assert(linalg::submat<2,0, 4,4>(m) == int2x4{{3,4},{7,8},{11,12},{15,16}}, "...");
 
-static_assert(linalg::submat<0,0, 1,4>(m) == int1x4{{1},{5},{9},{13}}, "...");
-static_assert(linalg::submat<1,0, 2,4>(m) == int1x4{{2},{6},{10},{14}}, "...");
-static_assert(linalg::submat<2,0, 3,4>(m) == int1x4{{3},{7},{11},{15}}, "...");
-static_assert(linalg::submat<3,0, 4,4>(m) == int1x4{{4},{8},{12},{16}}, "...");
-
+/*
 // Check constexpr iterators
 #if !defined(_MSC_VER) || _MSC_VER > 1900
 static_assert(linalg::end(a2) - linalg::begin(a2) == 2, "begin()/end() should be constexpr");
