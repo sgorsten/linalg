@@ -6,6 +6,7 @@
     <ClCompile Include="..\test-user-defined-conversions.cpp" />
     <ClCompile Include="..\test-matrices.cpp" />
     <ClCompile Include="..\test-ostream-overloads.cpp" />
+    <ClCompile Include="..\test-constant-expressions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />

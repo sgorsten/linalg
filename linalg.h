@@ -52,16 +52,22 @@
 #include <cstdint>      // For implementing namespace linalg::aliases
 #include <type_traits>  // For std::enable_if, std::is_same, std::declval
 
-// Visual Studio versions prior to 2015 lack constexpr support
-#if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(constexpr)
-#define constexpr
+// In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
+#if _MSC_VER <= 1900
+#define LINALG_CONSTEXPR14
+#else
+#define LINALG_CONSTEXPR14 constexpr
 #endif
 
 namespace linalg
 {
     // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
     template<class T, class U> struct converter {};
-    namespace detail { template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type; }
+    namespace detail 
+    { 
+        template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type;
+        template<class T, int N> struct arr { T a[N]; };
+    }
 
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
     template<class T, int M> struct vec;
@@ -74,8 +80,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,2> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.a[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,2>{&vec::x, &vec::y}.a[i]); }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
@@ -92,8 +98,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2]) {}
         template<class U>
         constexpr explicit          vec(const vec<U,3> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.a[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,3>{&vec::x, &vec::y, &vec::z}.a[i]); }
         constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }
 
@@ -114,8 +120,8 @@ namespace linalg
         constexpr explicit          vec(const T * p)                    : vec(p[0], p[1], p[2], p[3]) {}
         template<class U> 
         constexpr explicit          vec(const vec<U,4> & v)             : vec(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z), static_cast<T>(v.w)) {}
-        constexpr const T &         operator[] (int i) const            { return (&x)[i]; }
-        T &                         operator[] (int i)                  { return (&x)[i]; }
+        constexpr const T &         operator[] (int i) const            { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.a[i]); }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return this->*(detail::arr<T vec::*,4>{&vec::x, &vec::y, &vec::z, &vec::w}.a[i]); }
         constexpr const vec<T,2> &  xy() const                          { return *reinterpret_cast<const vec<T,2> *>(this); }
         constexpr const vec<T,3> &  xyz() const                         { return *reinterpret_cast<const vec<T,3> *>(this); }
         vec<T,2> &                  xy()                                { return *reinterpret_cast<vec<T,2> *>(this); }                
@@ -138,8 +144,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,2> & m)           : mat(V(m.x), V(m.y)) {}
         constexpr vec<T,2>          row(int i) const                    { return {x[i], y[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,2>{&mat::x, &mat::y}.a[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,2>{&mat::x, &mat::y}.a[j]); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
@@ -156,8 +162,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,3> & m)           : mat(V(m.x), V(m.y), V(m.z)) {}
         constexpr vec<T,3>          row(int i) const                    { return {x[i], y[i], z[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,3>{&mat::x, &mat::y, &mat::z}.a[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,3>{&mat::x, &mat::y, &mat::z}.a[j]); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
@@ -174,8 +180,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,4> & m)           : mat(V(m.x), V(m.y), V(m.z), V(m.w)) {}
         constexpr vec<T,4>          row(int i) const                    { return {x[i], y[i], z[i], w[i]}; }
-        constexpr const V &         operator[] (int j) const            { return (&x)[j]; }
-        V &                         operator[] (int j)                  { return (&x)[j]; }
+        constexpr const V &         operator[] (int j) const            { return this->*(detail::arr<V mat::*,4>{&mat::x, &mat::y, &mat::z, &mat::w}.a[j]); }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return this->*(detail::arr<V mat::*,4>{&mat::x, &mat::y, &mat::z, &mat::w}.a[j]); }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
