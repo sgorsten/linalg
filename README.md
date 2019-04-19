@@ -3,7 +3,7 @@
 [![Release is 2.1](http://img.shields.io/badge/release-2.1-blue.svg?style=flat)](https://raw.githubusercontent.com/sgorsten/linalg/master/linalg.h)
 [![License is Unlicense](http://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 [![Travis CI build status](http://travis-ci.org/sgorsten/linalg.svg)](https://travis-ci.org/sgorsten/linalg)
-[![Appveyor build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg) |
+[![Appveyor build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg)
 
 [linalg.h](/linalg.h) is a [single header](http://github.com/nothings/stb/blob/master/docs/other_libs.md) [public domain](http://unlicense.org/) [linear algebra](http://en.wikipedia.org/wiki/Linear_algebra) library for [C++11](http://en.cppreference.com/w/).
 
