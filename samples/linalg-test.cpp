@@ -9,9 +9,9 @@ using namespace linalg::aliases;
 #include <algorithm>
 #include <typeinfo>
 
-using floating_point_types = doctest::Types<double, float>;
-using integral_types = doctest::Types<int, short, unsigned int, unsigned short>;
-using arithmetic_types = doctest::Types<double, float, int, short, unsigned int, unsigned short>;
+#define FLOATING_POINT_TYPES double, float
+#define INTEGRAL_TYPES int, short, unsigned int, unsigned short
+#define ARITHMETIC_TYPES double, float, int, short, unsigned int, unsigned short
 
 // Facility for retrieving random numbers
 class random_number_generator
@@ -45,7 +45,7 @@ static const int reps = 3; // Tests which use random data will be repeated this 
 // Test semantics of vec<T,M> element-wise constructors //
 //////////////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -57,7 +57,7 @@ TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, a
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -70,7 +70,7 @@ TEST_CASE_TEMPLATE("vec<T,3> can be constructed from 3 elements of type T", T, a
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, arithmetic_types)
+TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -88,7 +88,7 @@ TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, a
 // Test semantics of mat<T,M,N> column-wise constructors //
 ///////////////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -106,7 +106,7 @@ TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -127,7 +127,7 @@ TEST_CASE_TEMPLATE("mat<T,2,3> can be constructed from 3 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -151,7 +151,7 @@ TEST_CASE_TEMPLATE("mat<T,2,4> can be constructed from 4 columns of type vec<T,2
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -172,7 +172,7 @@ TEST_CASE_TEMPLATE("mat<T,3,2> can be constructed from 2 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -197,7 +197,7 @@ TEST_CASE_TEMPLATE("mat<T,3,3> can be constructed from 3 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -226,7 +226,7 @@ TEST_CASE_TEMPLATE("mat<T,3,4> can be constructed from 4 columns of type vec<T,3
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -250,7 +250,7 @@ TEST_CASE_TEMPLATE("mat<T,4,2> can be constructed from 2 columns of type vec<T,4
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -279,7 +279,7 @@ TEST_CASE_TEMPLATE("mat<T,4,3> can be constructed from 3 columns of type vec<T,4
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4>", T, arithmetic_types)
+TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4>", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -317,7 +317,7 @@ TEST_CASE_TEMPLATE("mat<T,4,4> can be constructed from 4 columns of type vec<T,4
 // Test semantics of operator == and operator != //
 ///////////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the same elements", T, arithmetic_types)
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the same elements", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -340,7 +340,7 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the s
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element differs between them", T, arithmetic_types)
+TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element differs between them", T, ARITHMETIC_TYPES)
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -367,7 +367,7 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element dif
 // Test semantics of default constructors //
 ////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, ARITHMETIC_TYPES) 
 {
     const linalg::vec<T,2> v2; CHECK(v2 == linalg::vec<T,2>(0,0));
     const linalg::vec<T,3> v3; CHECK(v3 == linalg::vec<T,3>(0,0,0));
@@ -375,7 +375,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements
 }
 
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its columns", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its columns", T, ARITHMETIC_TYPES) 
 {
     const linalg::vec<T,2> z2(0,0); 
     const linalg::vec<T,3> z3(0,0,0); 
@@ -398,7 +398,7 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s default constructor zero-initializes its column
 // Test semantics of scalar constructors //
 ///////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to the specified scalar", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to the specified scalar", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -410,7 +410,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to th
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to the specified scalar", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to the specified scalar", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -438,7 +438,7 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s scalar constructor initializes its columns to t
 // Test semantics of pointer constructors //
 ////////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in order from a pointer to contiguous elements in memory", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -451,7 +451,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s pointer constructor initializes its elements in o
     }
 }
 
-TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in column-major order from a pointer to contiguous elements in memory", T, ARITHMETIC_TYPES) 
 {
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
@@ -479,7 +479,7 @@ TEST_CASE_TEMPLATE("mat<T,M,N>'s pointer constructor initializes its elements in
 // Test semantics of operator overloads //
 //////////////////////////////////////////
 
-TEST_CASE_TEMPLATE("arithmetic unary operator overloads on vec<T,M> are defined elementwise", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("arithmetic unary operator overloads on vec<T,M> are defined elementwise", T, ARITHMETIC_TYPES) 
 {
     using U = decltype(+T());
     random_number_generator rng;
@@ -502,7 +502,7 @@ TEST_CASE_TEMPLATE("arithmetic unary operator overloads on vec<T,M> are defined 
     }
 }
 
-TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined elementwise", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined elementwise", T, ARITHMETIC_TYPES) 
 {
     using U = decltype(T()+T());
     random_number_generator rng;
@@ -528,7 +528,7 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
     }
 }
 
-TEST_CASE_TEMPLATE("integral unary operator overloads on vec<T,M> are defined elementwise", T, integral_types) 
+TEST_CASE_TEMPLATE("integral unary operator overloads on vec<T,M> are defined elementwise", T, INTEGRAL_TYPES) 
 {
     using U = decltype(+T());
     random_number_generator rng;
@@ -542,7 +542,7 @@ TEST_CASE_TEMPLATE("integral unary operator overloads on vec<T,M> are defined el
     }
 }
 
-TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined elementwise", T, integral_types) 
+TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined elementwise", T, INTEGRAL_TYPES) 
 {
     using U = decltype(T()+T());
     random_number_generator rng;
@@ -576,7 +576,7 @@ TEST_CASE_TEMPLATE("integral binary operator overloads on vec<T,M> are defined e
     }
 }
 
-TEST_CASE_TEMPLATE("vec<T,M> does not have unintended argument dependent lookup on operator +=", T, arithmetic_types) 
+TEST_CASE_TEMPLATE("vec<T,M> does not have unintended argument dependent lookup on operator +=", T, ARITHMETIC_TYPES) 
 {
     std::vector<linalg::vec<T,3>> a, b = {{0,1,2}, {0,2,3}, {0,3,4}};
     CHECK(a.size() == 0);
@@ -757,7 +757,7 @@ TEST_CASE( "matrix inverse is correct for trivial cases" )
     REQUIRE( determinant(id4) == 1.0f );
 }
 
-TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_point_types )
+TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, FLOATING_POINT_TYPES )
 {
     const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
     const linalg::mat<T,4,4> inv = inverse(mat);
@@ -772,7 +772,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, floating_po
     }
 }
 
-TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types )
+TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, ARITHMETIC_TYPES )
 {
     const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
     const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
@@ -786,7 +786,7 @@ TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, arithmetic_types 
     REQUIRE(a4 != c4);
 }
 
-TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, floating_point_types )
+TEST_CASE_TEMPLATE( "rotation quaternions roundtrip with rotation matrices", T, FLOATING_POINT_TYPES )
 {
     std::mt19937 engine;
     std::normal_distribution<T> dist;
