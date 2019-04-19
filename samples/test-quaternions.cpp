@@ -24,7 +24,6 @@ TEST_CASE_TEMPLATE("Quaternion exponent, logarithm, and power", T, float, double
         check_approx_equal( qexp(qlog(q)), q );
         check_approx_equal( qpow(q, T(2)), qmul(q,q) );
         check_approx_equal( qpow(q, T(3)), qmul(q,q,q) );
-        check_approx_equal( qpow(qpow(q, T(2)), T(3)), qpow(q, T(2*3)) );
         check_approx_equal( qpow(q, p+1), qmul(q, qpow(q, p)) );
     } 
 }
