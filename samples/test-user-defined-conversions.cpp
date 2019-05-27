@@ -1,63 +1,6 @@
 #include "test-linalg.h"
 #include <array>
 
-namespace linalg
-{
-    // Emulate construction of linalg types from std::array
-    template<class T> struct converter<vec<T,2>, std::array<T,2>> { vec<T,2> operator() (const std::array<T,2> & a) const { return {a[0], a[1]}; } };
-    template<class T> struct converter<vec<T,3>, std::array<T,3>> { vec<T,3> operator() (const std::array<T,3> & a) const { return {a[0], a[1], a[2]}; } };
-    template<class T> struct converter<vec<T,4>, std::array<T,4>> { vec<T,4> operator() (const std::array<T,4> & a) const { return {a[0], a[1], a[2], a[3]}; } };
-}
-
-TEST_CASE("Test user-defined conversion from std::array<T,M> to linalg::vec<T,M>")
-{
-    float2 a = std::array<float,2>{1,2};
-    float3 b = std::array<float,3>{3,4,5};
-    float4 c = std::array<float,4>{6,7,8,9};
-
-    CHECK(a == float2{1,2});
-    CHECK(b == float3{3,4,5});
-    CHECK(c == float4{6,7,8,9});
-}
-
-namespace linalg
-{
-    // Emulate construction of vectors from pointers to const elements
-    template<class T> struct converter<vec<T,2>, const T *> { vec<T,2> operator() (const T * p) const { return {p[0], p[1]}; } };
-    template<class T> struct converter<vec<T,3>, const T *> { vec<T,3> operator() (const T * p) const { return {p[0], p[1], p[2]}; } };
-    template<class T> struct converter<vec<T,4>, const T *> { vec<T,4> operator() (const T * p) const { return {p[0], p[1], p[2], p[3]}; } };
-
-    // Emulate construction of matrices from pointers to const elements
-    template<class T, int M> struct converter<mat<T,M,2>, const T *> { converter<vec<T,M>, const T *> c; mat<T,M,2> operator() (const T * p) const { return {c(p+M*0), c(p+M*1)}; } };
-    template<class T, int M> struct converter<mat<T,M,3>, const T *> { converter<vec<T,M>, const T *> c; mat<T,M,3> operator() (const T * p) const { return {c(p+M*0), c(p+M*1), c(p+M*2)}; } };
-    template<class T, int M> struct converter<mat<T,M,4>, const T *> { converter<vec<T,M>, const T *> c; mat<T,M,4> operator() (const T * p) const { return {c(p+M*0), c(p+M*1), c(p+M*2), c(p+M*3)}; } };
-
-    // Enable construction of linalg types from pointers to non-const elements
-    template<class T, int M> struct converter<vec<T,M>, T *> : converter<vec<T,M>, const T *> {};
-    template<class T, int M, int N> struct converter<mat<T,M,N>, T *> : converter<mat<T,M,N>, const T *> {};
-}
-
-TEST_CASE("Test construction of linalg types from pointers to elements, using user-defined conversions")
-{
-    float elements[] {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
-    float * ptr_m = elements;
-    const float * ptr_c = elements;
-
-    CHECK(float2(ptr_m) == float2{1,2});
-    CHECK(float3(ptr_m) == float3{1,2,3});
-    CHECK(float4(ptr_m) == float4{1,2,3,4});
-    CHECK(float2x2(ptr_m) == float2x2{{1,2},{3,4}});
-    CHECK(float3x3(ptr_m) == float3x3{{1,2,3},{4,5,6},{7,8,9}});
-    CHECK(float4x4(ptr_m) == float4x4{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}});
-
-    CHECK(float2(ptr_c) == float2{1,2});
-    CHECK(float3(ptr_c) == float3{1,2,3});
-    CHECK(float4(ptr_c) == float4{1,2,3,4});
-    CHECK(float2x2(ptr_c) == float2x2{{1,2},{3,4}});
-    CHECK(float3x3(ptr_c) == float3x3{{1,2,3},{4,5,6},{7,8,9}});
-    CHECK(float4x4(ptr_c) == float4x4{{1,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}});
-}
-
 // Define some "external" types
 struct Vec2 { float x,y; };
 struct Vec3 { float x,y,z; };

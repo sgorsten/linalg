@@ -9,9 +9,6 @@
 
 It is inspired by the syntax of popular shader languages and intended to serve as a lightweight (less than 600 total lines of code) alternative to projects such as [GLM](http://glm.g-truc.net/0.9.7/) or [Eigen](http://eigen.tuxfamily.org/) in domains such as computer graphics, computational geometry, and physical simulation. It aims to be correct, complete, easy to use, readable, and quick to compile.
 
-Additionally, a small number of header-only extensions are provided for user convenience. See:
-* [linalg-std.h](/linalg-std.h) - Provide interop with some features of the C++ standard library
-
 # FAQ
 
 ###### Why another linear algebra library?

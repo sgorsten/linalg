@@ -50,6 +50,8 @@
 #include <cmath>        // For various unary math functions, such as std::sqrt
 #include <cstdlib>      // To resolve std::abs ambiguity on clang
 #include <cstdint>      // For implementing namespace linalg::aliases
+#include <array>        // For std::array
+#include <iosfwd>       // For forward definitions of std::ostream
 #include <type_traits>  // For std::enable_if, std::is_same, std::declval
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
@@ -571,6 +573,17 @@ namespace linalg
     template<class T> mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one);
     template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
 
+    // Provide implicit conversion between linalg::vec<T,M> and std::array<T,M>
+    template<class T> struct converter<vec<T,1>, std::array<T,1>> { vec<T,1> operator() (const std::array<T,1> & a) const { return {a[0]}; } };
+    template<class T> struct converter<vec<T,2>, std::array<T,2>> { vec<T,2> operator() (const std::array<T,2> & a) const { return {a[0], a[1]}; } };
+    template<class T> struct converter<vec<T,3>, std::array<T,3>> { vec<T,3> operator() (const std::array<T,3> & a) const { return {a[0], a[1], a[2]}; } };
+    template<class T> struct converter<vec<T,4>, std::array<T,4>> { vec<T,4> operator() (const std::array<T,4> & a) const { return {a[0], a[1], a[2], a[3]}; } };
+
+    template<class T> struct converter<std::array<T,1>, vec<T,1>> { std::array<T,1> operator() (const vec<T,1> & a) const { return {a[0]}; } };
+    template<class T> struct converter<std::array<T,2>, vec<T,2>> { std::array<T,2> operator() (const vec<T,2> & a) const { return {a[0], a[1]}; } };
+    template<class T> struct converter<std::array<T,3>, vec<T,3>> { std::array<T,3> operator() (const vec<T,3> & a) const { return {a[0], a[1], a[2]}; } };
+    template<class T> struct converter<std::array<T,4>, vec<T,4>> { std::array<T,4> operator() (const vec<T,4> & a) const { return {a[0], a[1], a[2], a[3]}; } };
+
     // Provide typedefs for common element types and vector/matrix sizes
     namespace aliases
     {
@@ -599,6 +612,34 @@ namespace linalg
         typedef mat<bool,4,3> bool4x3; typedef mat<int,4,3> int4x3; typedef mat<float,4,3> float4x3; typedef mat<double,4,3> double4x3;
         typedef mat<bool,4,4> bool4x4; typedef mat<int,4,4> int4x4; typedef mat<float,4,4> float4x4; typedef mat<double,4,4> double4x4;
     }
+
+    // Provide output streaming operators, writing something that resembles an aggregate literal that could be used to construct the specified value
+    namespace ostream_overloads
+    {
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,1> & v) { return out << '{' << v[0] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,2> & v) { return out << '{' << v[0] << ',' << v[1] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,3> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << '}'; }
+        template<class C, class T> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const vec<T,4> & v) { return out << '{' << v[0] << ',' << v[1] << ',' << v[2] << ',' << v[3] << '}'; }
+
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,1> & m) { return out << '{' << m[0] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,2> & m) { return out << '{' << m[0] << ',' << m[1] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,3> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << '}'; }
+        template<class C, class T, int M> std::basic_ostream<C> & operator << (std::basic_ostream<C> & out, const mat<T,M,4> & m) { return out << '{' << m[0] << ',' << m[1] << ',' << m[2] << ',' << m[3] << '}'; }
+    }
+}
+
+namespace std 
+{ 
+    // Provide specializations for std::hash<...> with linalg types
+    template<class T> struct hash<linalg::vec<T,1>> { std::size_t operator()(const linalg::vec<T,1> & v) const { std::hash<T> h; return h(v.x); } };
+    template<class T> struct hash<linalg::vec<T,2>> { std::size_t operator()(const linalg::vec<T,2> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1); } };
+    template<class T> struct hash<linalg::vec<T,3>> { std::size_t operator()(const linalg::vec<T,3> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2); } };
+    template<class T> struct hash<linalg::vec<T,4>> { std::size_t operator()(const linalg::vec<T,4> & v) const { std::hash<T> h; return h(v.x) ^ (h(v.y) << 1) ^ (h(v.z) << 2) ^ (h(v.w) << 3); } };
+
+    template<class T, int M> struct hash<linalg::mat<T,M,1>> { std::size_t operator()(const linalg::mat<T,M,1> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,2>> { std::size_t operator()(const linalg::mat<T,M,2> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,3>> { std::size_t operator()(const linalg::mat<T,M,3> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)); } };
+    template<class T, int M> struct hash<linalg::mat<T,M,4>> { std::size_t operator()(const linalg::mat<T,M,4> & v) const { std::hash<linalg::vec<T,M>> h; return h(v.x) ^ (h(v.y) << M) ^ (h(v.z) << (M*2)) ^ (h(v.w) << (M*3)); } };
 }
 
 // Definitions of functions too long to be defined inline

@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\linalg.h" />
-    <ClInclude Include="..\..\linalg-std.h" />
     <ClInclude Include="..\test-linalg.h" />
   </ItemGroup>
 </Project>

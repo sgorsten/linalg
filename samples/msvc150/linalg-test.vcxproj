@@ -29,7 +29,6 @@
     <ClCompile Include="..\test-user-defined-conversions.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\linalg-std.h" />
     <ClInclude Include="..\..\linalg.h" />
     <ClInclude Include="..\test-linalg.h" />
   </ItemGroup>

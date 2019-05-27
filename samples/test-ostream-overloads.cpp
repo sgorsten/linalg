@@ -1,5 +1,4 @@
 #include "test-linalg.h"
-#include "../linalg-std.h"
 using namespace linalg::ostream_overloads;
 
 #include <sstream>
