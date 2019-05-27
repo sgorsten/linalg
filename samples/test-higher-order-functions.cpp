@@ -50,6 +50,12 @@ TEST_CASE("linalg::fold(...)")
         values = fold(flatten, values, float2x4{{1,2},{3,4},{5,6},{7,8}});
         CHECK(values == std::vector<float>{0,1,2,3,4,5,6,7,8});
     }
+
+    SUBCASE("mat<T,1,4>")
+    {
+        values = fold(flatten, values, float1x4{{1},{3},{5},{7}});
+        CHECK(values == std::vector<float>{0,1,3,5,7});
+    }
 }
 
 // Function object equivalent to the overload set of std::make_tuple(...)

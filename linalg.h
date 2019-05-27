@@ -75,6 +75,11 @@ namespace linalg
     { 
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type;
 
+        // Trait for retrieving scalar type of any linear algebra object
+        template<class A> struct scalar_type {};
+        template<class T, int M       > struct scalar_type<vec<T,M  >> { using type = T; };
+        template<class T, int M, int N> struct scalar_type<mat<T,M,N>> { using type = T; };
+
         // Type returned by the compare(...) function which supports all six comparison operators against 0
         template<class T> struct ord { T a,b; };
         template<class T> constexpr bool operator == (const ord<T> & o, std::nullptr_t) { return o.a == o.b; }
@@ -353,16 +358,6 @@ namespace linalg
     template<class T> struct converter<mat<T,4,4>, identity_t> { mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
     constexpr identity_t identity {1};
 
-    // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
-    template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; };
-    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; };
-    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; };
-    template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
-
     // Produce a scalar by applying f(A,B) -> A to adjacent pairs of elements from a vec/mat in left-to-right/column-major order (matching the associativity of arithmetic and logical operators)
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,1> & b) { return f(a, b.x); }
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,2> & b) { return f(f(a, b.x), b.y); }
@@ -375,6 +370,7 @@ namespace linalg
 
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
     template<class F, class... A> using apply_t = typename detail::apply<F,void,A...>::type;
+    template<class A> using scalar_t = typename detail::scalar_type<A>::type; // Underlying scalar type when performing elementwise operations
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
     template<class F, class... A> constexpr apply_t<F,A...> apply(F func, const A & ... args) { return detail::apply<F,void,A...>::impl(detail::make_seq<0,detail::apply<F,void,A...>::size>{}, func, args...); }
