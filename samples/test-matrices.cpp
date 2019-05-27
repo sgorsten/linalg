@@ -92,6 +92,24 @@ TEST_CASE( "matrix adjugate and determinant are correct" )
     std::mt19937 rng;
     std::uniform_int_distribution<int> dist(-100,100);
 
+    SUBCASE("1x1 matrices")
+    {
+        for(int i=0; i<reps; ++i)
+        {
+            const int1x1 id = linalg::identity;
+            const int1x1 mat {
+                {dist(rng)}
+            };
+            const int1x1 adj = adjugate(mat);
+            const int det = determinant(mat);
+            CHECK(mul(mat,adj) == id*det);
+            CHECK(mul(adj,mat) == id*det);
+            CHECK(mul(mat,adj) == det*id);
+            CHECK(mul(adj,mat) == det*id);
+            CHECK(determinant(adj) == 1);
+        }
+    }
+
     SUBCASE("2x2 matrices")
     {
         for(int i=0; i<reps; ++i)
@@ -169,21 +187,27 @@ TEST_CASE_TEMPLATE( "comatrix can be used to transform bivectors", T, float, dou
 
 TEST_CASE( "matrix inverse is correct for trivial cases" )
 {
+    const float1x1 id1 {{1}};
     const float2x2 id2 {{1,0},{0,1}};
     const float3x3 id3 {{1,0,0},{0,1,0},{0,0,1}};
     const float4x4 id4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+    REQUIRE( diagonal(id1) == float1(1) );
     REQUIRE( diagonal(id2) == float2(1,1) );
     REQUIRE( diagonal(id3) == float3(1,1,1) );
     REQUIRE( diagonal(id4) == float4(1,1,1,1) );
+    REQUIRE( transpose(id1) == id1 );
     REQUIRE( transpose(id2) == id2 );
     REQUIRE( transpose(id3) == id3 );
     REQUIRE( transpose(id4) == id4 );
+    REQUIRE( inverse(id1) == id1 );
     REQUIRE( inverse(id2) == id2 );
     REQUIRE( inverse(id3) == id3 );
     REQUIRE( inverse(id4) == id4 );
+    REQUIRE( adjugate(id1) == id1 );
     REQUIRE( adjugate(id2) == id2 );
     REQUIRE( adjugate(id3) == id3 );
     REQUIRE( adjugate(id4) == id4 );
+    REQUIRE( determinant(id1) == 1.0f );
     REQUIRE( determinant(id2) == 1.0f );
     REQUIRE( determinant(id3) == 1.0f );
     REQUIRE( determinant(id4) == 1.0f );
@@ -206,13 +230,16 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, float, doub
 
 TEST_CASE_TEMPLATE( "linalg::identity functions correctly", T, double, float, int, short, unsigned int, unsigned short )
 {
+    const linalg::mat<T,1,1> a1 {linalg::identity}, b1 {{1}}, c1 {};
     const linalg::mat<T,2,2> a2 {linalg::identity}, b2 {{1,0},{0,1}}, c2 {};
     const linalg::mat<T,3,3> a3 {linalg::identity}, b3 {{1,0,0},{0,1,0},{0,0,1}}, c3 {};
     const linalg::mat<T,4,4> a4 {linalg::identity}, b4 {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}, c4 {};
 
+    REQUIRE(a1 == b1);
     REQUIRE(a2 == b2);
     REQUIRE(a3 == b3);
     REQUIRE(a4 == b4);
+    REQUIRE(a1 != c1);
     REQUIRE(a2 != c2);
     REQUIRE(a3 != c3);
     REQUIRE(a4 != c4);

@@ -32,9 +32,11 @@ public:
     operator short () { return dist_short(rng); }
     operator unsigned int () { return dist_uint(rng); }
     operator unsigned short () { return dist_ushort(rng); }
+    template<class T> operator linalg::vec<T,1> () { return linalg::vec<T,1>((T)*this); }
     template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
     template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
     template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, *this); }
+    template<class T, int M> operator linalg::mat<T,M,1> () { return linalg::mat<T,M,1>((linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
     template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
@@ -44,6 +46,17 @@ static const int reps = 3; // Tests which use random data will be repeated this 
 //////////////////////////////////////////////////////////
 // Test semantics of vec<T,M> element-wise constructors //
 //////////////////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("vec<T,1> can be constructed from 1 element of type T", T, ARITHMETIC_TYPES) 
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T e0 = rng;
+        const linalg::vec<T,1> v(e0);
+        CHECK(v.x == e0); CHECK(v[0] == e0);
+    }
+}
 
 TEST_CASE_TEMPLATE("vec<T,2> can be constructed from 2 elements of type T", T, ARITHMETIC_TYPES) 
 {
@@ -87,6 +100,19 @@ TEST_CASE_TEMPLATE("vec<T,4> can be constructed from 4 elements of type T", T, A
 ///////////////////////////////////////////////////////////
 // Test semantics of mat<T,M,N> column-wise constructors //
 ///////////////////////////////////////////////////////////
+
+TEST_CASE_TEMPLATE("mat<T,1,1> can be constructed from 1 column of type vec<T,1>", T, ARITHMETIC_TYPES)
+{
+    random_number_generator rng;
+    for(int i=0; i<reps; ++i)
+    {
+        const T m00=rng;
+        const auto m = linalg::mat<T,1,1>(
+            linalg::vec<T,1>(m00)
+        );
+        CHECK(m.x.x == m00); CHECK(m[0][0] == m00); CHECK(m.row(0)[0] == m00);
+    }
+}
 
 TEST_CASE_TEMPLATE("mat<T,2,2> can be constructed from 2 columns of type vec<T,2>", T, ARITHMETIC_TYPES)
 {
@@ -324,10 +350,12 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare equal if they contain exactly the s
     {
         const T a=rng, b=rng, c=rng, d=rng;
 
+        CHECK(linalg::vec<T,1>(a      ) == linalg::vec<T,1>(a      ));
         CHECK(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a,b    ));
         CHECK(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a,b,c  ));
         CHECK(linalg::vec<T,4>(a,b,c,d) == linalg::vec<T,4>(a,b,c,d));
 
+        CHECK_FALSE(linalg::vec<T,1>(a      ) == linalg::vec<T,1>(a+1      ));
         CHECK_FALSE(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a+1,b    ));
         CHECK_FALSE(linalg::vec<T,2>(a,b    ) == linalg::vec<T,2>(a,b+1    ));
         CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) == linalg::vec<T,3>(a+1,b,c  ));
@@ -347,10 +375,12 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element dif
     {
         const T a=rng, b=rng, c=rng, d=rng;
 
+        CHECK_FALSE(linalg::vec<T,1>(a      ) != linalg::vec<T,1>(a      ));
         CHECK_FALSE(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a,b    ));
         CHECK_FALSE(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a,b,c  ));
         CHECK_FALSE(linalg::vec<T,4>(a,b,c,d) != linalg::vec<T,4>(a,b,c,d));
 
+        CHECK(linalg::vec<T,1>(a      ) != linalg::vec<T,1>(a+1      ));
         CHECK(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a+1,b    ));
         CHECK(linalg::vec<T,2>(a,b    ) != linalg::vec<T,2>(a,b+1    ));
         CHECK(linalg::vec<T,3>(a,b,c  ) != linalg::vec<T,3>(a+1,b,c  ));
@@ -369,6 +399,7 @@ TEST_CASE_TEMPLATE("vec<T,M> a and b compare unequal if at least one element dif
 
 TEST_CASE_TEMPLATE("vec<T,M>'s default constructor zero-initializes its elements", T, ARITHMETIC_TYPES) 
 {
+    const linalg::vec<T,1> v1; CHECK(v1 == linalg::vec<T,1>(0));
     const linalg::vec<T,2> v2; CHECK(v2 == linalg::vec<T,2>(0,0));
     const linalg::vec<T,3> v3; CHECK(v3 == linalg::vec<T,3>(0,0,0));
     const linalg::vec<T,4> v4; CHECK(v4 == linalg::vec<T,4>(0,0,0,0));
@@ -404,6 +435,7 @@ TEST_CASE_TEMPLATE("vec<T,M>'s scalar constructor initializes its elements to th
     for(int i=0; i<reps; ++i)
     {
         const T s = rng;
+        const linalg::vec<T,1> v1(s); CHECK(v1 == linalg::vec<T,1>(s));
         const linalg::vec<T,2> v2(s); CHECK(v2 == linalg::vec<T,2>(s,s));
         const linalg::vec<T,3> v3(s); CHECK(v3 == linalg::vec<T,3>(s,s,s));
         const linalg::vec<T,4> v4(s); CHECK(v4 == linalg::vec<T,4>(s,s,s,s));
@@ -611,6 +643,8 @@ TEST_CASE( "no unintended ADL on operator +=" )
 
 TEST_CASE( "fold functions behave as intended" )
 {
+    REQUIRE( any(bool1(false)) == false );
+    REQUIRE( any(bool1(true)) == true );
     REQUIRE( any(bool3(false,false,false)) == false );
     REQUIRE( any(bool3(true,false,false)) == true );
     REQUIRE( any(bool3(false,true,false)) == true );

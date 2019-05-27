@@ -84,9 +84,11 @@ namespace linalg
 
         // Patterns which can be used with the compare(...) function
         template<class A, class B> struct any_compare {};
+        template<class T> struct any_compare<vec<T,1>,vec<T,1>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,1> & a, const vec<T,1> & b) const { return ord<T>{a.x,b.x}; } };
         template<class T> struct any_compare<vec<T,2>,vec<T,2>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,2> & a, const vec<T,2> & b) const { return !(a.x==b.x) ? ord<T>{a.x,b.x} : ord<T>{a.y,b.y}; } };
         template<class T> struct any_compare<vec<T,3>,vec<T,3>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,3> & a, const vec<T,3> & b) const { return !(a.x==b.x) ? ord<T>{a.x,b.x} : !(a.y==b.y) ? ord<T>{a.y,b.y} : ord<T>{a.z,b.z}; } };
         template<class T> struct any_compare<vec<T,4>,vec<T,4>> { using type=ord<T>; constexpr ord<T> operator() (const vec<T,4> & a, const vec<T,4> & b) const { return !(a.x==b.x) ? ord<T>{a.x,b.x} : !(a.y==b.y) ? ord<T>{a.y,b.y} : !(a.z==b.z) ? ord<T>{a.z,b.z} : ord<T>{a.w,b.w}; } };
+        template<class T, int M> struct any_compare<mat<T,M,1>,mat<T,M,1>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,1> & a, const mat<T,M,1> & b) const { return compare(a.x,b.x); } };
         template<class T, int M> struct any_compare<mat<T,M,2>,mat<T,M,2>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,2> & a, const mat<T,M,2> & b) const { return a.x!=b.x ? compare(a.x,b.x) : compare(a.y,b.y); } };
         template<class T, int M> struct any_compare<mat<T,M,3>,mat<T,M,3>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,3> & a, const mat<T,M,3> & b) const { return a.x!=b.x ? compare(a.x,b.x) : a.y!=b.y ? compare(a.y,b.y) : compare(a.z,b.z); } };
         template<class T, int M> struct any_compare<mat<T,M,4>,mat<T,M,4>> { using type=ord<T>; constexpr ord<T> operator() (const mat<T,M,4> & a, const mat<T,M,4> & b) const { return a.x!=b.x ? compare(a.x,b.x) : a.y!=b.y ? compare(a.y,b.y) : a.z!=b.z ? compare(a.z,b.z) : compare(a.w,b.w); } }; 
@@ -195,6 +197,20 @@ namespace linalg
     }
 
     // Small, fixed-length vector type, consisting of exactly M elements of type T, and presumed to be a column-vector unless otherwise noted
+    template<class T> struct vec<T,1>
+    {
+        T                           x;
+        constexpr                   vec()                               : x() {}
+        constexpr                   vec(const T & x_)                   : x(x_) {}
+        // NOTE: vec<T,1> does NOT have a constructor from pointer, this can conflict with initializing its single element from zero
+        template<class U>
+        constexpr explicit          vec(const vec<U,1> & v)             : vec(static_cast<T>(v.x)) {}
+        constexpr const T &         operator[] (int i) const            { return x; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return x; }
+
+        template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
+    };
     template<class T> struct vec<T,2>
     {
         T                           x,y;
@@ -256,6 +272,23 @@ namespace linalg
     };
 
     // Small, fixed-size matrix type, consisting of exactly M rows and N columns of type T, stored in column-major order.
+    template<class T, int M> struct mat<T,M,1>
+    {
+        typedef vec<T,M>            V;
+        V                           x;
+        constexpr                   mat()                               : x() {}
+        constexpr                   mat(const V & x_)                   : x(x_) {}
+        constexpr explicit          mat(const T & s)                    : x(s) {}
+        constexpr explicit          mat(const T * p)                    : x(p+M*0) {}
+        template<class U> 
+        constexpr explicit          mat(const mat<U,M,1> & m)           : mat(V(m.x)) {}
+        constexpr vec<T,1>          row(int i) const                    { return {x[i]}; }
+        constexpr const V &         operator[] (int j) const            { return x; }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return x; }
+
+        template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
+        template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
+    };
     template<class T, int M> struct mat<T,M,2>
     {
         typedef vec<T,M>            V;
@@ -312,6 +345,7 @@ namespace linalg
 
     // Define a type which will convert to the multiplicative identity of any square matrix
     struct identity_t { constexpr explicit identity_t(int) {} };
+    template<class T> struct converter<mat<T,1,1>, identity_t> { mat<T,1,1> operator() (identity_t) const { return {vec<T,1>{1}}; } };
     template<class T> struct converter<mat<T,2,2>, identity_t> { mat<T,2,2> operator() (identity_t) const { return {{1,0},{0,1}}; } };
     template<class T> struct converter<mat<T,3,3>, identity_t> { mat<T,3,3> operator() (identity_t) const { return {{1,0,0},{0,1,0},{0,0,1}}; } };
     template<class T> struct converter<mat<T,4,4>, identity_t> { mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
@@ -319,21 +353,20 @@ namespace linalg
 
     // Type traits for a binary operation involving linear algebra types, used for SFINAE on templated functions and operator overloads
     template<class A, class B> struct traits {};
-    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; typedef vec<T,M  > result; typedef vec<bool,M  > bool_result; typedef vec<decltype(+T()),M  > arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
-    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
-    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; typedef mat<T,M,N> result; typedef mat<bool,M,N> bool_result; typedef mat<decltype(+T()),M,N> arith_result; };
+    template<class T, int M       > struct traits<vec<T,M  >, vec<T,M  >> { typedef T scalar; };
+    template<class T, int M       > struct traits<vec<T,M  >, T         > { typedef T scalar; };
+    template<class T, int M       > struct traits<T,          vec<T,M  >> { typedef T scalar; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, mat<T,M,N>> { typedef T scalar; };
+    template<class T, int M, int N> struct traits<mat<T,M,N>, T         > { typedef T scalar; };
+    template<class T, int M, int N> struct traits<T,          mat<T,M,N>> { typedef T scalar; };
     template<class A, class B=A> using scalar_t = typename traits<A,B>::scalar; // Underlying scalar type when performing elementwise operations
-    template<class A, class B=A> using result_t = typename traits<A,B>::result; // Result of calling a function on linear algebra types
-    template<class A, class B=A> using bool_result_t = typename traits<A,B>::bool_result; // Result of a comparison or unary not operation on linear algebra types
-    template<class A, class B=A> using arith_result_t = typename traits<A,B>::arith_result; // Result of an arithmetic operation on linear algebra types (accounts for integer promotion)
 
     // Produce a scalar by applying f(A,B) -> A to adjacent pairs of elements from a vec/mat in left-to-right/column-major order (matching the associativity of arithmetic and logical operators)
+    template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,1> & b) { return f(a, b.x); }
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,2> & b) { return f(f(a, b.x), b.y); }
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,3> & b) { return f(f(f(a, b.x), b.y), b.z); }
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,4> & b) { return f(f(f(f(a, b.x), b.y), b.z), b.w); }
+    template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,1> & b) { return fold(f, a, b.x); }
     template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,2> & b) { return fold(f, fold(f, a, b.x), b.y); }
     template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,3> & b) { return fold(f, fold(f, fold(f, a, b.x), b.y), b.z); }
     template<class F, class A, class B, int M> constexpr A fold(F f, A a, const mat<B,M,4> & b) { return fold(f, fold(f, fold(f, fold(f, a, b.x), b.y), b.z), b.w); }
@@ -481,29 +514,36 @@ namespace linalg
     template<class T> vec<T,4>             qslerp(const vec<T,4> & a, const vec<T,4> & b, T t) { return slerp(a, dot(a,b) < 0 ? -b : b, t); }
 
     // Support for matrix algebra
+    template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,1> & a, const vec<T,1> & b) { return a.x*b.x; }
     template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,2> & a, const vec<T,2> & b) { return a.x*b.x + a.y*b.y; }
     template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,3> & a, const vec<T,3> & b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
     template<class T, int M> constexpr vec<T,M> mul(const mat<T,M,4> & a, const vec<T,4> & b) { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+    template<class T, int M, int N> constexpr mat<T,M,1> mul(const mat<T,M,N> & a, const mat<T,N,1> & b) { return {mul(a,b.x)}; }
     template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
     template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
     template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
     template<class T, int M, int N, int P, int Q> constexpr mat<T,M,Q> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c) { return mul(mul(a,b),c); }
     template<class T, int M, int N, int P, int Q, int R> constexpr mat<T,M,R> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c, const mat<T,Q,R> & d) { return mul(mul(a,b,c),d); }
     // TODO: Variadic version of mul(...) that works on all compilers
+    template<class T, int M> constexpr mat<T,M,1> outerprod(const vec<T,M> & a, const vec<T,1> & b) { return {a*b.x}; }
     template<class T, int M> constexpr mat<T,M,2> outerprod(const vec<T,M> & a, const vec<T,2> & b) { return {a*b.x, a*b.y}; }
     template<class T, int M> constexpr mat<T,M,3> outerprod(const vec<T,M> & a, const vec<T,3> & b) { return {a*b.x, a*b.y, a*b.z}; }
     template<class T, int M> constexpr mat<T,M,4> outerprod(const vec<T,M> & a, const vec<T,4> & b) { return {a*b.x, a*b.y, a*b.z, a*b.w}; }
+    template<class T> constexpr vec<T,1> diagonal(const mat<T,1,1> & a) { return {a.x.x}; }
     template<class T> constexpr vec<T,2> diagonal(const mat<T,2,2> & a) { return {a.x.x, a.y.y}; }
     template<class T> constexpr vec<T,3> diagonal(const mat<T,3,3> & a) { return {a.x.x, a.y.y, a.z.z}; }
     template<class T> constexpr vec<T,4> diagonal(const mat<T,4,4> & a) { return {a.x.x, a.y.y, a.z.z, a.w.w}; }
     template<class T, int N> constexpr T trace(const mat<T,N,N> & a) { return sum(diagonal(a)); }
+    template<class T, int M> constexpr mat<T,M,1> transpose(const mat<T,1,M> & m) { return {m.row(0)}; }
     template<class T, int M> constexpr mat<T,M,2> transpose(const mat<T,2,M> & m) { return {m.row(0), m.row(1)}; }
     template<class T, int M> constexpr mat<T,M,3> transpose(const mat<T,3,M> & m) { return {m.row(0), m.row(1), m.row(2)}; }
     template<class T, int M> constexpr mat<T,M,4> transpose(const mat<T,4,M> & m) { return {m.row(0), m.row(1), m.row(2), m.row(3)}; }
+    template<class T> constexpr mat<T,1,1> adjugate(const mat<T,1,1> & a) { return {vec<T,1>{1}}; }
     template<class T> constexpr mat<T,2,2> adjugate(const mat<T,2,2> & a) { return {{a.y.y, -a.x.y}, {-a.y.x, a.x.x}}; }
     template<class T> constexpr mat<T,3,3> adjugate(const mat<T,3,3> & a);
     template<class T> constexpr mat<T,4,4> adjugate(const mat<T,4,4> & a);
     template<class T, int N> constexpr mat<T,N,N> comatrix(const mat<T,N,N> & a) { return transpose(adjugate(a)); }
+    template<class T> constexpr T determinant(const mat<T,1,1> & a) { return a.x.x; }
     template<class T> constexpr T determinant(const mat<T,2,2> & a) { return a.x.x*a.y.y - a.x.y*a.y.x; }
     template<class T> constexpr T determinant(const mat<T,3,3> & a) { return a.x.x*(a.y.y*a.z.z - a.z.y*a.y.z) + a.x.y*(a.y.z*a.z.x - a.z.z*a.y.x) + a.x.z*(a.y.x*a.z.y - a.z.x*a.y.y); }
     template<class T> constexpr T determinant(const mat<T,4,4> & a);
@@ -534,18 +574,27 @@ namespace linalg
     // Provide typedefs for common element types and vector/matrix sizes
     namespace aliases
     {
+        typedef vec<bool,1> bool1; typedef vec<uint8_t,1> byte1; typedef vec<int16_t,1> short1; typedef vec<uint16_t,1> ushort1;
         typedef vec<bool,2> bool2; typedef vec<uint8_t,2> byte2; typedef vec<int16_t,2> short2; typedef vec<uint16_t,2> ushort2; 
         typedef vec<bool,3> bool3; typedef vec<uint8_t,3> byte3; typedef vec<int16_t,3> short3; typedef vec<uint16_t,3> ushort3; 
         typedef vec<bool,4> bool4; typedef vec<uint8_t,4> byte4; typedef vec<int16_t,4> short4; typedef vec<uint16_t,4> ushort4;
+        typedef vec<int,1> int1; typedef vec<unsigned,1> uint1; typedef vec<float,1> float1; typedef vec<double,1> double1;
         typedef vec<int,2> int2; typedef vec<unsigned,2> uint2; typedef vec<float,2> float2; typedef vec<double,2> double2;
         typedef vec<int,3> int3; typedef vec<unsigned,3> uint3; typedef vec<float,3> float3; typedef vec<double,3> double3;
         typedef vec<int,4> int4; typedef vec<unsigned,4> uint4; typedef vec<float,4> float4; typedef vec<double,4> double4;
+        typedef mat<bool,1,1> bool1x1; typedef mat<int,1,1> int1x1; typedef mat<float,1,1> float1x1; typedef mat<double,1,1> double1x1;
+        typedef mat<bool,1,2> bool1x2; typedef mat<int,1,2> int1x2; typedef mat<float,1,2> float1x2; typedef mat<double,1,2> double1x2;
+        typedef mat<bool,1,3> bool1x3; typedef mat<int,1,3> int1x3; typedef mat<float,1,3> float1x3; typedef mat<double,1,3> double1x3;
+        typedef mat<bool,1,4> bool1x4; typedef mat<int,1,4> int1x4; typedef mat<float,1,4> float1x4; typedef mat<double,1,4> double1x4;
+        typedef mat<bool,2,1> bool2x1; typedef mat<int,2,1> int2x1; typedef mat<float,2,1> float2x1; typedef mat<double,2,1> double2x1;
         typedef mat<bool,2,2> bool2x2; typedef mat<int,2,2> int2x2; typedef mat<float,2,2> float2x2; typedef mat<double,2,2> double2x2;
         typedef mat<bool,2,3> bool2x3; typedef mat<int,2,3> int2x3; typedef mat<float,2,3> float2x3; typedef mat<double,2,3> double2x3;
         typedef mat<bool,2,4> bool2x4; typedef mat<int,2,4> int2x4; typedef mat<float,2,4> float2x4; typedef mat<double,2,4> double2x4;
+        typedef mat<bool,3,1> bool3x1; typedef mat<int,3,1> int3x1; typedef mat<float,3,1> float3x1; typedef mat<double,3,1> double3x1;
         typedef mat<bool,3,2> bool3x2; typedef mat<int,3,2> int3x2; typedef mat<float,3,2> float3x2; typedef mat<double,3,2> double3x2;
         typedef mat<bool,3,3> bool3x3; typedef mat<int,3,3> int3x3; typedef mat<float,3,3> float3x3; typedef mat<double,3,3> double3x3;
         typedef mat<bool,3,4> bool3x4; typedef mat<int,3,4> int3x4; typedef mat<float,3,4> float3x4; typedef mat<double,3,4> double3x4;
+        typedef mat<bool,4,1> bool4x1; typedef mat<int,4,1> int4x1; typedef mat<float,4,1> float4x1; typedef mat<double,4,1> double4x1;
         typedef mat<bool,4,2> bool4x2; typedef mat<int,4,2> int4x2; typedef mat<float,4,2> float4x2; typedef mat<double,4,2> double4x2;
         typedef mat<bool,4,3> bool4x3; typedef mat<int,4,3> int4x3; typedef mat<float,4,3> float4x3; typedef mat<double,4,3> double4x3;
         typedef mat<bool,4,4> bool4x4; typedef mat<int,4,4> int4x4; typedef mat<float,4,4> float4x4; typedef mat<double,4,4> double4x4;

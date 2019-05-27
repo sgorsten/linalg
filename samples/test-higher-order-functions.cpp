@@ -9,6 +9,12 @@ TEST_CASE("linalg::fold(...)")
 {
     std::vector<float> values {0};
 
+    SUBCASE("vec<T,1>")
+    {
+        values = fold(flatten, values, float1{1});
+        CHECK(values == std::vector<float>{0,1});
+    }
+
     SUBCASE("vec<T,2>")
     {
         values = fold(flatten, values, float2{1,2});

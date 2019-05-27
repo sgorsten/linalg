@@ -3,6 +3,7 @@
 // Test constexpr construction
 namespace
 {
+    constexpr int1 a1 {1}, b1 {2};
     constexpr int2 a2 {1,2}, b2 {2,3};
     constexpr int3 a3 {1,2,4}, b3 {2,3,5};
     constexpr int4 a4 {1,2,4,8}, b4 {2,3,5,7};
@@ -16,6 +17,7 @@ namespace
 
 
 // Check vec::operator[]
+static_assert(a1[0] == 1, "linalg::vec<T,1>::operator[] should be constexpr");
 static_assert(a2[0] == 1, "linalg::vec<T,2>::operator[] should be constexpr");
 static_assert(a2[1] == 2, "linalg::vec<T,2>::operator[] should be constexpr");
 static_assert(a3[0] == 1, "linalg::vec<T,3>::operator[] should be constexpr");
