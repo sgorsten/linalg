@@ -134,7 +134,30 @@ The documentation for `v2.2` is still in progress.
 
 #### Vector algebra
 
-**TODO: Explain `cross`, `dot`, `length`, `length2`, `normalize`, `distance`, `distance2`, `angle`, `uangle`, `nlerp`, `slerp`**
+* `cross(vec<T,3> a, vec<T,3> b) -> vec<T,3>` is the [cross or vector product](https://en.wikipedia.org/wiki/Cross_product) of vectors `a` and `b`
+* `cross(vec<T,2> a, vec<T,2> b) -> T` is shorthand for `cross({a.x,a.y,0}, {b.x,b.y,0}).z`
+* `cross(T a, vec<T,2> b) -> vec<T,2>` is shorthand for `cross({0,0,a.z}, {b.x,b.y,0}).xy()`
+* `cross(vec<T,2> a, T b) -> vec<T,2>` is shorthand for `cross({a.x,a.y,0}, {0,0,b.z}).xy()`
+
+* `dot(vec<T,M> a, vec<T,M> b) -> T` is the [dot or inner product](https://en.wikipedia.org/wiki/Dot_product) of vectors `a` and `b`
+
+* `length(vec<T,M> a) -> T` is the length or magnitude of a vector `a`
+
+* `length2(vec<T,M> a) -> T` is the *square* of the length or magnitude of vector `a`
+
+* `normalize(vec<T,M> a) -> vec<T,M>` is a unit length vector in the same direction as `a` (undefined for zero-length inputs)
+
+* `distance(vec<T,M> a, vec<T,M> b) -> T` is the Euclidean distance between points `a` and `b`
+
+* `distance2(vec<T,M> a, vec<T,M> b) -> T` is the *square* of the Euclidean distance between points `a` and `b`
+
+* `angle(vec<T,M> a, vec<T,M> b) -> T` is the angle in radians between vectors `a` and `b`
+
+* `uangle(vec<T,M> a, vec<T,M> b) -> T` is the angle in radians between unit vectors `a` and `b` (undefined for non-unit inputs)
+
+* `nlerp(vec<T,M> a, vec<T,M> b, T t) -> vec<T,M>` is shorthand for `normalize(lerp(a,b,t))`
+
+* `slerp(vec<T,M> a, vec<T,M> b, T t) -> vec<T,M>` is the spherical linear interpolation between unit vectors `a` and `b` (undefined for non-unit inputs) by parameter `t`
 
 #### Matrix algebra
 
