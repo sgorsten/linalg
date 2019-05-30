@@ -135,9 +135,9 @@ The documentation for `v2.2` is still in progress.
 #### Vector algebra
 
 * `cross(vec<T,3> a, vec<T,3> b) -> vec<T,3>` is the [cross or vector product](https://en.wikipedia.org/wiki/Cross_product) of vectors `a` and `b`
-** `cross(vec<T,2> a, vec<T,2> b) -> T` is shorthand for `cross({a.x,a.y,0}, {b.x,b.y,0}).z`
-** `cross(T a, vec<T,2> b) -> vec<T,2>` is shorthand for `cross({0,0,a.z}, {b.x,b.y,0}).xy()`
-** `cross(vec<T,2> a, T b) -> vec<T,2>` is shorthand for `cross({a.x,a.y,0}, {0,0,b.z}).xy()`
+  * `cross(vec<T,2> a, vec<T,2> b) -> T` is shorthand for `cross({a.x,a.y,0}, {b.x,b.y,0}).z`
+  * `cross(T a, vec<T,2> b) -> vec<T,2>` is shorthand for `cross({0,0,a.z}, {b.x,b.y,0}).xy()`
+  * `cross(vec<T,2> a, T b) -> vec<T,2>` is shorthand for `cross({a.x,a.y,0}, {0,0,b.z}).xy()`
 
 * `dot(vec<T,M> a, vec<T,M> b) -> T` is the [dot or inner product](https://en.wikipedia.org/wiki/Dot_product) of vectors `a` and `b`
 
@@ -166,8 +166,8 @@ The documentation for `v2.2` is still in progress.
 A small set of functions provides support for quaternion math, using `vec<T,4>` values to represent quaternions of the form `xi + yj + zk + w`.
 
 * `qmul(vec<T,4> a, vec<T,4> b) -> vec<T,4>` is the [Hamilton product](https://en.wikipedia.org/wiki/Quaternion#Hamilton_product) of quaternions `a` and `b`
-* qconj(vec<T,4> q) -> vec<T,4>` is the [conjugate](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q`
-* qinv(vec<T,4> q) -> vec<T,4>` is the [inverse or reciprocal](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q` (undefined for zero-length quaternions)
+* `qconj(vec<T,4> q) -> vec<T,4>` is the [conjugate](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q`
+* `qinv(vec<T,4> q) -> vec<T,4>` is the [inverse or reciprocal](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q` (undefined for zero-length quaternions)
 * `qexp(vec<T,4> q) -> vec<T,4>` is the [exponential](https://en.wikipedia.org/wiki/Quaternion#Exponential,_logarithm,_and_power_functions) of quaternion `q`
 * `qlog(vec<T,4> q) -> vec<T,4>` is the [logarithm](https://en.wikipedia.org/wiki/Quaternion#Exponential,_logarithm,_and_power_functions) of quaternion `q`
 * `qpow(vec<T,4> q T p) -> vec<T,4>` is the quaternion `q` raised to the exponent `p`
@@ -175,10 +175,10 @@ A small set of functions provides support for quaternion math, using `vec<T,4>` 
 A second set of functions provides support for using unit-length quaternions to represent 3D spatial rotations. Their results are undefined for quaternions which are not of unit-length.
 
 * `qrot(vec<T,4> q, vec<T,3> v) -> vec<T,3>` is vector `v` rotated via rotation quaternion `q`
-** `qxdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {1,0,0})`
-** `qydir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,1,0})`
-** `qzdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,0,1})`
-** `qmat(vec<T,4> q)` is a 3x3 rotation matrix which performs the same operation as rotation quaternion `q`
+  * `qxdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {1,0,0})`
+  * `qydir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,1,0})`
+  * `qzdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,0,1})`
+  * `qmat(vec<T,4> q)` is a 3x3 rotation matrix which performs the same operation as rotation quaternion `q`
 
 * `qangle(vec<T,4> q)` is the angle in radians of the rotation expressed by quaternion `q`
 * `qaxis(vec<T,4> q)` is the axis of rotation expression by quaternion `q` (undefined for zero-angle quaternions)
