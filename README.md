@@ -36,8 +36,8 @@ The documentation for `v2.2` is still in progress.
   * [Matrices](#matrices)
 * [Function listing](#function-listing)
   * [Vector algebra](#vector-algebra)
+  * [Quaternion algebra](#quaternion-algebra)  
   * [Matrix algebra](#matrix-algebra)
-  * [Quaternion algebra](#quaternion-algebra)
   * [Component-wise operations](#component-wise-operations)
   * [Reductions](#reductions)
 * [Optional features](#optional-features)
@@ -128,7 +128,83 @@ The documentation for `v2.2` is still in progress.
 
 #### Matrices
 
-**TODO: Explaining `linalg::mat<T,M,N>`**
+`linalg::mat<T,M,N>` defines a fixed-size matrix containing exactly `M` rows and `N` columns of type `T`, in column-major order. Convenience aliases such as `float4x4` or `double3x3` are provided in the [`linalg::aliases` namespace](#type-aliases). This data structure is supported by a set of [algebraic](#matrix-algebra) functions and [component-wise](#component-wise-operations) functions, as well as a set of standard [reductions](#reductions).
+
+`mat<T,M,N>`:
+* is [`DefaultConstructible`](https://en.cppreference.com/w/cpp/named_req/DefaultConstructible):
+  ```cpp
+  float2x2 m; // m contains columns 0,0; 0,0
+  ```
+* is constructible from `N` columns of type `vec<T,M>`: 
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  ```
+* is constructible from `linalg::identity`:
+  ```cpp
+  float3x3 m = linalg::identity; // m contains columns 1,0,0; 0,1,0; 0,0,1
+  ```
+* is [`CopyConstructible`](https://en.cppreference.com/w/cpp/named_req/CopyConstructible) and [`CopyAssignable`](https://en.cppreference.com/w/cpp/named_req/CopyAssignable): 
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  float2x2 n {m};           // n contains columns 1,2; 3,4
+  float2x2 p;               // p contains columns 0,0; 0,0
+  p = n;                    // p contains columns 1,2; 3,4
+  ```
+* is [`EqualityComparable`](https://en.cppreference.com/w/cpp/named_req/EqualityComparable) and [`LessThanComparable`](https://en.cppreference.com/w/cpp/named_req/LessThanComparable):
+  ```cpp
+  if(m == n) cout << "m and n contain equal elements in the same positions" << endl;
+  if(m < n) cout << "m precedes n lexicographically when compared in column-major order" << endl;
+  ```  
+* is **explicitly** constructible from a single element of type `T`: 
+  ```cpp
+  float2x2 m {5}; // m contains columns 5,5; 5,5
+  ```
+* is **explicitly** constructible from a `mat<U,M,N>` of some other type `U`: 
+  ```cpp
+  float2x2 m {int2x2{{5,6},{7,8}}}; // m contains columns 5,6; 7,8
+  ```
+* supports indexing into *columns*: 
+  ```cpp
+  float2x3 m {{1,2},{3,4},{5,6}}; // m contains columns 1,2; 3,4; 5,6
+  float2 c = m[0];                // c contains 1,2
+  m[1]     = {7,8};               // m contains columns 1,2; 7,8; 5,6
+  ```
+* supports retrieval (but not assignment) of rows:
+  ```cpp
+  float2x3 m {{1,2},{3,4},{5,6}}; // m contains columns 1,2; 3,4; 5,6
+  float3 r = m.row(1);            // r contains 2,4,6
+  ```
+  
+  
+  
+* supports unary operators `+`, `-`, `!` and `~` in component-wise fashion:
+  ```cpp
+  float2x2 m {{1,2},{3,4}}; // m contains columns 1,2; 3,4
+  float2x2 n = -m;          // n contains columns -1,-2; -3,-4
+  ```
+* supports binary operators `+`, `-`, `*`, `/`, `%`, `|`, `&`, `^`, `<<` and `>>` in component-wise fashion:
+  ```cpp
+  float2x2 a {{0,0},{2,2}}; // a contains columns 0,0; 2,2
+  float2x2 b {{1,2},{1,2}}; // b contains columns 1,2; 1,2
+  float2x2 c = a + b;       // c contains columns 1,2; 3,4
+  ```
+  
+* supports binary operators with a scalar on the left or the right:
+  ```cpp
+  auto m = 2 * float2x2{{1,2},{3,4}}; // m is float2x2{{2,4},{6,8}}
+  ```  
+  
+* supports operators `+=`, `-=`, `*=`, `/=`, `%=`, `|=`, `&=`, `^=`, `<<=` and `>>=` with matrices or scalars on the right:
+  ```cpp
+  float2x2 v {{5,4},{3,2}}; 
+  v *= 3; // v is float2x2{{15,12},{9,6}}
+  ```  
+  
+* supports operations on mixed element types: 
+  
+* supports [range-based for](https://en.cppreference.com/w/cpp/language/range-for) over columns
+
+* has a flat memory layout
 
 ## Function listing
 
@@ -295,14 +371,34 @@ The set of type aliases defined in `namespace linalg::aliases` is as follows:
 * `vec<float,M>` aliased to *floatM*, as in: `float1`, `float2`, `float3`, `float4`
 * `vec<double,M>` aliased to *doubleM*, as in: `double1`, `double2`, `double3`, `double4`
 * `vec<int,M>` aliased to *intM* as in: `int1`, `int2`, `int3`, `int4`
+* `vec<unsigned,M>` aliased to *uintM* as in: `uint1`, `uint2`, `uint3`, `uint4`
 * `vec<bool,M>` aliased to *boolM* as in: `bool1`, `bool2`, `bool3`, `bool4`
+* `vec<int16_t,M>` aliased to *shortM* as in: `short1`, `short2`, `short3`, `short4`
+* `vec<uint16_t,M>` aliased to *ushortM* as in: `ushort1`, `ushort2`, `ushort3`, `ushort4`
+* `vec<uint8_t,M>` aliased to *byteM* as in: `byte1`, `byte2`, `byte3`, `byte4`
 * `mat<float,M,N>` aliased to *floatMxN* as in: `float1x3`, `float3x2`, `float4x4`, etc.
 * `mat<double,M,N>` aliased to *doubleMxN* as in: `double1x3`, `double3x2`, `double4x4`, etc.
 * `mat<int,M,N>` aliased to *intMxN* as in: `int1x3`, `int3x2`, `int4x4`, etc.
+* `mat<bool,M,N>` aliased to *boolMxN* as in: `boolx3`, `bool3x2`, `bool4x4`, etc.
+
+All combinations of up to four elements, rows, or columns are provided.
 
 #### `ostream` overloads
 
-**TODO: Explain `namespace linalg::ostream_overloads`**
+By default, `linalg.h` does not provide operators for interaction with standard library streams. This is to permit maximum flexibility for users who wish to define their own formatting (with or without delimiters, row versus column major matrices, human-readable precision or round-trip exact). However, as it is often useful to simply be able to show something when writing small programs, we provide some default stream operator overloads which can be brought into scope with:
+
+```cpp
+#include "linalg.h"
+using namespace linalg::ostream_overloads;
+```
+
+The provided behavior is to output a string using the currently specified stream properties (width, precision, padding, etc) which matches the braced-initialization syntax that could be used to construct that same value, without any extra whitespace.
+
+```cpp
+int3 v {1, 2, 3};
+int2x2 m {{4, 5}, {6, 7}};
+std::cout << v << std::endl; // Prints {1,2,3}
+std::wcout << m << std::endl; // Prints {{4,5},{6,7}}
 
 #### User-defined conversions
 
@@ -312,20 +408,19 @@ The set of type aliases defined in `namespace linalg::aliases` is as follows:
 
 #### `linalg::fold(f, a, b)`
 
-`fold(f, a, b)` is a higher order function which accepts a function of the form `A,B => A` and repeatedly invokes `a = f(a, element_of_b)` until all elements have been consumed, before returning `a`. It is approximately equal to a [left fold with an initial value](https://en.wikipedia.org/wiki/Fold_(higher-order_function)). When `b` is a `vec<T,M>`, elements are folded from least to greatest index. When `b` is a `mat<T,M,N>`, elements are folded in column-major order. When `b` is a `quat<T>`, elements are folded in `x,y,z,w` order.
+`fold(f, a, b)` is a higher order function which accepts a function of the form `A,B => A` and repeatedly invokes `a = f(a, element_of_b)` until all elements have been consumed, before returning `a`. It is approximately equal to a [left fold with an initial value](https://en.wikipedia.org/wiki/Fold_(higher-order_function)). When `b` is a `vec<T,M>`, elements are folded from least to greatest index. When `b` is a `mat<T,M,N>`, elements are folded in column-major order.
 
 See also: [Reductions](#reductions)
 
 #### `linalg::apply(f, a...)`
 
-`apply(f, a...)` is a higher order function which accepts a function of the form `A... => T` and applies it to component-wise sets of elements from data structures of compatible shape and dimensions. It is approximately equal to a [convolution](https://en.wikipedia.org/wiki/Convolution_(computer_science)) followed by a [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)). The shape of the result (that is, whether it is a scalar, vector, matrix, or quaternion, and the dimensions thereof) is determined by the arguments. If more than one argument is a non-scalar, the shape of those arguments must agree. Scalars can be freely intermixed with non-scalars, and element types can also be freely mixed. The element type of the returned value is determined by the return type of the provided mapping function `f`. The supported call signatures are enumerated in the following table:
+`apply(f, a...)` is a higher order function which accepts a function of the form `A... => T` and applies it to component-wise sets of elements from data structures of compatible shape and dimensions. It is approximately equal to a [convolution](https://en.wikipedia.org/wiki/Convolution_(computer_science)) followed by a [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)). The shape of the result (that is, whether it is a scalar, vector, or matrix, and the dimensions thereof) is determined by the arguments. If more than one argument is a non-scalar, the shape of those arguments must agree. Scalars can be freely intermixed with non-scalars, and element types can also be freely mixed. The element type of the returned value is determined by the return type of the provided mapping function `f`. The supported call signatures are enumerated in the following table:
 
 | call             | type of `a`  | type of `b`  | type of `c` | result type  | result elements          |
 |------------------|--------------|--------------|-------------|--------------|--------------------------|
 | `apply(f,a)`     | `A`          |              |             | `T`          | `f(a)`                   |
 | `apply(f,a)`     | `vec<A,M>`   |              |             | `vec<T,M>`   | `f(a[i])...`             |
 | `apply(f,a)`     | `mat<A,M,N>` |              |             | `mat<T,M,N>` | `f(a[j][i])...`          |
-| `apply(f,a)`     | `quat<A>`    |              |             | `quat<T>`    | `f(a.x)...`              |
 | `apply(f,a,b)`   | `A`          | `B`          |             | `T`          | `f(a, b)...`             |
 | `apply(f,a,b)`   | `A`          | `vec<B,M>`   |             | `vec<T,M>`   | `f(a, b[i])...`          |
 | `apply(f,a,b)`   | `vec<A,M>`   | `B`          |             | `vec<T,M>`   | `f(a[i], b)...`          |
@@ -333,9 +428,6 @@ See also: [Reductions](#reductions)
 | `apply(f,a,b)`   | `A`          | `mat<B,M,N>` |             | `mat<T,M,N>` | `f(a, b[j][i])...`       |
 | `apply(f,a,b)`   | `mat<A,M,N>` | `B`          |             | `mat<T,M,N>` | `f(a[j][i], b)...`       |
 | `apply(f,a,b)`   | `mat<A,M,N>` | `mat<B,M,N>` |             | `mat<T,M,N>` | `f(a[j][i], b[j][i])...` |
-| `apply(f,a,b)`   | `A`          | `quat<B>`    |             | `quat<T>`    | `f(a, b.x)...`           |
-| `apply(f,a,b)`   | `quat<A>`    | `B`          |             | `quat<T>`    | `f(a.x, b)...`           |
-| `apply(f,a,b)`   | `quat<A>`    | `quat<B>`    |             | `quat<T>`    | `f(a.x, b.x)...`         |
 | `apply(f,a,b,c)` | `A`          | `B`          | `C`         | `T`          | `f(a, b, c)...`          |
 | `apply(f,a,b,c)` | `A`          | `B`          | `vec<C,M>`  | `vec<T,M>`   | `f(a, b, c[i])...`       |
 | `apply(f,a,b,c)` | `A`          | `vec<B,M>`   | `C`         | `vec<T,M>`   | `f(a, b[i], c)...`       |
@@ -347,7 +439,7 @@ See also: [Reductions](#reductions)
 
 **TODO: Explain `apply_t<F, A...>` and SFINAE helpers.**
 
-See also: [Component-wise operations](#component-wide-operations)
+See also: [Component-wise operations](#component-wise-operations)
 
 ## Changes from `v2.1`
 
