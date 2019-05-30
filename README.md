@@ -135,9 +135,9 @@ The documentation for `v2.2` is still in progress.
 #### Vector algebra
 
 * `cross(vec<T,3> a, vec<T,3> b) -> vec<T,3>` is the [cross or vector product](https://en.wikipedia.org/wiki/Cross_product) of vectors `a` and `b`
-* `cross(vec<T,2> a, vec<T,2> b) -> T` is shorthand for `cross({a.x,a.y,0}, {b.x,b.y,0}).z`
-* `cross(T a, vec<T,2> b) -> vec<T,2>` is shorthand for `cross({0,0,a.z}, {b.x,b.y,0}).xy()`
-* `cross(vec<T,2> a, T b) -> vec<T,2>` is shorthand for `cross({a.x,a.y,0}, {0,0,b.z}).xy()`
+** `cross(vec<T,2> a, vec<T,2> b) -> T` is shorthand for `cross({a.x,a.y,0}, {b.x,b.y,0}).z`
+** `cross(T a, vec<T,2> b) -> vec<T,2>` is shorthand for `cross({0,0,a.z}, {b.x,b.y,0}).xy()`
+** `cross(vec<T,2> a, T b) -> vec<T,2>` is shorthand for `cross({a.x,a.y,0}, {0,0,b.z}).xy()`
 
 * `dot(vec<T,M> a, vec<T,M> b) -> T` is the [dot or inner product](https://en.wikipedia.org/wiki/Dot_product) of vectors `a` and `b`
 
@@ -145,27 +145,68 @@ The documentation for `v2.2` is still in progress.
 
 * `length2(vec<T,M> a) -> T` is the *square* of the length or magnitude of vector `a`
 
-* `normalize(vec<T,M> a) -> vec<T,M>` is a unit length vector in the same direction as `a` (undefined for zero-length inputs)
+* `normalize(vec<T,M> a) -> vec<T,M>` is a unit length vector in the same direction as `a` (undefined for zero-length vectors)
 
-* `distance(vec<T,M> a, vec<T,M> b) -> T` is the Euclidean distance between points `a` and `b`
+* `distance(vec<T,M> a, vec<T,M> b) -> T` is the [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between points `a` and `b`
 
-* `distance2(vec<T,M> a, vec<T,M> b) -> T` is the *square* of the Euclidean distance between points `a` and `b`
+* `distance2(vec<T,M> a, vec<T,M> b) -> T` is the *square* of the [Euclidean distance](https://en.wikipedia.org/wiki/Euclidean_distance) between points `a` and `b`
 
-* `angle(vec<T,M> a, vec<T,M> b) -> T` is the angle in radians between vectors `a` and `b`
+* `angle(vec<T,M> a, vec<T,M> b) -> T` is the angle in [radians](https://en.wikipedia.org/wiki/Radian) between vectors `a` and `b`
 
-* `uangle(vec<T,M> a, vec<T,M> b) -> T` is the angle in radians between unit vectors `a` and `b` (undefined for non-unit inputs)
+* `uangle(vec<T,M> a, vec<T,M> b) -> T` is the angle in [radians](https://en.wikipedia.org/wiki/Radian) between unit vectors `a` and `b` (undefined for non-unit vectors)
+
+* `rot(T a, vec<T,2> v) -> vec<T,2>` is the vector `v` rotated counter-clockwise by the angle `a` in [radians](https://en.wikipedia.org/wiki/Radian)
 
 * `nlerp(vec<T,M> a, vec<T,M> b, T t) -> vec<T,M>` is shorthand for `normalize(lerp(a,b,t))`
 
-* `slerp(vec<T,M> a, vec<T,M> b, T t) -> vec<T,M>` is the spherical linear interpolation between unit vectors `a` and `b` (undefined for non-unit inputs) by parameter `t`
-
-#### Matrix algebra
-
-**TODO: Explain `diagonal`, `trace`, `outerprod`, `transpose`, `adjugate`, `comatrix`, `determinant`, `inverse`**
+* `slerp(vec<T,M> a, vec<T,M> b, T t) -> vec<T,M>` is the [spherical linear interpolation](https://en.wikipedia.org/wiki/Slerp) between unit vectors `a` and `b` (undefined for non-unit vectors) by parameter `t`
 
 #### Quaternion algebra
 
-**TODO: Explain quaternion functions**
+A small set of functions provides support for quaternion math, using `vec<T,4>` values to represent quaternions of the form `xi + yj + zk + w`.
+
+* `qmul(vec<T,4> a, vec<T,4> b) -> vec<T,4>` is the [Hamilton product](https://en.wikipedia.org/wiki/Quaternion#Hamilton_product) of quaternions `a` and `b`
+* qconj(vec<T,4> q) -> vec<T,4>` is the [conjugate](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q`
+* qinv(vec<T,4> q) -> vec<T,4>` is the [inverse or reciprocal](https://en.wikipedia.org/wiki/Quaternion#Conjugation,_the_norm,_and_reciprocal) of quaternion `q` (undefined for zero-length quaternions)
+* `qexp(vec<T,4> q) -> vec<T,4>` is the [exponential](https://en.wikipedia.org/wiki/Quaternion#Exponential,_logarithm,_and_power_functions) of quaternion `q`
+* `qlog(vec<T,4> q) -> vec<T,4>` is the [logarithm](https://en.wikipedia.org/wiki/Quaternion#Exponential,_logarithm,_and_power_functions) of quaternion `q`
+* `qpow(vec<T,4> q T p) -> vec<T,4>` is the quaternion `q` raised to the exponent `p`
+
+A second set of functions provides support for using unit-length quaternions to represent 3D spatial rotations. Their results are undefined for quaternions which are not of unit-length.
+
+* `qrot(vec<T,4> q, vec<T,3> v) -> vec<T,3>` is vector `v` rotated via rotation quaternion `q`
+** `qxdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {1,0,0})`
+** `qydir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,1,0})`
+** `qzdir(vec<T,4> q)` is (efficient) shorthand for `qrot(q, {0,0,1})`
+** `qmat(vec<T,4> q)` is a 3x3 rotation matrix which performs the same operation as rotation quaternion `q`
+
+* `qangle(vec<T,4> q)` is the angle in radians of the rotation expressed by quaternion `q`
+* `qaxis(vec<T,4> q)` is the axis of rotation expression by quaternion `q` (undefined for zero-angle quaternions)
+
+* `qnlerp(vec<T,4> a, vec<T,4> b, T t)` is a normalized linear interpolation between rotation quaternions `a` and `b`. It differs from `nlerp(a,b,t)` by being aware of the double-cover property of rotation quaternions, and choosing the short path between two rotations.
+* `qslerp(vec<T,4> a, vec<T,4> b, T t)` is the [spherical linear interpolation](https://en.wikipedia.org/wiki/Slerp between rotation quaternions `a` and `b`. It differs from `slerp(a,b,t)` by being aware of the double-cover property of rotation quaternions, and choosing the short path between two rotations.
+
+#### Matrix algebra
+
+* `mul(mat<T,M,N> a, mat<T,N,P> b) -> mat<T,M,P>` is the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication) of matrices `a` and `b`
+** `mul(mat<T,M,N> a, vec<T,N> b) -> vec<T,M>` is the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication) of matrix `a` and a column matrix containing the elements of vector `b`
+** `mul(a, b, c)` is shorthand for `mul(mul(a, b), c)`
+
+* `outerprod(vec<T,M> a, vec<T,N> b) -> mat<T,M,N>` is the [outer product](https://en.wikipedia.org/wiki/Outer_product) of vectors `a` and `b`
+
+* `diagonal(mat<T,N,N> a) -> vec<T,N>` is a vector containing the elements along the main diagonal of matrix `a`
+
+* `trace(mat<T,N,N> a) -> T` is the sum of the elements along the main diagonal of matrix `a`
+
+* `transpose(mat<T,M,N> a) -> mat<T,N,M>` is the [transpose](https://en.wikipedia.org/wiki/Transpose) of matrix `a`
+
+* `adjugate(mat<T,N,N> a) -> mat<T,N,N>` is the [adjugate or classical adjoint](https://en.wikipedia.org/wiki/Adjugate_matrix) of matrix `a` (the transpose of its cofactor matrix, or the numerator in the expression of its inverse)
+
+* `comatrix(mat<T,N,N> a) -> mat<T,N,N>` is the [comatrix or cofactor matrix](https://en.wikipedia.org/wiki/Minor_(linear_algebra)#Inverse_of_a_matrix) of matrix `a` (the transpose of its adjugate matrix)
+
+* `determinant(mat<T,N,N> a) -> T` is the [determinant](https://en.wikipedia.org/wiki/Determinant) of matrix `a`
+
+* `inverse(mat<T,N,N> a) -> mat<T,N,N>` is the [multiplicative inverse](https://en.wikipedia.org/wiki/Multiplicative_inverse) of the [invertible matrix](https://en.wikipedia.org/wiki/Invertible_matrix) `a` (undefined for singular inputs)
 
 #### Component-wise operations
 
@@ -195,18 +236,26 @@ bool2 d = equal(4,b);   // d contains false, true
 bool2 e = greater(a,b); // e contains false, true
 ```
 
-**TODO: Explain `min`, `max`, `clamp`, `select`, `lerp`**
+`min(a,b) -> vec<T,M>` performs the component-wise selection of lesser elements, as by `a[i] < b[i] ? a[i] : b[i]`. Either argument can be a vector or a scalar.
+
+`max(a,b) -> vec<T,M>` performs the component-wise selection of greater elements, as by `a[i] > b[i] ? a[i] : b[i]`. Either argument can be a vector or a scalar.
+
+`clamp(x,l,h) -> vec<T,M>` performs the component-wise clamping of elements between a low and high boundary, as by `min(max(x,l),h)`. Any argument can be a vector or a scalar.
+
+`select(p,a,b) -> vec<T,M>` performs a component-wise ternary operator, as by `p[i] ? a[i] : b[i]`. Any argument can be a vector or a scalar.
+
+`lerp(a,b,t) -> vec<T,M>` performs a component-wise linear interpolation, as by `a[i]*(1-t[i]) + b[i]*t[i]`. Any argument can be a vector or a scalar.
 
 #### Reductions
 
-* `any :: vec<bool,M> => bool` returns true if any element of the vector is true
-* `all :: vec<bool,M> => bool` returns true if all elements of the vector are true
-* `sum :: vec<T,M> => T` returns the sum of all elements in the vector
-* `product :: vec<T,M> => T` returns the product of all elements in the vector
-* `minelem :: vec<T,M> => T` returns the **value** of the least element in the vector
-* `maxelem :: vec<T,M> => T` returns the **value** of the greatest element in the vector
-* `argmin :: vec<T,M> => int` returns the **index** of the least element in the vector
-* `argmax :: vec<T,M> => int` returns the **index** of the greatest element in the vector
+* `any(vec<bool,M> a) -> bool` is `true` if any element of the vector `a` is `true`
+* `all(vec<bool,M> a) -> bool` is `true` if all elements of the vector `a` are `true`
+* `sum(vec<T,M> a) -> T` is the sum of all elements in the vector `a`
+* `product(vec<T,M> a) -> T` returns the product of all elements in the vector `a`
+* `minelem(vec<T,M> a) -> T` returns the **value** of the least element in the vector `a`
+* `maxelem(vec<T,M> a) -> T` returns the **value** of the greatest element in the vector `a`
+* `argmin(vec<T,M> a) -> int` returns the **zero-based index** of the least element in the vector `a`
+* `argmax(vec<T,M> a) -> int` returns the **zero-based index** of the greatest element in the vector `a`
 
 #### Comparisons
 
