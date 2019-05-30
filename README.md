@@ -21,13 +21,13 @@ float4 compute_plane(float3 a, float3 b, float3 c)
 
 `linalg.h` aims to be:
 
-* Lightweight: The library is defined in a single header file which is less than a thousand lines of code.
-* Dependency free: There are no dependencies beyond a compliant C++11 compiler and a small subset of the standard library.
-* Standards compliant: Almost all operations are free of undefined behavior and can be evaluated in a `constexpr` context.
-* Generic: All types and operations are parameterized over scalar type, and can be mixed within expressions. Type promotion rules roughly match the C standard.
-* Consistent: Named functions and overloaded operators perform the same conceptual operation on all data types for which they are supported.
-* Complete: There are very few restrictions on which operations may be applied to which data types.
-* Easy to integrate: The library defines no symbols in the public namespace, and provides a mechanism for defining implicit conversions to external or user-provided data types.
+* **Lightweight**: The library is defined in a single header file which is less than a thousand lines of code.
+* **Dependency free**: There are no dependencies beyond a compliant C++11 compiler and a small subset of the standard library.
+* **Standards compliant**: Almost all operations are free of undefined behavior and can be evaluated in a `constexpr` context.
+* **Generic**: All types and operations are parameterized over scalar type, and can be mixed within expressions. Type promotion rules roughly match the C standard.
+* **Consistent**: Named functions and overloaded operators perform the same conceptual operation on all data types for which they are supported.
+* **Complete**: There are very few restrictions on which operations may be applied to which data types.
+* **Easy to integrate**: The library defines no symbols in the public namespace, and provides a mechanism for defining implicit conversions to external or user-provided data types.
 
 The documentation for `v2.2` is still in progress.
 
@@ -328,7 +328,7 @@ bool2 e = greater(a,b); // e contains false, true
 
 #### Comparisons
 
-**TODO: Explain `compare`**
+`compare(a,b)` is conceptually equivalent to `operator <=>` from [C++20](https://en.cppreference.com/w/cpp/language/default_comparisons). It compares two values of equivalent shape and returns a value which supports all six standard comparisons against `0`. It provides the same ordering guarantees as the underlying scalar type. That is, a `vec<int,M>` provides a strong ordering, where a `vec<float,M>` provides a partial odering.
 
 ## Optional features
 
