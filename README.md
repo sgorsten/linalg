@@ -399,8 +399,11 @@ int3 v {1, 2, 3};
 int2x2 m {{4, 5}, {6, 7}};
 std::cout << v << std::endl; // Prints {1,2,3}
 std::wcout << m << std::endl; // Prints {{4,5},{6,7}}
+```
 
 #### User-defined conversions
+
+A mechanism exists to define automatic conversions between `linalg` and user-provided types. As an example, this mechanism has already been used to defined bidirectional conversions between `linalg::vec<T,M>` and `std::array<T,M>`.
 
 **TODO: Explain `converter<T,U>`**
 
