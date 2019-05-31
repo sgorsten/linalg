@@ -520,7 +520,9 @@ namespace linalg
     template<class T, int M, int N> constexpr mat<T,M,2> mul(const mat<T,M,N> & a, const mat<T,N,2> & b) { return {mul(a,b.x), mul(a,b.y)}; }
     template<class T, int M, int N> constexpr mat<T,M,3> mul(const mat<T,M,N> & a, const mat<T,N,3> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z)}; }
     template<class T, int M, int N> constexpr mat<T,M,4> mul(const mat<T,M,N> & a, const mat<T,N,4> & b) { return {mul(a,b.x), mul(a,b.y), mul(a,b.z), mul(a,b.w)}; }
+    template<class T, int M, int N, int P> constexpr vec<T,M> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const vec<T,P> & c) { return mul(mul(a,b),c); }
     template<class T, int M, int N, int P, int Q> constexpr mat<T,M,Q> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c) { return mul(mul(a,b),c); }
+    template<class T, int M, int N, int P, int Q> constexpr vec<T,M> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c, const vec<T,Q> & d) { return mul(mul(a,b,c),d); }
     template<class T, int M, int N, int P, int Q, int R> constexpr mat<T,M,R> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c, const mat<T,Q,R> & d) { return mul(mul(a,b,c),d); }
     // TODO: Variadic version of mul(...) that works on all compilers
     template<class T, int M> constexpr mat<T,M,1> outerprod(const vec<T,M> & a, const vec<T,1> & b) { return {a*b.x}; }
