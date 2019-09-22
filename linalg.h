@@ -541,6 +541,7 @@ namespace linalg
         constexpr                            mat(const V & x_)                                           : _{x_} {}
         constexpr explicit                   mat(const T & s)                                            : _{V(s)} {}
         template<class U> constexpr explicit mat(const mat<U,M,1> & m)                                   : _{V(m[0])} {}
+        LINALG_CONSTEXPR14 mat &             operator = (const mat & m)                                  { _[0] = m._[0]; return *this; }
         constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
         constexpr vec<T,1>                   row(int i) const                                            { return {_[0][i]}; }
@@ -558,6 +559,7 @@ namespace linalg
         constexpr                            mat(const V & x_, const V & y_)                             : _{x_, y_} {}
         constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s)} {}
         template<class U> constexpr explicit mat(const mat<U,M,2> & m)                                   : _{V(m[0]), V(m[1])} {}
+        LINALG_CONSTEXPR14 mat &             operator = (const mat & m)                                  { _[0] = m._[0]; _[1] = m._[1]; return *this; }
         constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
         constexpr vec<T,2>                   row(int i) const                                            { return {_[0][i], _[1][i]}; }
@@ -575,6 +577,7 @@ namespace linalg
         constexpr                            mat(const V & x_, const V & y_, const V & z_)               : _{x_, y_, z_} {}
         constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s), V(s)} {}
         template<class U> constexpr explicit mat(const mat<U,M,3> & m)                                   : _{V(m[0]), V(m[1]), V(m[2])} {}
+        LINALG_CONSTEXPR14 mat &             operator = (const mat & m)                                  { _[0] = m._[0]; _[1] = m._[1]; _[2] = m._[2]; return *this; }
         constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
         constexpr vec<T,3>                   row(int i) const                                            { return {_[0][i], _[1][i], _[2][i]}; }
@@ -592,6 +595,7 @@ namespace linalg
         constexpr                            mat(const V & x_, const V & y_, const V & z_, const V & w_) : _{x_, y_, z_, w_} {}
         constexpr explicit                   mat(const T & s)                                            : _{V(s), V(s), V(s), V(s)} {}
         template<class U> constexpr explicit mat(const mat<U,M,4> & m)                                   : _{V(m[0]), V(m[1]), V(m[2]), V(m[3])} {}
+        LINALG_CONSTEXPR14 mat &             operator = (const mat & m)                                  { _[0] = m._[0]; _[1] = m._[1]; _[2] = m._[2]; _[3] = m._[3]; return *this; }
         constexpr const V &                  operator[] (int j) const                                    { return _[j]; }
         LINALG_CONSTEXPR14 V &               operator[] (int j)                                          { return _[j]; }
         constexpr vec<T,4>                   row(int i) const                                            { return {_[0][i], _[1][i], _[2][i], _[3][i]}; }
