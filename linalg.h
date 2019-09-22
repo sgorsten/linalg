@@ -315,7 +315,7 @@ namespace linalg
         constexpr                            vec(const vec & v)                                          : _{v[0]} {}
         constexpr                            vec(const T & e0)                                           : _{e0} {}
         template<class U> constexpr explicit vec(const vec<U,1> & v)                                     : _{static_cast<T>(v[0])} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & v)                                  { _ = v._; return *this; }
         constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
         constexpr const T *                  data() const                                                { return _._; }
@@ -350,7 +350,7 @@ namespace linalg
         constexpr                            vec(const T & e0, const T & e1)                             : _{e0, e1} {}
         constexpr explicit                   vec(const T & s)                                            : _{s, s} {}
         template<class U> constexpr explicit vec(const vec<U,2> & v)                                     : _{static_cast<T>(v[0]), static_cast<T>(v[1])} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & v)                                  { _ = v._; return *this; }
         constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
         constexpr const T *                  data() const                                                { return _._; }
@@ -519,7 +519,7 @@ namespace linalg
         constexpr explicit                   vec(const T & s)                                            : _{s, s, s, s} {}
         template<class U> constexpr explicit vec(const vec<U,4> & v)                                     : _{static_cast<T>(v[0]), static_cast<T>(v[1]), static_cast<T>(v[2]), static_cast<T>(v[3])} {}
         constexpr explicit                   vec(const quat<T> & q)                                      : _{q.x, q.y, q.z, q.w} {}
-        LINALG_CONSTEXPR14 vec &             operator = (const vec & r)                                  { _ = r._; return *this; }
+        LINALG_CONSTEXPR14 vec &             operator = (const vec & v)                                  { _ = v._; return *this; }
         constexpr const T &                  operator[] (int i) const                                    { return _._[i]; }
         LINALG_CONSTEXPR14 T &               operator[] (int i)                                          { return _._[i]; }
         constexpr const T *                  data() const                                                { return _._; }
