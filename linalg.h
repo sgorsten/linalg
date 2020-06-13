@@ -53,6 +53,7 @@
 #include <array>        // For std::array
 #include <iosfwd>       // For forward definitions of std::ostream
 #include <type_traits>  // For std::enable_if, std::is_same, std::declval
+#include <functional>   // For std::hash declaration
 
 // In Visual Studio 2015, `constexpr` applied to a member function implies `const`, which causes ambiguous overload resolution
 #if _MSC_VER <= 1900
