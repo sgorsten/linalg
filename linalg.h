@@ -431,7 +431,7 @@ namespace linalg
     template<class A, class B> constexpr auto operator >>= (A & a, const B & b) -> decltype(a = a >> b) { return a = a >> b; }
 
     // Swizzles and subobjects
-    template<int... I, class T, int M>                              constexpr vec<T,sizeof...(I)>   swizzle(const vec<T,M> & a)   { return {detail::getter<I>(a)...}; }
+    template<int... I, class T, int M>                              constexpr vec<T,sizeof...(I)>   swizzle(const vec<T,M> & a)   { return {detail::getter<I>{}(a)...}; }
     template<int I0, int I1, class T, int M>                        constexpr vec<T,I1-I0>          subvec (const vec<T,M> & a)   { return detail::swizzle(a, detail::make_seq<I0,I1>{}); }
     template<int I0, int J0, int I1, int J1, class T, int M, int N> constexpr mat<T,I1-I0,J1-J0>    submat (const mat<T,M,N> & a) { return detail::swizzle(a, detail::make_seq<I0,I1>{}, detail::make_seq<J0,J1>{}); }
 
