@@ -47,6 +47,11 @@ static_assert(a4x4[1][1] == 4,  "linalg::mat<T,M,4>::operator[] should be conste
 static_assert(a4x4[2][2] == 16, "linalg::mat<T,M,4>::operator[] should be constexpr");
 static_assert(a4x4[3][3] == 64, "linalg::mat<T,M,4>::operator[] should be constexpr");
 
+// Check swizzle<...>
+static_assert(linalg::swizzle<3,1,2,0>(b4) == int4{7,3,5,2}, "swizzle<...> can reorder");
+static_assert(linalg::swizzle<0,1,1,0>(a2) == int4{1,2,2,1}, "swizzle<...> can make larger vectors");
+static_assert(linalg::swizzle<1,2>(a4) == int2{2,4}, "swizzle<...> can make smaller vectors");
+
 // Check mat::operator==, !=, <, >, <=, >=
 static_assert(a2x2 == a2x2, "linalg::mat<T,M,N>::operator== should be constexpr");
 static_assert(a3x3 != b3x3, "linalg::mat<T,M,N>::operator!= should be constexpr");
