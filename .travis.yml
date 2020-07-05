@@ -25,9 +25,9 @@ matrix:
     - env: COMPILER=clang++-4.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
       addons: { apt: { packages: ["clang-4.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-4.0"] } }
     - env: COMPILER=clang++-5.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
-      addons: { apt: { packages: ["clang-5.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-5.0"] } }
+      addons: { apt: { packages: ["clang-5.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test"] } }
     - env: COMPILER=clang++-6.0 CXXLIBRARY="-stdlib=libc++ -lc++abi -lsupc++"
-      addons: { apt: { packages: ["clang-6.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
+      addons: { apt: { packages: ["clang-6.0", "libc++-dev", "libc++abi-dev"], sources: ["ubuntu-toolchain-r-test"] } }
       
 install:
   - export CXX=${COMPILER}
