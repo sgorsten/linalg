@@ -556,6 +556,7 @@ namespace linalg
     template<class T, int M> constexpr mat<T,M,2> transpose(const mat<T,2,M> & m) { return {m.row(0), m.row(1)}; }
     template<class T, int M> constexpr mat<T,M,3> transpose(const mat<T,3,M> & m) { return {m.row(0), m.row(1), m.row(2)}; }
     template<class T, int M> constexpr mat<T,M,4> transpose(const mat<T,4,M> & m) { return {m.row(0), m.row(1), m.row(2), m.row(3)}; }
+    template<class T, int M> constexpr mat<T,1,M> transpose(const vec<T,M> & m) { return transpose(mat<T,M,1>(m)); }
     template<class T> constexpr mat<T,1,1> adjugate(const mat<T,1,1> & a) { return {vec<T,1>{1}}; }
     template<class T> constexpr mat<T,2,2> adjugate(const mat<T,2,2> & a) { return {{a.y.y, -a.x.y}, {-a.y.x, a.x.x}}; }
     template<class T> constexpr mat<T,3,3> adjugate(const mat<T,3,3> & a);

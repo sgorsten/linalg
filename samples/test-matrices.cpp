@@ -18,16 +18,28 @@ TEST_CASE( "matrix transpose produces correct result dimensions" )
     REQUIRE( transpose(float4x2()) == float2x4() );
     REQUIRE( transpose(float4x3()) == float3x4() );
     REQUIRE( transpose(float4x4()) == float4x4() );
+
+    REQUIRE( transpose(float1()) == float1x1() );
+    REQUIRE( transpose(float2()) == float1x2() );
+    REQUIRE( transpose(float3()) == float1x3() );
+    REQUIRE( transpose(float4()) == float1x4() );
 }
 
 TEST_CASE( "matrix multiplication produces correct result dimensions" )
 {
+    REQUIRE( mul(float1x1(), float1()) == float1() );
+    REQUIRE( mul(float1x2(), float2()) == float1() );
+    REQUIRE( mul(float1x3(), float3()) == float1() );
+    REQUIRE( mul(float1x4(), float4()) == float1() );
+    REQUIRE( mul(float2x1(), float1()) == float2() );
     REQUIRE( mul(float2x2(), float2()) == float2() );
     REQUIRE( mul(float2x3(), float3()) == float2() );
     REQUIRE( mul(float2x4(), float4()) == float2() );
+    REQUIRE( mul(float3x1(), float1()) == float3() );
     REQUIRE( mul(float3x2(), float2()) == float3() );
     REQUIRE( mul(float3x3(), float3()) == float3() );
     REQUIRE( mul(float3x4(), float4()) == float3() );
+    REQUIRE( mul(float4x1(), float1()) == float4() );
     REQUIRE( mul(float4x2(), float2()) == float4() );
     REQUIRE( mul(float4x3(), float3()) == float4() );
     REQUIRE( mul(float4x4(), float4()) == float4() );
@@ -77,6 +89,24 @@ TEST_CASE( "matrix multiplication produces correct result dimensions" )
     REQUIRE( outerprod(float4(), float2()) == float4x2() );
     REQUIRE( outerprod(float4(), float3()) == float4x3() );
     REQUIRE( outerprod(float4(), float4()) == float4x4() );
+
+    // Row vector x matrix products can be emulated using the transpose function
+    REQUIRE( mul(transpose(float1()), float1x1()) == transpose(float1()) );
+    REQUIRE( mul(transpose(float2()), float2x1()) == transpose(float1()) );
+    REQUIRE( mul(transpose(float3()), float3x1()) == transpose(float1()) );
+    REQUIRE( mul(transpose(float4()), float4x1()) == transpose(float1()) );
+    REQUIRE( mul(transpose(float1()), float1x2()) == transpose(float2()) );
+    REQUIRE( mul(transpose(float2()), float2x2()) == transpose(float2()) );
+    REQUIRE( mul(transpose(float3()), float3x2()) == transpose(float2()) );
+    REQUIRE( mul(transpose(float4()), float4x2()) == transpose(float2()) );
+    REQUIRE( mul(transpose(float1()), float1x3()) == transpose(float3()) );
+    REQUIRE( mul(transpose(float2()), float2x3()) == transpose(float3()) );
+    REQUIRE( mul(transpose(float3()), float3x3()) == transpose(float3()) );
+    REQUIRE( mul(transpose(float4()), float4x3()) == transpose(float3()) );
+    REQUIRE( mul(transpose(float1()), float1x4()) == transpose(float4()) );
+    REQUIRE( mul(transpose(float2()), float2x4()) == transpose(float4()) );
+    REQUIRE( mul(transpose(float3()), float3x4()) == transpose(float4()) );
+    REQUIRE( mul(transpose(float4()), float4x4()) == transpose(float4()) );
 }
 
 TEST_CASE_TEMPLATE( "matrix diagonal and trace are correct", T, double, float, int, short )
