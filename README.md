@@ -465,6 +465,14 @@ See also: [Component-wise operations](#component-wise-operations)
 * Almost all operations which do not internally call `<cmath>` functions are `constexpr`, except for `argmin` and `argmax`
 * No lambdas are used in `linalg.h`, avoiding potential ODR violations
 
+#### Deprecations in `v2.2`
+
+* `operator *` has been deprecated between pairs of matrices.
+  * Call `cmul(...)` if the original, component-wise product was intended
+  * Call `mul(...)` if the algebraic matrix product was intended
+
+You can `#define LINALG_FORWARD_COMPATIBLE` before including `linalg.h` to remove all deprecated features.
+
 #### Breaking changes in `v2.2-beta`
 
 It is intended that compatibility will be restored before officially tagging `v2.2`

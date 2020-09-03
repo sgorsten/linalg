@@ -13,16 +13,18 @@
 // The author acknowledges significant insights and contributions by:
 //     Stan Melax <http://github.com/melax/>
 //     Dimitri Diakopoulos <http://github.com/ddiakopoulos/>
+//
+// Some features are deprecated. Define LINALG_FORWARD_COMPATIBLE to remove them.
 
 
 
 // This is free and unencumbered software released into the public domain.
-// 
+//
 // Anyone is free to copy, modify, publish, use, compile, sell, or
 // distribute this software, either in source code form or as a compiled
 // binary, for any purpose, commercial or non-commercial, and by any
 // means.
-// 
+//
 // In jurisdictions that recognize copyright laws, the author or authors
 // of this software dedicate any and all copyright interest in the
 // software to the public domain. We make this dedication for the benefit
@@ -30,7 +32,7 @@
 // successors. We intend this dedication to be an overt act of
 // relinquishment in perpetuity of all present and future rights to this
 // software under copyright law.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -38,7 +40,7 @@
 // OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-// 
+//
 // For more information, please refer to <http://unlicense.org/>
 
 
@@ -72,8 +74,8 @@ namespace linalg
 
     // Specialize converter<T,U> with a function application operator that converts type U to type T to enable implicit conversions
     template<class T, class U> struct converter {};
-    namespace detail 
-    { 
+    namespace detail
+    {
         template<class T, class U> using conv_t = typename std::enable_if<!std::is_same<T,U>::value, decltype(converter<T,U>{}(std::declval<U>()))>::type;
 
         // Trait for retrieving scalar type of any linear algebra object
@@ -132,22 +134,22 @@ namespace linalg
 
         // Helpers which indicate how apply(F, ...) should be called for various arguments
         template<class F, class Void, class... T> struct apply {}; // Patterns which contain only vectors or scalars
-        template<class F, int M, class A                  > struct apply<F, scalars_t<   >, vec<A,M>                    > { using type=vec<ret_t<F,A    >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a                                        ) { return {f(getter<I>{}(a)                                )...}; } };
-        template<class F, int M, class A, class B         > struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b                    ) { return {f(getter<I>{}(a), getter<I>{}(b)                )...}; } };
-        template<class F, int M, class A, class B         > struct apply<F, scalars_t<B  >, vec<A,M>, B                 > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b                    ) { return {f(getter<I>{}(a), b                             )...}; } };
-        template<class F, int M, class A, class B         > struct apply<F, scalars_t<A  >, A,        vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b                    ) { return {f(a,              getter<I>{}(b)                )...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, const vec<C,M> & c) { return {f(getter<I>{}(a), getter<I>{}(b), getter<I>{}(c))...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<C  >, vec<A,M>, vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, C                c) { return {f(getter<I>{}(a), getter<I>{}(b), c             )...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B  >, vec<A,M>, B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, const vec<C,M> & c) { return {f(getter<I>{}(a), b,              getter<I>{}(c))...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B,C>, vec<A,M>, B,        C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, C                c) { return {f(getter<I>{}(a), b,              c             )...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A  >, A,        vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a,              getter<I>{}(b), getter<I>{}(c))...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,C>, A,        vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, C                c) { return {f(a,              getter<I>{}(b), c             )...}; } };
-        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,B>, A,        B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, B                b, const vec<C,M> & c) { return {f(a,              b,              getter<I>{}(c))...}; } };
-        template<class F, int M, int N, class A         > struct apply<F, scalars_t< >, mat<A,M,N>            > { using type=mat<ret_t<F,A  >,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a                      ) { return {apply<F, void, vec<A,M>          >::impl(make_seq<0,M>{}, f, getter<J>{}(a)                )...}; } };
-        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t< >, mat<A,M,N>, mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, const mat<B,M,N> & b) { return {apply<F, void, vec<A,M>, vec<B,M>>::impl(make_seq<0,M>{}, f, getter<J>{}(a), getter<J>{}(b))...}; } };
-        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<B>, mat<A,M,N>, B         > { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, B                  b) { return {apply<F, void, vec<A,M>, B       >::impl(make_seq<0,M>{}, f, getter<J>{}(a), b             )...}; } };
-        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<A>, A,          mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N}; template<int... J> static constexpr type impl(seq<J...>, F f, A                  a, const mat<B,M,N> & b) { return {apply<F, void, A,        vec<B,M>>::impl(make_seq<0,M>{}, f, a,              getter<J>{}(b))...}; } };
-        template<class F, class... A> struct apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0}; static constexpr type impl(seq<>, F f, A... a) { return f(a...); } };
+        template<class F, int M, class A                  > struct apply<F, scalars_t<   >, vec<A,M>                    > { using type=vec<ret_t<F,A    >,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a                                        ) { return {f(getter<I>{}(a)                                )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b                    ) { return {f(getter<I>{}(a), getter<I>{}(b)                )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<B  >, vec<A,M>, B                 > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b                    ) { return {f(getter<I>{}(a), b                             )...}; } };
+        template<class F, int M, class A, class B         > struct apply<F, scalars_t<A  >, A,        vec<B,M>          > { using type=vec<ret_t<F,A,B  >,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b                    ) { return {f(a,              getter<I>{}(b)                )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<   >, vec<A,M>, vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, const vec<C,M> & c) { return {f(getter<I>{}(a), getter<I>{}(b), getter<I>{}(c))...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<C  >, vec<A,M>, vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, const vec<B,M> & b, C                c) { return {f(getter<I>{}(a), getter<I>{}(b), c             )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B  >, vec<A,M>, B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, const vec<C,M> & c) { return {f(getter<I>{}(a), b,              getter<I>{}(c))...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<B,C>, vec<A,M>, B,        C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, const vec<A,M> & a, B                b, C                c) { return {f(getter<I>{}(a), b,              c             )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A  >, A,        vec<B,M>, vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, const vec<C,M> & c) { return {f(a,              getter<I>{}(b), getter<I>{}(c))...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,C>, A,        vec<B,M>, C       > { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, const vec<B,M> & b, C                c) { return {f(a,              getter<I>{}(b), c             )...}; } };
+        template<class F, int M, class A, class B, class C> struct apply<F, scalars_t<A,B>, A,        B,        vec<C,M>> { using type=vec<ret_t<F,A,B,C>,M>; enum {size=M, mm=0}; template<int... I> static constexpr type impl(seq<I...>, F f, A                a, B                b, const vec<C,M> & c) { return {f(a,              b,              getter<I>{}(c))...}; } };
+        template<class F, int M, int N, class A         > struct apply<F, scalars_t< >, mat<A,M,N>            > { using type=mat<ret_t<F,A  >,M,N>; enum {size=N, mm=0}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a                      ) { return {apply<F, void, vec<A,M>          >::impl(make_seq<0,M>{}, f, getter<J>{}(a)                )...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t< >, mat<A,M,N>, mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N, mm=1}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, const mat<B,M,N> & b) { return {apply<F, void, vec<A,M>, vec<B,M>>::impl(make_seq<0,M>{}, f, getter<J>{}(a), getter<J>{}(b))...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<B>, mat<A,M,N>, B         > { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N, mm=0}; template<int... J> static constexpr type impl(seq<J...>, F f, const mat<A,M,N> & a, B                  b) { return {apply<F, void, vec<A,M>, B       >::impl(make_seq<0,M>{}, f, getter<J>{}(a), b             )...}; } };
+        template<class F, int M, int N, class A, class B> struct apply<F, scalars_t<A>, A,          mat<B,M,N>> { using type=mat<ret_t<F,A,B>,M,N>; enum {size=N, mm=0}; template<int... J> static constexpr type impl(seq<J...>, F f, A                  a, const mat<B,M,N> & b) { return {apply<F, void, A,        vec<B,M>>::impl(make_seq<0,M>{}, f, a,              getter<J>{}(b))...}; } };
+        template<class F, class... A> struct apply<F, scalars_t<A...>, A...> { using type = ret_t<F,A...>; enum {size=0, mm=0}; static constexpr type impl(seq<>, F f, A... a) { return f(a...); } };
 
         // Function objects for selecting between alternatives
         struct min    { template<class A, class B> constexpr auto operator() (A a, B b) const -> typename std::remove_reference<decltype(a<b ? a : b)>::type { return a<b ? a : b; } };
@@ -174,7 +176,7 @@ namespace linalg
         struct op_ge  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a >= b) { return a >= b; } };
         struct op_eq  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a == b) { return a == b; } };
         struct op_ne  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a != b) { return a != b; } };
-        struct op_int { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a & b)  { return a & b; } };        
+        struct op_int { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a & b)  { return a & b; } };
         struct op_xor { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a ^ b)  { return a ^ b; } };
         struct op_un  { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a | b)  { return a | b; } };
         struct op_and { template<class A, class B> constexpr auto operator() (A a, B b) const -> decltype(a && b) { return a && b; } };
@@ -371,6 +373,8 @@ namespace linalg
 
     // Type aliases for the result of calling apply(...) with various arguments, can be used with return type SFINAE to constrian overload sets
     template<class F, class... A> using apply_t = typename detail::apply<F,void,A...>::type;
+    template<class F, class... A> using mm_apply_t = typename std::enable_if<detail::apply<F,void,A...>::mm, apply_t<F,A...>>::type;
+    template<class F, class... A> using no_mm_apply_t = typename std::enable_if<!detail::apply<F,void,A...>::mm, apply_t<F,A...>>::type;
     template<class A> using scalar_t = typename detail::scalar_type<A>::type; // Underlying scalar type when performing elementwise operations
 
     // apply(f,...) applies the provided function in an elementwise fashion to its arguments, producing an object of the same dimensions
@@ -407,10 +411,10 @@ namespace linalg
     template<class A> constexpr apply_t<detail::op_cmp, A> operator ~ (const A & a) { return apply(detail::op_cmp{}, a); }
     template<class A> constexpr apply_t<detail::op_not, A> operator ! (const A & a) { return apply(detail::op_not{}, a); }
 
-    // Binary operators are defined component-wise for linalg types
+    // Binary operators are defined component-wise for linalg types, EXCEPT for `operator *`
     template<class A, class B> constexpr apply_t<detail::op_add, A, B> operator +  (const A & a, const B & b) { return apply(detail::op_add{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_sub, A, B> operator -  (const A & a, const B & b) { return apply(detail::op_sub{}, a, b); }
-    template<class A, class B> constexpr apply_t<detail::op_mul, A, B> operator *  (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
+    template<class A, class B> constexpr apply_t<detail::op_mul, A, B> cmul        (const A & a, const B & b) { return apply(detail::op_mul{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_div, A, B> operator /  (const A & a, const B & b) { return apply(detail::op_div{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_mod, A, B> operator %  (const A & a, const B & b) { return apply(detail::op_mod{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_un,  A, B> operator |  (const A & a, const B & b) { return apply(detail::op_un{},  a, b); }
@@ -418,6 +422,20 @@ namespace linalg
     template<class A, class B> constexpr apply_t<detail::op_int, A, B> operator &  (const A & a, const B & b) { return apply(detail::op_int{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_lsh, A, B> operator << (const A & a, const B & b) { return apply(detail::op_lsh{}, a, b); }
     template<class A, class B> constexpr apply_t<detail::op_rsh, A, B> operator >> (const A & a, const B & b) { return apply(detail::op_rsh{}, a, b); }
+
+    // Binary `operator *` was originally defined component-wise for all patterns, in a fashion consistent with the other operators. However,
+    // this was one of the most frequent sources of confusion among new users of this library, with the binary `operator *` being used accidentally
+    // by users who INTENDED the semantics of the algebraic matrix product, but RECEIVED the semantics of the Hadamard product. While there is
+    // precedent within the HLSL, Fortran, R, APL, J, and Mathematica programming languages for `operator *` having the semantics of the Hadamard
+    // product between matrices, it is counterintuitive to users of GLSL, Eigen, and many other languages and libraries that chose matrix product
+    // semantics for `operator *`.
+    //
+    // For these reasons, binary `operator *` is now DEPRECATED between pairs of matrices. Users may call `cmul(...)` for component-wise multiplication,
+    // or `mul(...)` for matrix multiplication. Binary `operator *` continues to be available for vector * vector, vector * scalar, matrix * scalar, etc.
+    template<class A, class B> constexpr no_mm_apply_t<detail::op_mul, A, B> operator * (const A & a, const B & b) { return cmul(a,b); }
+    #ifndef LINALG_FORWARD_COMPATIBLE
+    template<class A, class B> [[deprecated("`operator *` between pairs of matrices is deprecated. See the source text for details.")]] constexpr mm_apply_t<detail::op_mul, A, B> operator * (const A & a, const B & b) { return cmul(a,b); }
+    #endif
 
     // Binary assignment operators a $= b is always defined as though it were explicitly written a = a $ b
     template<class A, class B> constexpr auto operator +=  (A & a, const B & b) -> decltype(a = a + b) { return a = a + b; }
@@ -525,7 +543,6 @@ namespace linalg
     template<class T, int M, int N, int P, int Q> constexpr mat<T,M,Q> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c) { return mul(mul(a,b),c); }
     template<class T, int M, int N, int P, int Q> constexpr vec<T,M> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c, const vec<T,Q> & d) { return mul(mul(a,b,c),d); }
     template<class T, int M, int N, int P, int Q, int R> constexpr mat<T,M,R> mul(const mat<T,M,N> & a, const mat<T,N,P> & b, const mat<T,P,Q> & c, const mat<T,Q,R> & d) { return mul(mul(a,b,c),d); }
-    // TODO: Variadic version of mul(...) that works on all compilers
     template<class T, int M> constexpr mat<T,M,1> outerprod(const vec<T,M> & a, const vec<T,1> & b) { return {a*b.x}; }
     template<class T, int M> constexpr mat<T,M,2> outerprod(const vec<T,M> & a, const vec<T,2> & b) { return {a*b.x, a*b.y}; }
     template<class T, int M> constexpr mat<T,M,3> outerprod(const vec<T,M> & a, const vec<T,3> & b) { return {a*b.x, a*b.y, a*b.z}; }

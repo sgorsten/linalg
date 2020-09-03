@@ -217,7 +217,7 @@ TEST_CASE_TEMPLATE( "matrix inverse is correct for general case", T, float, doub
 {
     const linalg::mat<T,4,4> mat {{1,2,3,4}, {5,-6,7,8}, {9,10,-11,12}, {13,14,15,-16}};
     const linalg::mat<T,4,4> inv = inverse(mat);
-    const linalg::mat<T,4,4> id = mat * inv;
+    const linalg::mat<T,4,4> id = mul(mat, inv);
     for(int j=0; j<4; ++j)
     {
         for(int i=0; i<4; ++i)
