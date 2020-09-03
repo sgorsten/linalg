@@ -11,6 +11,7 @@ platform:
 
 image:
 
+- Visual Studio 2019
 - Visual Studio 2017
 - Visual Studio 2015
 
@@ -24,27 +25,43 @@ test_script:
 
     echo $env:APPVEYOR_BUILD_WORKER_IMAGE
 
-    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2017")
+    cd samples
+
+    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2019")
     {
-        msbuild /t:Build samples\msvc150\linalg-test.vcxproj
         if($env:PLATFORM -eq "x64")
         {
-            samples\msvc150\bin\linalg-test-Debug-x64.exe
+            cmake . -B build -G "Visual Studio 16 2019" -A x64
         }
         if($env:PLATFORM -eq "x86")
         {
-            samples\msvc150\bin\linalg-test-Debug-Win32.exe
-        }        
+            cmake . -B build -G "Visual Studio 16 2019" -A Win32
+        }
+    }    
+    if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2017")
+    {
+        if($env:PLATFORM -eq "x64")
+        {
+            cmake . -B build -G "Visual Studio 15 2017 Win64"
+        }
+        if($env:PLATFORM -eq "x86")
+        {
+            cmake . -B build -G "Visual Studio 15 2017"
+        }
     }
     if($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2015")
     {
-        msbuild /t:Build samples\msvc140\linalg-test.vcxproj
         if($env:PLATFORM -eq "x64")
         {
-            samples\msvc140\bin\linalg-test-Debug-x64.exe
+            cmake . -B build -G "Visual Studio 14 2015 Win64"
         }
         if($env:PLATFORM -eq "x86")
         {
-            samples\msvc140\bin\linalg-test-Debug-Win32.exe
+            cmake . -B build -G "Visual Studio 14 2015"
         }        
     }
+    
+    cmake --build build
+    
+    bin\Debug\linalg-test.exe
+    
