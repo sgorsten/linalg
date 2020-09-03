@@ -34,9 +34,11 @@ public:
     unsigned int get(unsigned int *) { return dist_uint(rng); }
     unsigned short get(unsigned short *) { return dist_ushort(rng); }
 
+    template<class T> linalg::vec<T,1> get(linalg::vec<T,1> *) { return linalg::vec<T,1>(get<T>()); }
     template<class T> linalg::vec<T,2> get(linalg::vec<T,2> *) { return linalg::vec<T,2>(get<T>(), get<T>()); }
     template<class T> linalg::vec<T,3> get(linalg::vec<T,3> *) { return linalg::vec<T,3>(get<T>(), get<T>(), get<T>()); }
     template<class T> linalg::vec<T,4> get(linalg::vec<T,4> *) { return linalg::vec<T,4>(get<T>(), get<T>(), get<T>(), get<T>()); }
+    template<class T, int M> linalg::mat<T,M,1> get(linalg::mat<T,M,1> *) { return linalg::mat<T,M,1>(get<linalg::vec<T,M>>()); }
     template<class T, int M> linalg::mat<T,M,2> get(linalg::mat<T,M,2> *) { return linalg::mat<T,M,2>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
     template<class T, int M> linalg::mat<T,M,3> get(linalg::mat<T,M,3> *) { return linalg::mat<T,M,3>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
     template<class T, int M> linalg::mat<T,M,4> get(linalg::mat<T,M,4> *) { return linalg::mat<T,M,4>(get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>(), get<linalg::vec<T,M>>()); }
