@@ -589,6 +589,7 @@ namespace linalg
     template<class T> mat<T,4,4> pose_matrix       (const vec<T,4> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
     template<class T> mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one);
     template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
+    template<class T> mat<T,4,4> lookat_matrix     (const vec<T,3> & eye, const vec<T,3> & target, const vec<T,3> & up);
 
     // Provide implicit conversion between linalg::vec<T,M> and std::array<T,M>
     template<class T> struct converter<vec<T,1>, std::array<T,1>> { vec<T,1> operator() (const std::array<T,1> & a) const { return {a[0]}; } };
@@ -709,6 +710,16 @@ template<class T> linalg::mat<T,4,4> linalg::frustum_matrix(T x0, T x1, T y0, T 
 {
     const T s = a == pos_z ? T(1) : T(-1), o = z == neg_one_to_one ? n : 0;
     return {{2*n/(x1-x0),0,0,0}, {0,2*n/(y1-y0),0,0}, {-s*(x0+x1)/(x1-x0),-s*(y0+y1)/(y1-y0),s*(f+o)/(f-n),s}, {0,0,-(n+o)*f/(f-n),0}};
+}
+
+template<class T> linalg::mat<T,4,4> linalg::lookat_matrix(const vec<T,3> & eye, const vec<T,3> & target, const vec<T,3> & up) {
+    const vec<T,3> z = normalize(target - eye);
+    const vec<T,3> x = (z == up || z == -up) ? vec<T,3>(z.z, z.x, z.y) : normalize(cross(z, up));
+    const vec<T,3> y = cross(x, z);
+    return {{x.x, y.x, -z.x, 0},
+        {x.y, y.y, -z.y, 0},
+        {x.z, y.z, -z.z, 0},
+        {-dot(x, eye), -dot(y, eye), dot(z, eye), 1}};
 }
 
 #endif
