@@ -505,7 +505,12 @@ TEST_CASE_TEMPLATE("arithmetic binary operator overloads on vec<T,M> are defined
     random_number_generator rng;
     for(int i=0; i<reps; ++i)
     {
-        const T a=rng, b=rng, c=rng, d=rng, e=rng, f=rng, g=rng, h=rng;
+        const T a=rng, b=rng, c=rng, d=rng;
+        T e=rng, f=rng, g=rng, h=rng;
+        while(e == 0) e=rng;
+        while(f == 0) f=rng;
+        while(g == 0) g=rng;
+        while(h == 0) h=rng;
 
         CHECK(linalg::vec<T,2>(a,b    ) + linalg::vec<T,2>(e,f    ) == linalg::vec<U,2>(a+e, b+f          ));
         CHECK(linalg::vec<T,3>(a,b,c  ) + linalg::vec<T,3>(e,f,g  ) == linalg::vec<U,3>(a+e, b+f, c+g     ));
