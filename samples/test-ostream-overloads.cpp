@@ -1,6 +1,9 @@
-#include "test-linalg.h"
+#include "../linalg.h"
+/*
+using namespace linalg::aliases;
 using namespace linalg::ostream_overloads;
 
+#include "thirdparty/doctest.h"
 #include <sstream>
 template<class T> std::string stringify(const T & value) { std::ostringstream ss; ss << value; return ss.str(); }
 template<class T> std::wstring wstringify(const T & value) { std::wostringstream ss; ss << value; return ss.str(); }
@@ -37,3 +40,4 @@ TEST_CASE("Test ostream << mat")
     CHECK(wstringify(float3x3{{1,2,3},{4,5,6},{7,8,9}}) == L"{{1,2,3},{4,5,6},{7,8,9}}");
     CHECK(wstringify(float4x2{{1,2,3,4},{5,6,7,8}}) == L"{{1,2,3,4},{5,6,7,8}}");
 }
+*/

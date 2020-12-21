@@ -2,7 +2,57 @@
 #include "../linalg.h"
 #include "thirdparty/doctest.h"
 #include <random>
+#include <sstream>
+#include <tuple>
 using namespace linalg::aliases;
+
+// Analog to doctest::Approx for vec/mat types
+template<class T> struct approximate { const T & value; };
+template<class T> approximate<T> approx(const T & value) { return {value}; }
+template<class T, int M> bool operator == (const linalg::vec<T,M> & a, const approximate<linalg::vec<T,M>> & b)
+{
+    for(int i=0; i<M; ++i) if(!(a[i] == doctest::Approx(b.value[i]))) return false;
+    return true;
+}
+template<class T, int M, int N> bool operator == (const linalg::mat<T,M,N> & a, const approximate<linalg::mat<T,M,N>> & b)
+{
+    for(int j=0; j<N; ++j) if(!(a[j] == approx(b.value[j]))) return false;
+    return true;
+}
+
+namespace doctest
+{
+    // namespace linalg::ostream_overloads confuses doctest's ADL, explicitly specialize instead
+    template<class T, int M> struct StringMaker<linalg::vec<T,M>>
+    {
+        static String convert(const linalg::vec<T,M> & value)
+        {
+            std::ostringstream ss;
+            linalg::ostream_overloads::operator << (ss, value);
+            return String(ss.str().c_str());
+        }
+    };
+    template<class T, int M, int N> struct StringMaker<linalg::mat<T,M,N>>
+    {
+        static String convert(const linalg::mat<T,M,N> & value)
+        {
+            std::ostringstream ss;
+            linalg::ostream_overloads::operator << (ss, value);
+            return String(ss.str().c_str());
+        }
+    };
+    template<class T> struct StringMaker<approximate<T>>
+    {
+        static String convert(const approximate<T> & value)
+        {
+            return StringMaker<T>::convert(value.value);
+        }
+    };
+
+    // A few tests use linalg::vec<std::tuple<...>,M>, which is an ADL nightmare for printing. Strategically give up.
+    template<class... T, int M> struct StringMaker<linalg::vec<std::tuple<T...>,M>> { static String convert(const linalg::vec<std::tuple<T...>,M> & value) { return "???"; } };
+    template<class... T, int M, int N> struct StringMaker<linalg::mat<std::tuple<T...>,M,N>> { static String convert(const linalg::mat<std::tuple<T...>,M,N> & value) { return "???"; } };
+}
 
 // Tests which use random data will be repeated this many times
 constexpr int reps = 5;

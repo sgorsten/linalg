@@ -1,4 +1,4 @@
-// linalg.h - v2.0 - Single-header public domain linear algebra library
+// linalg.h - 2.2-beta - Single-header public domain linear algebra library
 //
 // The intent of this library is to provide the bulk of the functionality
 // you need to write programs that frequently use small, fixed-size vectors
@@ -587,6 +587,7 @@ namespace linalg
     template<class T> mat<T,4,4> rotation_matrix   (const vec<T,4> & rotation)              { return {{qxdir(rotation),0}, {qydir(rotation),0}, {qzdir(rotation),0}, {0,0,0,1}}; }
     template<class T> mat<T,4,4> scaling_matrix    (const vec<T,3> & scaling)               { return {{scaling.x,0,0,0}, {0,scaling.y,0,0}, {0,0,scaling.z,0}, {0,0,0,1}}; }
     template<class T> mat<T,4,4> pose_matrix       (const vec<T,4> & q, const vec<T,3> & p) { return {{qxdir(q),0}, {qydir(q),0}, {qzdir(q),0}, {p,1}}; }
+    template<class T> mat<T,4,4> lookat_matrix     (const vec<T,3> & eye, const vec<T,3> & center, const vec<T,3> & view_y_dir, fwd_axis fwd = neg_z);
     template<class T> mat<T,4,4> frustum_matrix    (T x0, T x1, T y0, T y1, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one);
     template<class T> mat<T,4,4> perspective_matrix(T fovy, T aspect, T n, T f, fwd_axis a = neg_z, z_range z = neg_one_to_one) { T y = n*std::tan(fovy / 2), x = y*aspect; return frustum_matrix(-x, x, -y, y, n, f, a, z); }
 
@@ -703,6 +704,12 @@ template<class T> linalg::vec<T,4> linalg::rotation_quat(const mat<T,3,3> & m)
         {m.x.z + m.z.x, m.y.z + m.z.y, 1, m.x.y - m.y.x},
         {m.y.z - m.z.y, m.z.x - m.x.z, m.x.y - m.y.x, 1}};
     return copysign(normalize(sqrt(max(T(0), T(1)+q))), s[argmax(q)]);
+}
+
+template<class T> linalg::mat<T,4,4> linalg::lookat_matrix(const vec<T,3> & eye, const vec<T,3> & center, const vec<T,3> & view_y_dir, fwd_axis a)
+{
+    const vec<T,3> f = normalize(center - eye), z = a == pos_z ? f : -f, x = normalize(cross(view_y_dir, z)), y = cross(z, x);
+    return inverse(mat<T,4,4>{{x,0},{y,0},{z,0},{eye,1}});
 }
 
 template<class T> linalg::mat<T,4,4> linalg::frustum_matrix(T x0, T x1, T y0, T y1, T n, T f, fwd_axis a, z_range z) 

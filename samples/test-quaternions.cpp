@@ -1,5 +1,35 @@
 #include "test-linalg.h"
 
+TEST_CASE( "special quaternion functions behave as expected" )
+{
+    // qexp of a scalar should simply be the exp of that scalar
+    check_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
+
+    // e^(tau*i) == 1
+    check_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
+
+    // e^(tau*j) == 1
+    check_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
+
+    // qlog of a scalar should simply be the log of that scalar
+    check_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
+
+    // qexp(qlog(q)) == q
+    check_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
+
+    // qpow of a scalar should simply be the pow of that scalar
+    check_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
+
+    // qpow(q,2) == qmul(q,q)
+    check_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
+
+    // qpow(q,3) == qmul(q,q,q)
+    check_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
+
+    // qpow(qpow(q,2),3) == qpow(q,2*3)
+    check_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
+}
+
 TEST_CASE_TEMPLATE("Quaternion exponent, logarithm, and power", T, float, double)
 {
     constexpr T tau = T(6.2831853071795865), pi = tau/2;

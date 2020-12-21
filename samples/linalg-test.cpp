@@ -1,46 +1,12 @@
-#include "../linalg.h"
-using namespace linalg::aliases;
-
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "thirdparty/doctest.h"
+#include "test-linalg.h"
 
-#include <random>
 #include <algorithm>
 #include <typeinfo>
 
 #define FLOATING_POINT_TYPES double, float
 #define INTEGRAL_TYPES int, short, unsigned int, unsigned short
 #define ARITHMETIC_TYPES double, float, int, short, unsigned int, unsigned short
-
-// Facility for retrieving random numbers
-class random_number_generator
-{
-    std::mt19937 rng;
-    std::normal_distribution<double> dist_double;
-    std::normal_distribution<float> dist_float;
-    std::uniform_int_distribution<int> dist_int;
-    std::uniform_int_distribution<short> dist_short;
-    std::uniform_int_distribution<unsigned> dist_uint;
-    std::uniform_int_distribution<unsigned short> dist_ushort;
-public:
-    random_number_generator() : dist_int(-1000, 1000), dist_short(-100, 100), dist_uint(0, 1000), dist_ushort(0, 100) {}
-
-    operator double () { return dist_double(rng); }
-    operator float () { return dist_float(rng); }
-    operator int () { return dist_int(rng); }
-    operator short () { return dist_short(rng); }
-    operator unsigned int () { return dist_uint(rng); }
-    operator unsigned short () { return dist_ushort(rng); }
-    template<class T> operator linalg::vec<T,1> () { return linalg::vec<T,1>((T)*this); }
-    template<class T> operator linalg::vec<T,2> () { return linalg::vec<T,2>((T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,3> () { return linalg::vec<T,3>((T)*this, (T)*this, (T)*this); }
-    template<class T> operator linalg::vec<T,4> () { return linalg::vec<T,4>((T)*this, (T)*this, (T)*this, *this); }
-    template<class T, int M> operator linalg::mat<T,M,1> () { return linalg::mat<T,M,1>((linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,2> () { return linalg::mat<T,M,2>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,3> () { return linalg::mat<T,M,3>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-    template<class T, int M> operator linalg::mat<T,M,4> () { return linalg::mat<T,M,4>((linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this, (linalg::vec<T,M>)*this); }
-};
-static const int reps = 3; // Tests which use random data will be repeated this many times
 
 //////////////////////////////////////////////////////////
 // Test semantics of vec<T,M> element-wise constructors //
@@ -904,97 +870,6 @@ TEST_CASE( "hashing works as expected" )
             else REQUIRE( h(a) != h(b) ); // Note: Not required to be different in the general case
         }
     }
-}
-
-TEST_CASE( "special quaternion functions behave as expected" )
-{
-    // qexp of a scalar should simply be the exp of that scalar
-    require_approx_equal( qexp(float4(0,0,0,5)), float4(0,0,0,std::exp(5.0f)) );
-
-    // e^(tau*i) == 1
-    require_approx_equal( qexp(float4(6.28318531f,0,0,0)), float4(0,0,0,1) );
-
-    // e^(tau*j) == 1
-    require_approx_equal( qexp(float4(0,6.28318531f,0,0)), float4(0,0,0,1) );
-
-    // qlog of a scalar should simply be the log of that scalar
-    require_approx_equal( qlog(float4(0,0,0,5)), float4(0,0,0,std::log(5.0f)) );
-
-    // qexp(qlog(q)) == q
-    require_approx_equal( qexp(qlog(float4(1,2,3,4))), float4(1,2,3,4) );
-
-    // qpow of a scalar should simply be the pow of that scalar
-    require_approx_equal( qpow(float4(0,0,0,5), 3.14f), float4(0,0,0,std::pow(5.0f, 3.14f)) );
-
-    // qpow(q,2) == qmul(q,q)
-    require_approx_equal( qpow(float4(1,2,3,4), 2.0f), qmul(float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(q,3) == qmul(q,q,q)
-    require_approx_equal( qpow(float4(1,2,3,4), 3.0f), qmul(float4(1,2,3,4), float4(1,2,3,4), float4(1,2,3,4)) );
-
-    // qpow(qpow(q,2),3) == qpow(q,2*3)
-    require_approx_equal( qpow(qpow(float4(1,2,3,4), 2.0f), 3.0f), qpow(float4(1,2,3,4), 2.0f*3.0f) );
-}
-
-float3 transform_point(const float4x4 & m, const float3 & p) { const auto r = mul(m,float4(p,1)); return r.xyz()/r.w; }
-
-TEST_CASE( "Projection matrices behave as intended" )
-{
-    const float n = 0.1f, f = 10.0f;
-    const float nx0 = -0.9f*n, ny0 = -0.6f*n, nx1 = 0.8f*n, ny1 = 0.7f*n, ncx = (nx0+nx1)/2, ncy = (ny0+ny1)/2;
-    const float fx0 = -0.9f*f, fy0 = -0.6f*f, fx1 = 0.8f*f, fy1 = 0.7f*f, fcx = (fx0+fx1)/2, fcy = (fy0+fy1)/2;
-
-    // Right handed OpenGL convention, x-right, y-up, z-back
-    const float4x4 gl_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::neg_one_to_one); 
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ncy, -n)), float3( 0,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ny0, -n)), float3( 0, -1, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(ncx, ny1, -n)), float3( 0, +1, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(nx0, ncy, -n)), float3(-1,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(nx1, ncy, -n)), float3(+1,  0, -1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fcy, -f)), float3( 0,  0, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fy0, -f)), float3( 0, -1, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fcx, fy1, -f)), float3( 0, +1, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fx0, fcy, -f)), float3(-1,  0, +1) );
-    require_approx_equal( transform_point(gl_rh, float3(fx1, fcy, -f)), float3(+1,  0, +1) );
-
-    // Left handed OpenGL convention, x-right, y-up, z-forward
-    const float4x4 gl_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::neg_one_to_one);
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ncy, +n)), float3( 0,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ny0, +n)), float3( 0, -1, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(ncx, ny1, +n)), float3( 0, +1, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(nx0, ncy, +n)), float3(-1,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(nx1, ncy, +n)), float3(+1,  0, -1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fcy, +f)), float3( 0,  0, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fy0, +f)), float3( 0, -1, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fcx, fy1, +f)), float3( 0, +1, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fx0, fcy, +f)), float3(-1,  0, +1) );
-    require_approx_equal( transform_point(gl_lh, float3(fx1, fcy, +f)), float3(+1,  0, +1) );
-
-    // Right handed Vulkan convention, x-right, y-down, z-forward
-    const float4x4 vk_rh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::pos_z, linalg::zero_to_one);
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ncy, +n)), float3( 0,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ny0, +n)), float3( 0, -1, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(ncx, ny1, +n)), float3( 0, +1, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(nx0, ncy, +n)), float3(-1,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(nx1, ncy, +n)), float3(+1,  0, 0) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fcy, +f)), float3( 0,  0, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fy0, +f)), float3( 0, -1, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fcx, fy1, +f)), float3( 0, +1, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fx0, fcy, +f)), float3(-1,  0, 1) );
-    require_approx_equal( transform_point(vk_rh, float3(fx1, fcy, +f)), float3(+1,  0, 1) );
-
-    // Left handed Vulkan convention, x-right, y-down, z-back
-    const float4x4 vk_lh = frustum_matrix(nx0, nx1, ny0, ny1, n, f, linalg::neg_z, linalg::zero_to_one); 
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ncy, -n)), float3( 0,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ny0, -n)), float3( 0, -1, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(ncx, ny1, -n)), float3( 0, +1, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(nx0, ncy, -n)), float3(-1,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(nx1, ncy, -n)), float3(+1,  0, 0) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fcy, -f)), float3( 0,  0, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fy0, -f)), float3( 0, -1, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fcx, fy1, -f)), float3( 0, +1, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fx0, fcy, -f)), float3(-1,  0, 1) );
-    require_approx_equal( transform_point(vk_lh, float3(fx1, fcy, -f)), float3(+1,  0, 1) );
 }
 
 template<class T> void take(const T &) {}
