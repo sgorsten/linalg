@@ -1,6 +1,6 @@
 # linalg.h
 
-[![Release is 2.2-beta](https://img.shields.io/badge/version-2.2--beta-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
+[![Release is 2.2](https://img.shields.io/badge/version-2.2-blue.svg)](http://raw.githubusercontent.com/sgorsten/linalg/v3/linalg.h)
 [![License is Unlicense](http://img.shields.io/badge/license-Unlicense-blue.svg?style=flat)](http://unlicense.org/)
 [![Travis CI build status](http://travis-ci.org/sgorsten/linalg.svg)](https://travis-ci.org/sgorsten/linalg)
 [![Appveyor build status](http://ci.appveyor.com/api/projects/status/l4bfv5omodkajuc9?svg=true)](https://ci.appveyor.com/project/sgorsten/linalg)
