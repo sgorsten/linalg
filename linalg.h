@@ -215,8 +215,8 @@ namespace linalg
         // NOTE: vec<T,1> does NOT have a constructor from pointer, this can conflict with initializing its single element from zero
         template<class U>
         constexpr explicit          vec(const vec<U,1> & v)             : vec(static_cast<T>(v.x)) {}
-        constexpr const T &         operator[] (int i) const            { return x; }
-        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { return x; }
+        constexpr const T &         operator[] (int i) const            { (void)i; return x; }
+        LINALG_CONSTEXPR14 T &      operator[] (int i)                  { (void)i; return x; }
 
         template<class U, class=detail::conv_t<vec,U>> constexpr vec(const U & u) : vec(converter<vec,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,vec>> constexpr operator U () const { return converter<U,vec>{}(*this); }
@@ -293,8 +293,8 @@ namespace linalg
         template<class U> 
         constexpr explicit          mat(const mat<U,M,1> & m)           : mat(V(m.x)) {}
         constexpr vec<T,1>          row(int i) const                    { return {x[i]}; }
-        constexpr const V &         operator[] (int j) const            { return x; }
-        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { return x; }
+        constexpr const V &         operator[] (int j) const            { (void)j; return x; }
+        LINALG_CONSTEXPR14 V &      operator[] (int j)                  { (void)j; return x; }
 
         template<class U, class=detail::conv_t<mat,U>> constexpr mat(const U & u) : mat(converter<mat,U>{}(u)) {}
         template<class U, class=detail::conv_t<U,mat>> constexpr operator U () const { return converter<U,mat>{}(*this); }
